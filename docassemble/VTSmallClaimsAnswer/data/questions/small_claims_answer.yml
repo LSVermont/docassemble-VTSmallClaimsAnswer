@@ -1,0 +1,471 @@
+---
+include:
+  - docassemble.AssemblyLine:assembly_line.yml
+  - docassemble.ALToolbox:phone-number-validation.yml
+  - docassemble.VTSharedYMLFile:VTSharedYMLFile.yml
+---
+metadata:
+  title: >-
+    Small claims answer
+  short title: >-
+    Small claims answer
+  description: |-
+    This interview helps someone in Vermont respond to a small claims case.
+  can_I_use_this_form: |
+    If you are have been sued in small claims court, you can use this interview to respond.
+  before_you_start: |
+    This interview will help you respond to a small claims case.
+    
+    Before you get started, please gather:
+    
+    1. 
+    1. 
+    1. 
+    
+    When you are finished, you will need to:
+    
+    1. 
+    1.
+  maturity: production
+  estimated_completion_minutes: 30
+  estimated_completion_delta: 10
+  LIST_topics: 
+    - "MO-10-00-00-00"
+  tags:
+    - "MO-10-00-00-00"
+  authors:
+    - Kris Surette, VTCourtForms / Legal Services Vermont
+  original_form:
+    - https://vtlawhelp.org/cfp/respond-small-claims-complaint
+  original_form_published_on: 2015-07-01
+  help_page_url: >-
+    https://vtlawhelp.org/cfp/respond-small-claims-complaint
+  help_page_title: >-
+    Respond to a Small Claims Complaint
+  allowed_courts: []
+  typical_role: "defendant"
+  al_weaver_version: "1.11.0"
+  generated_on: "2024-11-14"
+  languages:
+    - en
+  jurisdiction: NAM-US-US+VT
+  review_date: 2024-11-14
+  form_titles:
+    - Small claims answer
+  form_numbers:
+    - 100-00126
+  update_notes: |
+---
+code: |
+  # This controls the default country and list of states in address field questions
+  AL_DEFAULT_COUNTRY = "US"
+---
+code: |
+  # This controls the default state in address field questions
+  AL_DEFAULT_STATE = "VT"
+---
+code: |
+  github_repo_name =  'docassemble-SmallClaimsAnswer'
+---
+code: |
+  interview_short_title = "Respond to a small claims case"
+---
+code: |
+  al_form_type = "existing_case" 
+---
+objects:
+  - users: ALPeopleList.using(ask_number=True,target_number=1)
+---
+objects:
+  - all_courts: ALCourtLoader.using(file_name='docassemble.VTSharedYMLFile:data/sources/courts_list_full.xlsx')
+---
+code: |
+  trial_court_index = all_courts.matching_courts_in_county(county_name=user_selected_county,search_columns=['division_abbr'],search_string=trial_court_division)[0][0]
+---
+sections:
+  - review_small_claims_answer: Review your answers
+---
+#################### Interview order #####################
+comment: |
+  Controls order and branching logic for questions specific to this form
+id: interview_order_small_claims_answer
+code: |
+  # Set the allowed courts for this interview
+  allowed_courts = []
+  nav.set_section("review_small_claims_answer")
+  user_role = "defendant"
+  user_ask_role = "defendant"
+  Screening_questions
+  users.gather()
+  set_parts(subtitle=str(users))
+  set_progress(14)
+  users[0].address.address
+  users[0].daytime_phone_number
+  users[0].email
+  set_progress(28)
+  docket_number
+  trial_court_division = "Civil"
+  user_selected_county
+  trial_court.address.county
+  disagrees_with_complaint
+  set_progress(42)
+  agrees_with_complaint
+  has_exempt_income
+  has_counterclaim
+  set_progress(56)
+  other_parties.there_are_any = True
+  other_parties.gather()
+  trial_court.address.county
+  interview_order_small_claims_answer = True
+---
+###################### Main order ######################
+comment: |
+  This block includes the logic for standalone interviews.
+  Delete mandatory: True to include in another interview
+mandatory: True
+code: |
+  al_intro_screen
+  small_claims_answer_intro
+  interview_order_small_claims_answer
+  small_claims_answer_preview_question
+  signature_date
+  # Store anonymous data for analytics / statistics
+  store_variables_snapshot(
+      persistent=True,
+      data={
+          "zip": showifdef("users[0].address.zip"),
+          "reached_interview_end": True,
+      },
+  )
+  small_claims_answer_download
+---
+id: Small_claims_answer
+continue button field: small_claims_answer_intro
+question: |
+  Small claims answer
+subquestion: |
+  This interview will help you respond to a small claims case.
+  
+  Before you get started, please gather:
+  
+  1. 
+  1. 
+  1. 
+  
+  When you are finished, you will need to:
+  
+  1. 
+  1.
+
+  If you are have been sued in small claims court, you can use this interview to respond.
+
+  Most people take about 30 minutes to complete this interview.
+---
+id: Screening questions
+question: |
+  Screening questions
+continue button field: Screening_questions
+---
+id: Phone and email
+question: |
+  Phone and email
+fields:
+  - "Your daytime phone number": users[0].daytime_phone_number
+    maxlength: 27
+  - "Your email address": users[0].email
+    maxlength: 38  
+---
+id: choose a court county
+question: |
+  What county is your case in?
+fields:
+  - note: |
+      Choose the county where you will file this form.
+
+  - County: user_selected_county
+    code: sorted(all_courts.unique_column_values('branch') - {"Environmental", "Judicial Bureau"} )
+  
+  - note: |
+      ${ collapse_template(which_county_to_choose) }
+      ${ collapse_template(in_which_county) }
+---
+id: Disagree with the complaint
+question: |
+  Disagree with the complaint
+fields:
+  - "Disagree with complaint": disagrees_with_complaint
+    datatype: yesno
+  - "Please explain": disagrees_with_complaint_description
+    input type: area
+---
+id: Agree with the complaint
+question: |
+  Agree with the complaint
+fields:
+  - "Agree with complaint": agrees_with_complaint
+    datatype: yesno
+  - "Agree to pay in full": agrees_to_pay_in_full
+    datatype: yesno
+  - "Agree to pay installments": agrees_to_pay_installments
+    datatype: yesno
+  - "In this amount": agrees_to_pay_installments_amount
+    datatype: currency
+    min: 0
+  - "Every": agrees_to_pay_installments_period
+    maxlength: 13
+  - "Starting": agrees_to_pay_installments_start_date
+    datatype: date
+---
+id: Exempt income
+question: |
+  Exempt income
+fields:
+  - "Have exempt income": has_exempt_income
+    datatype: yesno
+---
+id: Counterclaims
+question: |
+  Counterclaims
+fields:
+  - "Have a counterclaim": has_counterclaim
+    datatype: yesno
+  - "Please describe": counterclaim_description
+    input type: area
+---
+id: preview small_claims_answer
+question: |
+  Preview your form before you sign it
+subquestion: |
+  Here is a preview of the form you will sign on the next page.   
+  
+  ${ al_court_bundle.as_pdf(key='preview') }
+
+  Click the image to open it in a new tab. Click the "Edit answers" button
+  to edit your answers.
+
+  ${ action_button_html(url_action('review_small_claims_answer'), label='Edit answers', color='info') }
+  
+  Remember to come back to this window to continue and sign your form.
+continue button field: small_claims_answer_preview_question    
+---
+code: |
+  signature_fields = ['users[0].signature']
+---
+code: |
+  # This is a placeholder for the addresses that will be searched
+  # for matching address to court. Edit if court venue is based on 
+  # a different address than the user's
+  [user.address.address for user in users.complete_elements()]
+  addresses_to_search = [user.address for user in users.complete_elements()]
+---
+id: small claims answer review screen
+event: review_small_claims_answer
+question: |
+  Review your answers
+review:
+  - Edit: trial_court
+    button: |
+      **Trial court**
+  
+      % if defined("trial_court.address.county"):
+      * address: ${ trial_court.address.block() }
+      % endif
+  - Edit: docket_number
+    button: |
+      **Docket number**:
+      ${ docket_number }
+  - Edit: other_parties.revisit
+    button: |
+      **Other parties**
+
+      % for item in other_parties:
+        * ${ item }
+      % endfor
+  - Edit: users.revisit
+    button: |
+      **Users**
+
+      % for item in users:
+        * ${ item }
+      % endfor
+  - Edit: agrees_with_complaint
+    button: |
+      **Agree with complaint**:
+      ${ word(yesno(agrees_with_complaint)) }
+  - Edit: agrees_to_pay_in_full
+    button: |
+      **Agree to pay in full**:
+      ${ word(yesno(agrees_to_pay_in_full)) }
+  - Edit: agrees_to_pay_installments
+    button: |
+      **Agree to pay installments**:
+      ${ word(yesno(agrees_to_pay_installments)) }
+  - Edit: agrees_to_pay_installments_amount
+    button: |
+      **In this amount**:
+      ${ currency(agrees_to_pay_installments_amount) }
+  - Edit: agrees_to_pay_installments_period
+    button: |
+      **Every**:
+      ${ agrees_to_pay_installments_period }
+  - Edit: agrees_to_pay_installments_start_date
+    button: |
+      **Starting**:
+      ${ agrees_to_pay_installments_start_date }
+  - Edit: disagrees_with_complaint
+    button: |
+      **Disagree with complaint**:
+      ${ word(yesno(disagrees_with_complaint)) }
+  - Edit: disagrees_with_complaint_description
+    button: |
+      **Please explain**:
+      > ${ single_paragraph(disagrees_with_complaint_description) }
+  - Edit: has_exempt_income
+    button: |
+      **Have exempt income**:
+      ${ word(yesno(has_exempt_income)) }
+  - Edit: has_counterclaim
+    button: |
+      **Have a counterclaim**:
+      ${ word(yesno(has_counterclaim)) }
+  - Edit: counterclaim_description
+    button: |
+      **Please describe**:
+      > ${ single_paragraph(counterclaim_description) }
+  - Edit: users1_name
+    button: |
+      **Your name**:
+      ${ users1_name }
+  - Edit: signature_date
+    button: |
+      **Date of signature**:
+      ${ signature_date }
+  - Edit: users1_daytime_phone_number
+    button: |
+      **Your daytime phone number**:
+      ${ users1_daytime_phone_number }
+---
+continue button field: other_parties.revisit
+question: |
+  Edit other_parties
+subquestion: |
+  ${ other_parties.table }
+
+  ${ other_parties.add_action() }
+---
+table: other_parties.table
+rows: other_parties
+columns:
+  - Name: |
+      row_item.name.full() if defined("row_item.name.first") else ""
+edit:
+  - name.first
+confirm: True
+
+---
+continue button field: users.revisit
+question: |
+  Edit users
+subquestion: |
+  ${ users.table }
+
+  ${ users.add_action() }
+---
+table: users.table
+rows: users
+columns:
+  - Name: |
+      row_item.name.full() if defined("row_item.name.first") else ""
+  - Signature: |
+      row_item.signature if defined("row_item.signature") else ""
+  - Address: |
+      row_item.address.block() if defined("row_item.address.address") else ""
+  - Email: |
+      row_item.email if defined("row_item.email") else ""
+edit:
+  - name.first
+  - signature
+  - address.address
+  - daytime_phone_number
+  - email
+confirm: True
+
+---
+id: download small_claims_answer
+event: small_claims_answer_download
+question: |
+  All done
+subquestion: |
+  Thank you ${users}. Your form is ready to download and deliver.
+  
+  View, download and send your form below. Click the "Edit answers" button to fix any mistakes.
+
+  ${ action_button_html(url_action('review_small_claims_answer'), label='Edit answers', color='info') }
+  
+  
+  ${ al_user_bundle.download_list_html() }
+  
+
+  ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
+
+progress: 100
+---
+# ALDocument objects specify the metadata for each template
+objects:
+  - small_claims_answer_Post_interview_instructions: ALDocument.using(title="Instructions", filename="small_claims_answer_next_steps.docx", enabled=True, has_addendum=False)
+  - small_claims_answer_attachment: ALDocument.using(title="Small claims answer", filename="small_claims_answer", enabled=True, has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+# Bundles group the ALDocuments into separate downloads, such as for court and for the user
+objects:
+  - al_user_bundle: ALDocumentBundle.using(elements=[small_claims_answer_Post_interview_instructions, small_claims_answer_attachment], filename="small_claims_answer", title="All forms to download for your records", enabled=True)
+  - al_court_bundle: ALDocumentBundle.using(elements=[small_claims_answer_attachment],  filename="small_claims_answer", title="All forms to deliver to court", enabled=True)
+---
+# Each attachment defines a key in an ALDocument. We use `i` as the placeholder here so the same template is 
+# used for "preview" and "final" keys, and logic in the template checks the value of 
+# `i` to show or hide the user's signature
+attachment:
+  name: Post-interview-Instructions
+  filename: small_claims_answer_next_steps
+  docx template file: small_claims_answer_next_steps.docx
+  variable name: small_claims_answer_Post_interview_instructions[i]
+  skip undefined: True
+  tagged pdf: True
+---
+attachment:
+  name: small claims answer
+  filename: small_claims_answer
+  variable name: small_claims_answer_attachment[i]
+  skip undefined: True
+  pdf template file: small_claims_answer.pdf
+  fields:
+      - "trial_court_county": ${ trial_court.address.county }
+      - "docket_number": ${ docket_number }
+      - "other_parties1_name": ${ other_parties[0] }
+      - "users1_name": ${ users[0] }
+      - "agrees_with_complaint": ${ agrees_with_complaint }
+      - "agrees_to_pay_in_full": ${ agrees_to_pay_in_full }
+      - "agrees_to_pay_installments": ${ agrees_to_pay_installments }
+      - "agrees_to_pay_installments_amount": ${ currency(agrees_to_pay_installments_amount) }
+      - "agrees_to_pay_installments_period": ${ agrees_to_pay_installments_period }
+      - "agrees_to_pay_installments_start_date": ${ agrees_to_pay_installments_start_date.format() }
+      - "disagrees_with_complaint": ${ disagrees_with_complaint }
+      - "disagrees_with_complaint_description": ${ small_claims_answer_attachment.safe_value("disagrees_with_complaint_description") }
+      - "has_exempt_income": ${ has_exempt_income }
+      - "has_counterclaim": ${ has_counterclaim }
+      - "counterclaim_description": ${ small_claims_answer_attachment.safe_value("counterclaim_description") }
+      - "users1_signature": ${ users[0].signature_if_final(i) }
+      - "users1_name_1": ${ users1_name }
+      - "users1_address_on_one_line": ${ users[0].address.on_one_line() }
+      - "signature_date": ${ signature_date }
+      - "users1_daytime_phone_number": ${ users1_daytime_phone_number }
+      - "users1_email": ${ users[0].email }
+---
+code: |
+  small_claims_answer_attachment.overflow_fields["disagrees_with_complaint_description"].overflow_trigger = 348
+  small_claims_answer_attachment.overflow_fields["disagrees_with_complaint_description"].label = "Please explain"
+  small_claims_answer_attachment.overflow_fields["counterclaim_description"].overflow_trigger = 344
+  small_claims_answer_attachment.overflow_fields["counterclaim_description"].label = "Please describe"
+  small_claims_answer_attachment.overflow_fields.gathered = True
+
+
+
