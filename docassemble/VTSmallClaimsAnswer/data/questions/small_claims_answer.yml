@@ -237,18 +237,22 @@ fields:
 ---
 id: Exempt income
 question: |
-  Exempt income
+  Do you have "exempt" income?
+subquestion: |
+  That is, do you have....
 fields:
-  - "Have exempt income": has_exempt_income
+  - "Yes, I have exempt income": has_exempt_income
     datatype: yesno
 ---
 id: Counterclaims
 question: |
-  Counterclaims
+  Do you want to make a counterclaim?
+subquestion: |
+  That is, do you....
 fields:
-  - "Have a counterclaim": has_counterclaim
+  - "Yes, I want to make a counterclaim": has_counterclaim
     datatype: yesno
-  - "Please describe": counterclaim_description
+  - "Please describe the reason(s) for your counterclaim": counterclaim_description
     input type: area
 ---
 id: preview small_claims_answer
