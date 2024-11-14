@@ -98,7 +98,7 @@ code: |
   if was_sued == False:
     wrong_interview_kickout
   else:
-    if sued_for > 10001:
+    if sued_for >= 10001:
       wrong_interview_kickout
     else:
       sued_when_served
