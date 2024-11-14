@@ -115,7 +115,6 @@ code: |
   set_progress(56)
   other_parties.there_are_any = True
   other_parties.gather()
-  trial_court.address.county
   interview_order_small_claims_answer = True
 ---
 ###################### Main order ######################
@@ -127,8 +126,13 @@ code: |
   al_intro_screen
   small_claims_answer_intro
   interview_order_small_claims_answer
+  trial_court.address.county
   small_claims_answer_preview_question
   signature_date
+  set_progress(95)
+  al_form_requires_digital_signature = False
+  basic_questions_signature_flow
+  
   # Store anonymous data for analytics / statistics
   store_variables_snapshot(
       persistent=True,
@@ -191,45 +195,64 @@ fields:
 ---
 id: Disagree with the complaint
 question: |
-  Disagree with the complaint
+  Do you disagree with the complaint?
+subquestion: |
+  I disagree that I owe the plaintiff the full amount claimed in the complaint and I request a court hearing.
 fields:
-  - "Disagree with complaint": disagrees_with_complaint
+  - "I disagree with the complaint": disagrees_with_complaint
     datatype: yesno
-  - "Please explain": disagrees_with_complaint_description
+  - "Please explain why": disagrees_with_complaint_description
     input type: area
+    show if: disagrees_with_complaint
 ---
 id: Agree with the complaint
 question: |
-  Agree with the complaint
+  Do you agree with the complaint?
+subquestion: |
+  I agree that I owe the plaintiff the full amount claimed in the complaint and the court may enter a judgment against me. (If unpaid after 30 days, interest on the unpaid amount will accrue at 12% per year).
 fields:
-  - "Agree with complaint": agrees_with_complaint
+  - "I agree with the complaint": agrees_with_complaint
     datatype: yesno
-  - "Agree to pay in full": agrees_to_pay_in_full
+  - "I agree to pay the amount in full within 30 days.": agrees_to_pay_in_full
     datatype: yesno
-  - "Agree to pay installments": agrees_to_pay_installments
+    show if: agrees_with_complaint
+  - "I cannot pay the full amount at one time. I'd like to ask the court for installment payments.": agrees_to_pay_installments
     datatype: yesno
-  - "In this amount": agrees_to_pay_installments_amount
+    show if: agrees_with_complaint
+  - "I can pay this amount": agrees_to_pay_installments_amount
     datatype: currency
     min: 0
-  - "Every": agrees_to_pay_installments_period
-    maxlength: 13
-  - "Starting": agrees_to_pay_installments_start_date
+    show if: agrees_to_pay_installments
+  - Every: agrees_to_pay_installments_period
+    datatype: radio
+    choices:
+      - Week
+      - Two weeks
+      - Month
+      - Two months
+    show if: agrees_to_pay_installments
+  - Starting on this date: agrees_to_pay_installments_start_date
     datatype: date
+    show if: agrees_to_pay_installments
 ---
 id: Exempt income
 question: |
-  Exempt income
+  Do you have "exempt" income?
+subquestion: |
+  That is, do you have....
 fields:
-  - "Have exempt income": has_exempt_income
+  - "Yes, I have exempt income": has_exempt_income
     datatype: yesno
 ---
 id: Counterclaims
 question: |
-  Counterclaims
+  Do you want to make a counterclaim?
+subquestion: |
+  That is, do you....
 fields:
-  - "Have a counterclaim": has_counterclaim
+  - "Yes, I want to make a counterclaim": has_counterclaim
     datatype: yesno
-  - "Please describe": counterclaim_description
+  - "Please describe the reason(s) for your counterclaim": counterclaim_description
     input type: area
 ---
 id: preview small_claims_answer
@@ -246,10 +269,53 @@ subquestion: |
   ${ action_button_html(url_action('review_small_claims_answer'), label='Edit answers', color='info') }
   
   Remember to come back to this window to continue and sign your form.
-continue button field: small_claims_answer_preview_question    
+continue button field: small_claims_answer_preview_question   
 ---
 code: |
   signature_fields = ['users[0].signature']
+---
+id: Signing your forms
+question: |
+  Signature date
+fields:
+  - "This is how your name will appear under your signature.": printed_signature
+    default: |
+      ${ users[0].name }
+    maxlength: 34
+
+  - "Date of your signature for these forms": signature_date
+    datatype: date
+    required: False
+    default: |
+      ${ today() }
+  -  note: |
+       You can change this date later if you want.
+       
+       **Tap Next to choose how to sign your documents.**
+---
+id: signature choice
+decoration: file-signature
+question: |
+  Your documents are almost ready
+subquestion: |
+  How do you want to sign them?
+fields: 
+  - I will sign: signature_choice
+    input type: radio
+    choices:
+      - On my computer or phone: this_device
+    show if:
+      code: |
+        al_form_requires_digital_signature
+  - I will sign: signature_choice
+    input type: radio
+    choices:
+      - On my computer or phone: this_device
+      - On the paper with a pen after I print the documents: sign_after_printing
+    show if:
+      code: |
+        not al_form_requires_digital_signature
+continue button field: saw_signature_choice    
 ---
 code: |
   # This is a placeholder for the addresses that will be searched
@@ -332,18 +398,14 @@ review:
     button: |
       **Please describe**:
       > ${ single_paragraph(counterclaim_description) }
-  - Edit: users1_name
-    button: |
-      **Your name**:
-      ${ users1_name }
   - Edit: signature_date
     button: |
       **Date of signature**:
       ${ signature_date }
-  - Edit: users1_daytime_phone_number
+  - Edit: users[0].daytime_phone_number
     button: |
       **Your daytime phone number**:
-      ${ users1_daytime_phone_number }
+      ${ users[0].daytime_phone_number }
 ---
 continue button field: other_parties.revisit
 question: |
@@ -389,7 +451,38 @@ edit:
   - daytime_phone_number
   - email
 confirm: True
-
+---
+############################# SIGNATURE #############################
+---
+id: User signature
+question: |
+  User signature
+continue button field: User_signature
+---
+id: signature choice
+decoration: file-signature
+question: |
+  Your documents are almost ready
+subquestion: |
+  How do you want to sign them?
+fields: 
+  - I will sign: signature_choice
+    input type: radio
+    choices:
+      - On my computer or phone: this_device
+    show if:
+      code: |
+        al_form_requires_digital_signature
+  - I will sign: signature_choice
+    input type: radio
+    choices:
+      - On my computer or phone: this_device
+      - On the paper with a pen after I print the documents: sign_after_printing
+    show if:
+      code: |
+        not al_form_requires_digital_signature
+continue button field: saw_signature_choice    
+---
 ---
 id: download small_claims_answer
 event: small_claims_answer_download
@@ -454,10 +547,10 @@ attachment:
       - "has_counterclaim": ${ has_counterclaim }
       - "counterclaim_description": ${ small_claims_answer_attachment.safe_value("counterclaim_description") }
       - "users1_signature": ${ users[0].signature_if_final(i) }
-      - "users1_name_1": ${ users1_name }
+      - "users1_name_1": ${ users[0] }
       - "users1_address_on_one_line": ${ users[0].address.on_one_line() }
       - "signature_date": ${ signature_date }
-      - "users1_daytime_phone_number": ${ users1_daytime_phone_number }
+      - "users1_daytime_phone_number": ${ users[0].daytime_phone_number }
       - "users1_email": ${ users[0].email }
 ---
 code: |
