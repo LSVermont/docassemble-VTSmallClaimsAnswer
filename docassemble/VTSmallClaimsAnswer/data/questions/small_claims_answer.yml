@@ -95,7 +95,16 @@ code: |
   nav.set_section("review_small_claims_answer")
   user_role = "defendant"
   user_ask_role = "defendant"
-  Screening_questions
+  if was_sued == False:
+    wrong_interview_kickout
+  else:
+    if sued_for > 10001:
+      wrong_interview_kickout
+    else:
+      sued_when_served
+      if sued_when_served <= today().minus(months=1):
+        late_answer_warning
+  lets_get_started
   users.gather()
   set_parts(subtitle=str(users))
   set_progress(14)
@@ -165,10 +174,70 @@ subquestion: |
 
   Most people take about 30 minutes to complete this interview.
 ---
-id: Screening questions
+id: screening have you been sued
 question: |
-  Screening questions
-continue button field: Screening_questions
+  Is this tool right for you?
+subquestion: | 
+  Have you been sued in small claims court?
+fields:
+  - "Did you get a complaint that says this near the top: SMALL CLAIMS COMPLAINT?": was_sued    
+    datatype: yesnoradio
+---
+id: screening sued for under 10k
+question: |
+  Is this tool right for you?
+subquestion: | 
+  How much do they say you owe?
+fields:
+  - Amount on the complaint: sued_for    
+    datatype: currency
+---
+id: screening when served
+question: |
+  Is this tool right for you?
+subquestion: | 
+  When did you receive the complaint?
+fields:
+  - Date you got it: sued_when_served    
+    datatype: date
+---
+id: screening late answer warning
+question: |
+  Warning
+subquestion: | 
+  The court sets a deadline to send your answer in within 30 days of receiving the complaint. If it has been longer than 30 days, fill out this form and file it with the court **as soon as possible.** Do this before the plaintiff asks for a default judgment against you, which can happen any time after the 30-day deadline.
+
+  You can still use this tool, but because you are late, be warned that the plaintiff may be asking the court for a default judgment against you now or very soon.
+
+  If you want to continue, tap Next.
+continue button field: late_answer_warning
+---
+id: screening wrong interview kickout
+question: |
+  Stop
+subquestion: | 
+  This is not the right tool for you to use.
+
+  Ask for general help with court forms or the court process by contacting the [Vermont Judiciary Access and Resource Center.](https://www.vermontjudiciary.org/self-help/ARC) Their services are free and they serve the whole state. They do NOT give legal advice.
+
+  Email: [selfhelp@vtcourts.gov](mailto:selfhelp@vtcourts.gov)
+  
+  Call: 802-879-1185
+buttons:
+  - DELETE your answers: restart
+continue button field: wrong_interview_kickout
+---
+id: lets get started
+question: |
+  Continue
+subquestion: |
+  
+  Keep in mind, you can edit your answers after you preview the finished forms. You can also do that anytime by choosing Edit My Answers on the side of the screen or in the Menu at the top-right of the screen.
+  
+  You can also go to the Menu and quickly Exit and Delete Your Answers if you need to. And, you may choose to make a free account so you can store your answers online and come back to them later.
+  
+  Let's get started. Tap Next.
+continue button field: lets_get_started
 ---
 id: Phone and email
 question: |
