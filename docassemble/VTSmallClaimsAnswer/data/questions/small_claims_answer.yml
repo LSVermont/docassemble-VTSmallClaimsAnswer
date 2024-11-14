@@ -115,7 +115,6 @@ code: |
   set_progress(56)
   other_parties.there_are_any = True
   other_parties.gather()
-  trial_court.address.county
   interview_order_small_claims_answer = True
 ---
 ###################### Main order ######################
@@ -127,8 +126,13 @@ code: |
   al_intro_screen
   small_claims_answer_intro
   interview_order_small_claims_answer
+  trial_court.address.county
   small_claims_answer_preview_question
   signature_date
+  set_progress(95)
+  al_form_requires_digital_signature = False
+  basic_questions_signature_flow
+  
   # Store anonymous data for analytics / statistics
   store_variables_snapshot(
       persistent=True,
@@ -246,10 +250,53 @@ subquestion: |
   ${ action_button_html(url_action('review_small_claims_answer'), label='Edit answers', color='info') }
   
   Remember to come back to this window to continue and sign your form.
-continue button field: small_claims_answer_preview_question    
+continue button field: small_claims_answer_preview_question   
 ---
 code: |
   signature_fields = ['users[0].signature']
+---
+id: Signing your forms
+question: |
+  Signature date
+fields:
+  - "This is how your name will appear under your signature.": printed_signature
+    default: |
+      ${ users[0].name }
+    maxlength: 34
+
+  - "Date of your signature for these forms": signature_date
+    datatype: date
+    required: False
+    default: |
+      ${ today() }
+  -  note: |
+       You can change this date later if you want.
+       
+       **Tap Next to choose how to sign your documents.**
+---
+id: signature choice
+decoration: file-signature
+question: |
+  Your documents are almost ready
+subquestion: |
+  How do you want to sign them?
+fields: 
+  - I will sign: signature_choice
+    input type: radio
+    choices:
+      - On my computer or phone: this_device
+    show if:
+      code: |
+        al_form_requires_digital_signature
+  - I will sign: signature_choice
+    input type: radio
+    choices:
+      - On my computer or phone: this_device
+      - On the paper with a pen after I print the documents: sign_after_printing
+    show if:
+      code: |
+        not al_form_requires_digital_signature
+continue button field: saw_signature_choice    
 ---
 code: |
   # This is a placeholder for the addresses that will be searched
@@ -389,7 +436,38 @@ edit:
   - daytime_phone_number
   - email
 confirm: True
-
+---
+############################# SIGNATURE #############################
+---
+id: User signature
+question: |
+  User signature
+continue button field: User_signature
+---
+id: signature choice
+decoration: file-signature
+question: |
+  Your documents are almost ready
+subquestion: |
+  How do you want to sign them?
+fields: 
+  - I will sign: signature_choice
+    input type: radio
+    choices:
+      - On my computer or phone: this_device
+    show if:
+      code: |
+        al_form_requires_digital_signature
+  - I will sign: signature_choice
+    input type: radio
+    choices:
+      - On my computer or phone: this_device
+      - On the paper with a pen after I print the documents: sign_after_printing
+    show if:
+      code: |
+        not al_form_requires_digital_signature
+continue button field: saw_signature_choice    
+---
 ---
 id: download small_claims_answer
 event: small_claims_answer_download
