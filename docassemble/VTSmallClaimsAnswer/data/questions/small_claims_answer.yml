@@ -12,20 +12,16 @@ metadata:
   description: |-
     This interview helps someone in Vermont respond to a small claims case.
   can_I_use_this_form: |
-    If you are have been sued in small claims court, you can use this interview to respond.
+    If you are have been sued in small claims court, you can use this tool to respond.
   before_you_start: |
-    This interview will help you respond to a small claims case.
+    This tool will help you respond to a small claims case.
     
     Before you get started, please gather:
     
-    1. 
-    1. 
-    1. 
     
     When you are finished, you will need to:
     
-    1. 
-    1.
+
   maturity: production
   estimated_completion_minutes: 30
   estimated_completion_delta: 10
@@ -116,11 +112,13 @@ code: |
   trial_court_division = "Civil"
   user_selected_county
   trial_court.address.county
-  if defenses is not None:
+  if len(defenses.true_values()) > 0:
     disagrees_additional_explanation
   else:
     agrees_with_complaint
-    if disagrees:
+    if not agrees_with_complaint and disagrees:
+      invalidate("agrees_with_complaint")
+      invalidate("defenses")
       defenses
   set_progress(42)
   has_exempt_income
