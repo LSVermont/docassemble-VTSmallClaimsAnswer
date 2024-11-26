@@ -121,7 +121,7 @@ code: |
       invalidate("defenses")
       defenses
   set_progress(42)
-  has_exempt_income
+  has_exempt_income_state
   has_counterclaim
   set_progress(56)
   other_parties.there_are_any = True
@@ -352,17 +352,21 @@ subquestion: |
 
   As part of your answer, you can let the other party and the court know if all or some of your income may be "exempt" from collection. Certain types of income and assets (things you own) are called exempt and cannot be taken to pay a debt.
 
-  Check any boxes that apply to you.
+  **Check any boxes that apply to you.**
 
   I am currently eligible, or was eligible within the last two months, for benefits from these exempt sources:
 
 fields:
-  - no label: has_exempt_income
+  - no label: has_exempt_income_state
     datatype: checkboxes
     choices:
       - the Vermont Department for Children and Families (DCF) (examples…): dcf
       - the Department of Vermont Health Access (DVHA).(examples…): dvha
-      - note -- I have income from these exempt sources
+  - note: |
+      I have income from these exempt sources:
+  - no label: has_exempt_income_other
+    datatype: checkboxes
+    choices:      
       - Social Security Income (examples…): ssa
       - Social Security or Social Security Disability (SSDI?): ssdi
       - Veteran’s Benefits: veterans
@@ -374,6 +378,7 @@ question: |
   Do you want to make a counterclaim?
 subquestion: |
   That is, do you....
+  
 fields:
   - "Yes, I want to make a counterclaim": has_counterclaim
     datatype: yesno
