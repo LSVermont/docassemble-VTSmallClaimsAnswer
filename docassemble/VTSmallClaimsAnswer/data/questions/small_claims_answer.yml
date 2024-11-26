@@ -116,10 +116,12 @@ code: |
   trial_court_division = "Civil"
   user_selected_county
   trial_court.address.county
-  if defenses:
-    disagrees_with_complaint_description
+  if defenses is not None:
+    disagrees_additional_explanation
   else:
     agrees_with_complaint
+    if disagrees:
+      defenses
   set_progress(42)
   has_exempt_income
   has_counterclaim
@@ -272,7 +274,6 @@ subquestion: |
 
   NOTE: If you choose any of these defenses, you are choosing to disagree with what the person who sued you has claimed.
 
-  
 fields:
 - "Check any boxes that describe your situation.": defenses
   datatype: checkboxes
@@ -283,26 +284,46 @@ fields:
     - "This debt is discharged due to my personal bankruptcy.": bankruptcy
     - "This debt is of a Limited Liability Corporation (LLC) registered in my name.": llc_debt
     - "The Plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt.": not_orginal_creditor
-    - "It has been six years since I incurred this debt.": six_years_since_debt
-    - "It has been six years since my last payment of this debt.": six_years_since_payment
+    - "It has been six years since I incurred this debt.": long_time_since_debt
+    - "It has been six years since my last payment of this debt.": long_time_since_payment
 
 ---
 id: disagrees with the complaint
 question: |
   Do you want to add any more explanation?
 subquestion: |
-  I disagree that I owe the plaintiff the full amount claimed in the complaint and I request a court hearing.
+  So far, this is what we have to explain your defense(s).
+  
+  **I disagree that I owe the plaintiff the full amount claimed in the complaint and I request a court hearing.**
+
+  % if defenses["do_not_recognize"]:
+    **I don't recognize this debt.**
+  
+    **The dollar amount the debt collectors are asking of me does not correspond to the dollar amount I actually owe.
+    I have already paid the debt.
+    This debt is discharged due to personal bankruptcy.
+    This debt is of a Limited Liability Corporation registered in my name.
+    The Plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt.
+    It has been six years since I incurred this debt.
+    It has been six years since my last payment of this debt.**
+  % endif
+  
 fields:
-  - "Please explain why": disagrees_with_complaint_description
+  - "More explanation (optional)": disagrees_additional_explanation
     input type: area
+    required: false
 ---
-id: Agree with the complaint
+id: agrees with the complaint
 question: |
-  Do you agree with the complaint?
+  You agree with the complaint?
 subquestion: |
+  Earlier, you did not choose any "defenses" to the small claims complaint. That means you agree with the amount you owe and who you owe. If that is true, check the box below.
+  
   I agree that I owe the plaintiff the full amount claimed in the complaint and the court may enter a judgment against me. (If unpaid after 30 days, interest on the unpaid amount will accrue at 12% per year).
 fields:
   - "I agree with the complaint": agrees_with_complaint
+    datatype: yesno
+  - "I do not agree with the complaint and want to revisit the list of defenses.": disagrees
     datatype: yesno
   - "I agree to pay the amount in full within 30 days.": agrees_to_pay_in_full
     datatype: yesno
@@ -326,14 +347,29 @@ fields:
     datatype: date
     show if: agrees_to_pay_installments
 ---
-id: Exempt income
+id: exempt income
 question: |
   Do you have "exempt" income?
 subquestion: |
-  That is, do you have....
+
+  As part of your answer, you can let the other party and the court know if all or some of your income may be "exempt" from collection. Certain types of income and assets (things you own) are called exempt and cannot be taken to pay a debt.
+
+  Check any boxes that apply to you.
+
+  I am currently eligible, or was eligible within the last two months, for benefits from these exempt sources:
+
 fields:
-  - "Yes, I have exempt income": has_exempt_income
-    datatype: yesno
+  - no label: has_exempt_income
+    datatype: checkboxes
+    choices:
+      - the Vermont Department for Children and Families (DCF) (examples…): dcf
+      - the Department of Vermont Health Access (DVHA).(examples…): dvha
+      - note -- I have income from these exempt sources
+      - Social Security Income (examples…): ssa
+      - Social Security or Social Security Disability (SSDI?): ssdi
+      - Veteran’s Benefits: veterans
+      - Unemployment Compensation: unemployment
+      - Workers’ Compensation: workers_comp
 ---
 id: Counterclaims
 question: |
