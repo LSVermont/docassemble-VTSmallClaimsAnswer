@@ -122,7 +122,10 @@ code: |
       defenses
   set_progress(42)
   has_exempt_income_state
-  has_counterclaim
+  if len(counterclaims.true_values()) > 0:
+    has_counterclaims
+  else:
+    no_counterclaims
   set_progress(56)
   other_parties.there_are_any = True
   other_parties.gather()
@@ -373,17 +376,61 @@ fields:
       - Unemployment Compensation: unemployment
       - Workers’ Compensation: workers_comp
 ---
-id: Counterclaims
+id: counterclaims options
 question: |
-  Do you want to make a counterclaim?
+  Do you want to make counterclaims?
 subquestion: |
-  That is, do you....
+  Your answers to the following questions can help figure out if you (the defendant) have “counterclaims” against the plaintiff (the person or company that sued you).
+
+  If you decide to file counterclaims, there is a court filing of $xx. If you have a low income, you can ask the court to waive the fee. You can use our VTCourtForms tool for the fee waiver.
+
+  Check any box that describes your situation.
+
+fields:
+  - no label: counterclaims
+    datatype: checkboxes
+    choices:
+      - I believe the plaintiff owes me money.
+      - The person suing me is not the original creditor or lender of the money.
+      - I didn't get a letter from the debt collection company alerting me to my debt before I was sued.
+      - The debt collection company made statements that were not true or were misleading about the debt.
+      - The debt collection company harassed me.
+
+  - note: |
+      Note about harassment: You can bring a counterclaim for a violation of the Fair Debt Collection Practices Act (FDCPA) for misleading claims, threats, major harassment, etc. The FDCPA applies to third party debt collectors, so one element of an FDCPA violation claim is acknowledging that the debt collector is not the original creditor. However, this alone does not provide grounds for an FDCPA counterclaim.
+---
+id: counterclaims amount
+question: |
+  Counterclaim details
+subquestion: |
+  You've selected a reason(s) for filing counterclaims:
+  
+  **${ counterclaims.true_values()}**
+  
+  Now you can say if you want to pursue the counterclaims. You can further explain the reason(s). And you can say how much you want to ask the court for in your counterclaims.
+
+  When you ask for money in a counterclaim, you are asking for "damages." They are ……  The amount must be less than or equal to $10,000.
   
 fields:
-  - "Yes, I want to make a counterclaim": has_counterclaim
-    datatype: yesno
-  - "Please describe the reason(s) for your counterclaim": counterclaim_description
+  - "I want to file counterclaims. I know I will pay a filing fee or ask for a fee waiver.": has_counterclaims
+    datatype: yesnoradio
+  - "I want to ask the court for this amount of money": counterclaims_amount
+    datatype: currency
+    js show if: |
+      val("has_counterclaims") == true
+  - "Further describe the reason(s) for your counterclaims": counterclaims_description
     input type: area
+    js show if: |
+      val("has_counterclaims") == true
+---
+id: if no counterclaims
+question: |
+  No counterclaims
+subquestion: |
+  You have not selected a reason for a counterclaim. We will not include a counterclaim form in this package.
+
+  Tap Next to continue.
+continue button field: no_counterclaims
 ---
 id: preview small_claims_answer
 question: |
