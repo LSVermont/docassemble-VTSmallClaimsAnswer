@@ -116,9 +116,11 @@ code: |
   trial_court_division = "Civil"
   user_selected_county
   trial_court.address.county
-  disagrees_with_complaint
+  if defenses:
+    disagrees_with_complaint_description
+  else:
+    agrees_with_complaint
   set_progress(42)
-  agrees_with_complaint
   has_exempt_income
   has_counterclaim
   set_progress(56)
@@ -198,7 +200,7 @@ question: |
 subquestion: | 
   When did you receive the complaint?
 fields:
-  - Date you got it: sued_when_served    
+  - Date: sued_when_served    
     datatype: date
 ---
 id: screening late answer warning
@@ -262,17 +264,37 @@ fields:
       ${ collapse_template(which_county_to_choose) }
       ${ collapse_template(in_which_county) }
 ---
-id: Disagree with the complaint
+id: defenses
 question: |
-  Do you disagree with the complaint?
+  Reasons you believe you do **not** owe this debt
+subquestion: |
+  “Defenses” to debt collection are reasons why the debt collector may not have a legal right to the money they say you owe. This question will help you report any possible defenses to the small claims complaint.
+
+  NOTE: If you choose any of these defenses, you are choosing to disagree with what the person who sued you has claimed.
+
+  
+fields:
+- "Check any boxes that describe your situation.": defenses
+  datatype: checkboxes
+  choices:
+    - "I don't recognize this debt. (If you cannot recall everything that the plaintiff is saying in their complaint, or if you are not sure, check this box.)": do_not_recognize
+    - "The dollar amount the debt collectors are asking of me does not match the dollar amount I actually owe. (If you cannot recall all the amounts, or if you are not sure, check this box.)": amount_doesnt_match
+    - "I have already paid the debt.": already_paid
+    - "This debt is discharged due to my personal bankruptcy.": bankruptcy
+    - "This debt is of a Limited Liability Corporation (LLC) registered in my name.": llc_debt
+    - "The Plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt.": not_orginal_creditor
+    - "It has been six years since I incurred this debt.": six_years_since_debt
+    - "It has been six years since my last payment of this debt.": six_years_since_payment
+
+---
+id: disagrees with the complaint
+question: |
+  Do you want to add any more explanation?
 subquestion: |
   I disagree that I owe the plaintiff the full amount claimed in the complaint and I request a court hearing.
 fields:
-  - "I disagree with the complaint": disagrees_with_complaint
-    datatype: yesno
   - "Please explain why": disagrees_with_complaint_description
     input type: area
-    show if: disagrees_with_complaint
 ---
 id: Agree with the complaint
 question: |
