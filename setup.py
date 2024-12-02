@@ -54,7 +54,7 @@ setup(name='docassemble.VTSmallClaimsAnswer',
       url='https://courtformsonline.org',
       packages=find_packages(),
       namespace_packages=['docassemble'],
-      install_requires=['docassemble.AssemblyLine>=3.2.0', 'docassemble.VTCertificateOfService', 'docassemble.VTCourtFormsBranding', 'docassemble.VTSharedYMLFile'],
+      install_requires=['docassemble.AssemblyLine', 'docassemble.VTCertificateOfService', 'docassemble.VTCourtFormsBranding', 'docassemble.VTSharedYMLFile'],
       zip_safe=False,
       package_data=find_package_data(where='docassemble/VTSmallClaimsAnswer/', package='docassemble.VTSmallClaimsAnswer'),
      )

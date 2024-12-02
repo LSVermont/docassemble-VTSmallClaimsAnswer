@@ -138,7 +138,6 @@ comment: |
 mandatory: True
 code: |
   al_intro_screen
-  small_claims_answer_intro
   interview_order_small_claims_answer
   trial_court.address.county
   small_claims_answer_preview_question
@@ -157,27 +156,30 @@ code: |
   )
   small_claims_answer_download
 ---
-id: Small_claims_answer
-continue button field: small_claims_answer_intro
+id: basic questions intro screen
 question: |
-  Small claims answer
-subquestion: |
-  This interview will help you respond to a small claims case.
+  **${interview_short_title} in Vermont**
+subquestion: |  
   
-  Before you get started, please gather:
+  ${ intro_vtcourtforms_3_steps }
   
-  1. 
-  1. 
-  1. 
+  <i class="fas fa-file-text fa-2x"></i> This tool will produce forms to respond to a small claims lawsuit. Depending on your answers to the questions, this tool will complete these forms:
   
-  When you are finished, you will need to:
+  - Small Claims Answer
+  - Certificate of Service
+  - Disclosure of Exempt Income (VTCourtForms will tell you if you need this)
+  - Financial Disclosure Affidavit (VTCourtForms will tell you if you need this)
+  - Court fee waiver form (if you want to make "counterclaims")
   
-  1. 
-  1.
+  <i class="fas fa-clock fa-2x"></i> It may take you 45 minutes to complete this. 
+  
+  <i class="fas fa-circle-info fa-2x"></i> It is free to use this program. This site is not a lawyer. Visit our [VTLawHelp.org website](https://vtlawhelp.org) for legal information.
+  
+  ${ intro_vtcourtforms_created_by }
 
-  If you are have been sued in small claims court, you can use this interview to respond.
-
-  Most people take about 30 minutes to complete this interview.
+  Tap Next to continue.
+  
+continue button field: al_intro_screen
 ---
 id: screening have you been sued
 question: |
@@ -214,7 +216,16 @@ subquestion: |
 
   You can still use this tool, but because you are late, be warned that the plaintiff may be asking the court for a default judgment against you now or very soon.
 
-  If you want to continue, tap Next.
+fields:
+  - To continue, please accept our [terms of use](https://vtlawhelp.org/vtcourtforms/terms-of-use).: acknowledged_information_use
+    datatype: checkboxes
+    none of the above: False    
+    minlength: 1
+    choices:
+      - I accept the terms of use.
+    validation messages:
+      minlength: |
+        You cannot continue unless you agree to the terms of use.
 continue button field: late_answer_warning
 ---
 id: screening wrong interview kickout
@@ -234,14 +245,37 @@ continue button field: wrong_interview_kickout
 ---
 id: lets get started
 question: |
-  Continue
+  Getting started
 subquestion: |
+
+  Before you get started, have these things on hand:
+  
+  1. 
+  1. 
+  1. 
+  
+  When you are finished, you will need to:
+  
+  1. 
+  1.
   
   Keep in mind, you can edit your answers after you preview the finished forms. You can also do that anytime by choosing Edit My Answers on the side of the screen or in the Menu at the top-right of the screen.
   
   You can also go to the Menu and quickly Exit and Delete Your Answers if you need to. And, you may choose to make a free account so you can store your answers online and come back to them later.
-  
-  Let's get started. Tap Next.
+
+  **Important 30-day deadline**: The court sets a deadline to send your answer in within 30 days of receiving the complaint. It's important to meet this deadline. If you are late, the plaintiff can ask for a default judgment against you any time after the 30-day deadline. Then you may lose your case.
+
+fields:
+  - To continue, please accept our [terms of use](https://vtlawhelp.org/vtcourtforms/terms-of-use).: acknowledged_information_use
+    datatype: checkboxes
+    none of the above: False    
+    minlength: 1
+    choices:
+      - I accept the terms of use.
+    validation messages:
+      minlength: |
+        You cannot continue unless you agree to the terms of use.        
+
 continue button field: lets_get_started
 ---
 id: Phone and email
@@ -269,11 +303,13 @@ fields:
 ---
 id: defenses
 question: |
-  Reasons you believe you do **not** owe this debt
+  Any reasons why you believe you do **not** owe this debt
 subquestion: |
-  “Defenses” to debt collection are reasons why the debt collector may not have a legal right to the money they say you owe. This question will help you report any possible defenses to the small claims complaint.
+  In this small claims case, a "plaintiff" has started the case by filing a "complaint." The plaintiff is the company or person who says you owe money. In this case, you are called the "defendant." You will be filing an "answer" to the complaint.
+  
+  “Defenses” to debt collection are reasons why the plaintiff may not have a legal right to the money they say you owe. The question on this screen will help you report any possible defenses.
 
-  NOTE: If you choose any of these defenses, you are choosing to disagree with what the person who sued you has claimed.
+  NOTE: If you choose any of these defenses, you are choosing to disagree with what the plaintiff has claimed.
 
 fields:
 - "Check any boxes that describe your situation.": defenses
@@ -284,7 +320,7 @@ fields:
     - "I have already paid the debt.": already_paid
     - "This debt is discharged due to my personal bankruptcy.": bankruptcy
     - "This debt is of a Limited Liability Corporation (LLC) registered in my name.": llc_debt
-    - "The Plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt.": not_orginal_creditor
+    - "The plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt.": not_orginal_creditor
     - "It has been six years since I incurred this debt.": long_time_since_debt
     - "It has been six years since my last payment of this debt.": long_time_since_payment
 
@@ -299,14 +335,27 @@ subquestion: |
 
   % if defenses["do_not_recognize"]:
     **I don't recognize this debt.**
-  
-    **The dollar amount the debt collectors are asking of me does not correspond to the dollar amount I actually owe.
-    I have already paid the debt.
-    This debt is discharged due to personal bankruptcy.
-    This debt is of a Limited Liability Corporation registered in my name.
-    The Plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt.
-    It has been six years since I incurred this debt.
-    It has been six years since my last payment of this debt.**
+  % endif
+  % if defenses["amount_doesnt_match"]:
+    **The dollar amount the debt collectors are asking of me does not correspond to the dollar amount I actually owe.**
+  % endif  
+  % if defenses["already_paid"]:
+    **I have already paid the debt.**
+  % endif
+  % if defenses["bankruptcy"]:
+    **This debt is discharged due to personal bankruptcy.**
+  % endif
+  % if defenses["llc_debt"]:
+    **This debt is of a Limited Liability Corporation registered in my name.**
+  % endif
+  % if defenses["not_orginal_creditor"]:
+    **The Plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt.**
+  % endif
+  % if defenses["long_time_since_debt"]:
+    **It has been six years since I incurred this debt.**
+  % endif
+  % if defenses["long_time_since_payment"]:
+    **It has been six years since my last payment of this debt.**
   % endif
   
 fields:
@@ -353,7 +402,7 @@ question: |
   Do you have "exempt" income?
 subquestion: |
 
-  As part of your answer, you can let the other party and the court know if all or some of your income may be "exempt" from collection. Certain types of income and assets (things you own) are called exempt and cannot be taken to pay a debt.
+  As part of your answer, you can let the plaintiff and the court know if all or some of your income may be "exempt" from collection. Certain types of income and assets (things you own) are called exempt and cannot be taken to pay a debt.
 
   **Check any boxes that apply to you.**
 
@@ -382,7 +431,13 @@ question: |
 subquestion: |
   Your answers to the following questions can help figure out if you (the defendant) have “counterclaims” against the plaintiff (the person or company that sued you).
 
-  If you decide to file counterclaims, there is a court filing of $xx. If you have a low income, you can ask the court to waive the fee. You can use our VTCourtForms tool for the fee waiver.
+  If you decide to file counterclaims, you are asking the court to give YOU money.
+  
+  There is a court filing fee for counterclaims:
+  
+  - You would pay $25 if your counterclaims are for $500 or less.
+  - You would pay $35 if your counterclaims are between $501 and $10,000.
+  - If you have a low income, you can ask the court to waive the fee. You can use our VTCourtForms tool for the fee waiver form.
 
   Check any box that describes your situation.
 
@@ -407,15 +462,17 @@ subquestion: |
   
   **${ counterclaims.true_values()}**
   
-  Now you can say if you want to pursue the counterclaims. You can further explain the reason(s). And you can say how much you want to ask the court for in your counterclaims.
-
-  When you ask for money in a counterclaim, you are asking for "damages." They are ……  The amount must be less than or equal to $10,000.
+  Now, please confirm that you want to pursue the counterclaims. You can further explain the reason(s). And you can say how much you want to ask the court for in your counterclaims.
   
 fields:
   - "I want to file counterclaims. I know I will pay a filing fee or ask for a fee waiver.": has_counterclaims
     datatype: yesnoradio
   - "I want to ask the court for this amount of money": counterclaims_amount
     datatype: currency
+    js show if: |
+      val("has_counterclaims") == true
+  - note: |
+        When you ask for money in a counterclaim, you are asking for "damages." In small claims court, the amount must be $10,000 or less.
     js show if: |
       val("has_counterclaims") == true
   - "Further describe the reason(s) for your counterclaims": counterclaims_description
