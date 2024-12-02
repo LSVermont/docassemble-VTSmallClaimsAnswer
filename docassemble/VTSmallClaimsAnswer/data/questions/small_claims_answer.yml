@@ -334,28 +334,28 @@ subquestion: |
   **I disagree that I owe the plaintiff the full amount claimed in the complaint and I request a court hearing.**
 
   % if defenses["do_not_recognize"]:
-    **I don't recognize this debt.**
+    - **I don't recognize this debt.**
   % endif
   % if defenses["amount_doesnt_match"]:
-    **The dollar amount the debt collectors are asking of me does not correspond to the dollar amount I actually owe.**
+    - **The dollar amount the debt collectors are asking of me does not correspond to the dollar amount I actually owe.**
   % endif  
   % if defenses["already_paid"]:
-    **I have already paid the debt.**
+    - **I have already paid the debt.**
   % endif
   % if defenses["bankruptcy"]:
-    **This debt is discharged due to personal bankruptcy.**
+    - **This debt is discharged due to personal bankruptcy.**
   % endif
   % if defenses["llc_debt"]:
-    **This debt is of a Limited Liability Corporation registered in my name.**
+    - **This debt is of a Limited Liability Corporation registered in my name.**
   % endif
   % if defenses["not_orginal_creditor"]:
-    **The Plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt.**
+    - **The Plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt.**
   % endif
   % if defenses["long_time_since_debt"]:
-    **It has been six years since I incurred this debt.**
+    - **It has been six years since I incurred this debt.**
   % endif
   % if defenses["long_time_since_payment"]:
-    **It has been six years since my last payment of this debt.**
+    - **It has been six years since my last payment of this debt.**
   % endif
   
 fields:
@@ -460,7 +460,10 @@ question: |
 subquestion: |
   You've selected a reason(s) for filing counterclaims:
   
-  **${ counterclaims.true_values()}**
+  % for item in counterclaims.true_values():
+  - **${ item }**
+  
+  % endfor
   
   Now, please confirm that you want to pursue the counterclaims. You can further explain the reason(s). And you can say how much you want to ask the court for in your counterclaims.
   
