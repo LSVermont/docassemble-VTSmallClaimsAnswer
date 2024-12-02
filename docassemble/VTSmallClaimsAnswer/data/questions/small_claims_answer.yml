@@ -114,12 +114,8 @@ code: |
   trial_court.address.county
   if len(defenses.true_values()) > 0:
     disagrees_additional_explanation
-  else:
-    agrees_with_complaint
-    if not agrees_with_complaint and disagrees:
-      invalidate("agrees_with_complaint")
-      invalidate("defenses")
-      defenses
+  if not len(defenses.true_values()) > 0:
+    agreeing_with_complaint_and_payments
   set_progress(42)
   has_exempt_income_state
   if len(counterclaims.true_values()) > 0:
@@ -303,11 +299,11 @@ fields:
 ---
 id: defenses
 question: |
-  Any reasons why you believe you do **not** owe this debt
+  Any reasons why you believe you do **not** owe this debt?
 subquestion: |
-  In this small claims case, a "plaintiff" has started the case by filing a "complaint." The plaintiff is the company or person who says you owe money. In this case, you are called the "defendant." You will be filing an "answer" to the complaint.
+  In this small claims case, a "plaintiff" has started the case by filing a "complaint." The plaintiff is the company or person who says you owe money. You are called the "defendant." You will be filing an "answer" to the complaint.
   
-  “Defenses” to debt collection are reasons why the plaintiff may not have a legal right to the money they say you owe. The question on this screen will help you report any possible defenses.
+  “Defenses” to debt collection are reasons why the plaintiff may not have a legal right to the money they say you owe. This screen will help you report any possible defenses.
 
   NOTE: If you choose any of these defenses, you are choosing to disagree with what the plaintiff has claimed.
 
@@ -367,15 +363,18 @@ id: agrees with the complaint
 question: |
   You agree with the complaint?
 subquestion: |
-  Earlier, you did not choose any "defenses" to the small claims complaint. That means you agree with the amount you owe and who you owe. If that is true, check the box below.
+  On the last screen, you did not choose any "defenses" to the small claims complaint. That means you agree with the amount you owe and who you owe. If that is true, check the box below.
   
-  I agree that I owe the plaintiff the full amount claimed in the complaint and the court may enter a judgment against me. (If unpaid after 30 days, interest on the unpaid amount will accrue at 12% per year).
+  **I agree that I owe the plaintiff the full amount claimed in the complaint and the court may enter a judgment against me.**
 fields:
-  - "I agree with the complaint": agrees_with_complaint
+  - "I agree": agrees_with_complaint
     datatype: yesno
-  - "I do not agree with the complaint and want to revisit the list of defenses.": disagrees
-    datatype: yesno
-  - "I agree to pay the amount in full within 30 days.": agrees_to_pay_in_full
+  - note: |
+      If you do **not** agree and want to revisit the list of defenses, tap the Undo button.
+  - note: |
+      Choose one of the following.
+    show if: agrees_with_complaint  
+  - "I agree to pay the amount in full within 30 days. (If unpaid after 30 days, interest on the unpaid amount will accrue at 12% per year).": agrees_to_pay_in_full
     datatype: yesno
     show if: agrees_with_complaint
   - "I cannot pay the full amount at one time. I'd like to ask the court for installment payments.": agrees_to_pay_installments
@@ -396,6 +395,7 @@ fields:
   - Starting on this date: agrees_to_pay_installments_start_date
     datatype: date
     show if: agrees_to_pay_installments
+continue button field: agreeing_with_complaint_and_payments
 ---
 id: exempt income
 question: |
@@ -412,18 +412,18 @@ fields:
   - no label: has_exempt_income_state
     datatype: checkboxes
     choices:
-      - the Vermont Department for Children and Families (DCF) (examples…): dcf
-      - the Department of Vermont Health Access (DVHA).(examples…): dvha
+      - the Vermont Department for Children and Families (DCF) (examples…)
+      - the Department of Vermont Health Access (DVHA).(examples…)
   - note: |
       I have income from these exempt sources:
   - no label: has_exempt_income_other
     datatype: checkboxes
     choices:      
-      - Social Security Income (examples…): ssa
-      - Social Security or Social Security Disability (SSDI?): ssdi
-      - Veteran’s Benefits: veterans
-      - Unemployment Compensation: unemployment
-      - Workers’ Compensation: workers_comp
+      - Social Security Income (examples…)
+      - Social Security or Social Security Disability (SSDI?)
+      - Veteran’s Benefits
+      - Unemployment Compensation
+      - Workers’ Compensation
 ---
 id: counterclaims options
 question: |
@@ -619,22 +619,22 @@ review:
     button: |
       **Disagree with complaint**:
       ${ word(yesno(disagrees_with_complaint)) }
-  - Edit: disagrees_with_complaint_description
+  - Edit: disagrees_additional_explanation
     button: |
       **Please explain**:
-      > ${ single_paragraph(disagrees_with_complaint_description) }
+      > ${ single_paragraph(disagrees_additional_explanation) }
   - Edit: has_exempt_income
     button: |
       **Have exempt income**:
       ${ word(yesno(has_exempt_income)) }
-  - Edit: has_counterclaim
+  - Edit: has_counterclaims
     button: |
       **Have a counterclaim**:
-      ${ word(yesno(has_counterclaim)) }
-  - Edit: counterclaim_description
+      ${ word(yesno(has_counterclaims)) }
+  - Edit: counterclaims_description
     button: |
       **Please describe**:
-      > ${ single_paragraph(counterclaim_description) }
+      > ${ single_paragraph(counterclaims_description) }
   - Edit: signature_date
     button: |
       **Date of signature**:
@@ -770,7 +770,7 @@ attachment:
   fields:
       - "trial_court_county": ${ trial_court.address.county }
       - "docket_number": ${ docket_number }
-      - "other_parties1_name": ${ other_parties[0] }
+      - "other_parties1_name": ${ other_parties.short_list(2) }
       - "users1_name": ${ users[0] }
       - "agrees_with_complaint": ${ agrees_with_complaint }
       - "agrees_to_pay_in_full": ${ agrees_to_pay_in_full }
@@ -778,11 +778,52 @@ attachment:
       - "agrees_to_pay_installments_amount": ${ currency(agrees_to_pay_installments_amount) }
       - "agrees_to_pay_installments_period": ${ agrees_to_pay_installments_period }
       - "agrees_to_pay_installments_start_date": ${ agrees_to_pay_installments_start_date.format() }
-      - "disagrees_with_complaint": ${ disagrees_with_complaint }
-      - "disagrees_with_complaint_description": ${ small_claims_answer_attachment.safe_value("disagrees_with_complaint_description") }
-      - "has_exempt_income": ${ has_exempt_income }
-      - "has_counterclaim": ${ has_counterclaim }
-      - "counterclaim_description": ${ small_claims_answer_attachment.safe_value("counterclaim_description") }
+      - "disagrees_with_complaint": |
+          % if len(defenses.true_values()) > 0:
+            { True }
+          % endif
+      - "disagrees_with_complaint_description": |
+          % if defenses["do_not_recognize"]:
+            - I don't recognize this debt.
+          % endif
+          % if defenses["amount_doesnt_match"]:
+            - The dollar amount the debt collectors are asking of me does not correspond to the dollar amount I actually owe.
+          % endif  
+          % if defenses["already_paid"]:
+            - I have already paid the debt.
+          % endif
+          % if defenses["bankruptcy"]:
+            - This debt is discharged due to personal bankruptcy.
+          % endif
+          % if defenses["llc_debt"]:
+            - This debt is of a Limited Liability Corporation registered in my name.
+          % endif
+          % if defenses["not_orginal_creditor"]:
+            - The Plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt.
+          % endif
+          % if defenses["long_time_since_debt"]:
+            - It has been six years since I incurred this debt.
+          % endif
+          % if defenses["long_time_since_payment"]:
+            - It has been six years since my last payment of this debt.
+          % endif
+            - ${ small_claims_answer_attachment.safe_value("disagrees_additional_explanation") }
+      - "has_exempt_income": |
+          % if len(has_exempt_income_state.true_values()) > 0:
+            ${ True }
+          % elif len(has_exempt_income_other.true_values()) > 0:
+            ${ True }
+          % else:
+            ${ False }
+          % endif
+      - "has_counterclaim": ${ has_counterclaims }
+      - "counterclaim_description": |
+          % if len(counterclaims.true_values()) > 0:
+          % for item in counterclaims.true_values():
+            - ${ item }
+          % endfor
+          % endif
+            - ${ small_claims_answer_attachment.safe_value("counterclaims_description") }
       - "users1_signature": ${ users[0].signature_if_final(i) }
       - "users1_name_1": ${ users[0] }
       - "users1_address_on_one_line": ${ users[0].address.on_one_line() }
@@ -791,10 +832,10 @@ attachment:
       - "users1_email": ${ users[0].email }
 ---
 code: |
-  small_claims_answer_attachment.overflow_fields["disagrees_with_complaint_description"].overflow_trigger = 348
-  small_claims_answer_attachment.overflow_fields["disagrees_with_complaint_description"].label = "Please explain"
-  small_claims_answer_attachment.overflow_fields["counterclaim_description"].overflow_trigger = 344
-  small_claims_answer_attachment.overflow_fields["counterclaim_description"].label = "Please describe"
+  small_claims_answer_attachment.overflow_fields["disagrees_additional_explanation"].overflow_trigger = 348
+  small_claims_answer_attachment.overflow_fields["disagrees_additional_explanation"].label = "Please explain"
+  small_claims_answer_attachment.overflow_fields["counterclaims_description"].overflow_trigger = 344
+  small_claims_answer_attachment.overflow_fields["counterclaims_description"].label = "Please describe"
   small_claims_answer_attachment.overflow_fields.gathered = True
 
 
