@@ -79,7 +79,17 @@ code: |
   trial_court_index = all_courts.matching_courts_in_county(county_name=user_selected_county,search_columns=['division_abbr'],search_string=trial_court_division)[0][0]
 ---
 sections:
-  - review_small_claims_answer: Review your answers
+  - intro: Is this interview right for you
+  - about_you: About you
+  - other_party: The other party
+  - case_info: Your court case
+  - defenses: Any defenses?
+  - payments: Agree to payments?
+  - exempt_income: Any exempt income?
+  - counterclaims: Any counterclaims?
+  - review_small_claims_answer: Edit your answers
+  - sign: Sign your document
+  - get_docs: Download your document
 ---
 #################### Interview order #####################
 comment: |
@@ -88,9 +98,9 @@ id: interview_order_small_claims_answer
 code: |
   # Set the allowed courts for this interview
   allowed_courts = []
-  nav.set_section("review_small_claims_answer")
   user_role = "defendant"
   user_ask_role = "defendant"
+  nav.set_section('intro')
   if was_sued == False:
     wrong_interview_kickout
   else:
@@ -101,30 +111,36 @@ code: |
       if sued_when_served <= today().minus(months=1):
         late_answer_warning
   lets_get_started
+  nav.set_section('about_you')
   users.gather()
-  set_parts(subtitle=str(users))
   set_progress(14)
   users[0].address.address
   users[0].daytime_phone_number
   users[0].email
   set_progress(28)
-  docket_number
+  nav.set_section('other_party')
+  other_parties.there_are_any = True
+  other_parties.gather()
+  nav.set_section('case_info')
   trial_court_division = "Civil"
+  docket_number
   user_selected_county
   trial_court.address.county
+  nav.set_section('defenses')
   if len(defenses.true_values()) > 0:
     disagrees_additional_explanation
   if not len(defenses.true_values()) > 0:
+    nav.set_section('payments')
     agreeing_with_complaint_and_payments
   set_progress(42)
+  nav.set_section("exempt_income")
   has_exempt_income_state
+  nav.set_section("counterclaims")
   if len(counterclaims.true_values()) > 0:
     has_counterclaims
   else:
     no_counterclaims
   set_progress(56)
-  other_parties.there_are_any = True
-  other_parties.gather()
   interview_order_small_claims_answer = True
 ---
 ###################### Main order ######################
@@ -135,8 +151,10 @@ mandatory: True
 code: |
   al_intro_screen
   interview_order_small_claims_answer
+  nav.set_section("review_small_claims_answer")
   trial_court.address.county
   small_claims_answer_preview_question
+  nav.set_section("sign")
   signature_date
   set_progress(95)
   al_form_requires_digital_signature = False
@@ -150,6 +168,7 @@ code: |
           "reached_interview_end": True,
       },
   )
+  nav.set_section("get_docs")
   small_claims_answer_download
 ---
 id: basic questions intro screen
@@ -374,16 +393,20 @@ fields:
   - note: |
       Choose one of the following.
     show if: agrees_with_complaint  
-  - "I agree to pay the amount in full within 30 days. (If unpaid after 30 days, interest on the unpaid amount will accrue at 12% per year).": agrees_to_pay_in_full
-    datatype: yesno
+  - "Check one of the following.": payment
+    datatype: checkboxes
+    choices:    
+      - "I agree to pay the amount in full within 30 days. (If unpaid after 30 days, interest on the unpaid amount will accrue at 12% per year).": agrees_to_pay_in_full
+      - "I cannot pay the full amount at one time. I'd like to ask the court for installment payments.": agrees_to_pay_installments
     show if: agrees_with_complaint
-  - "I cannot pay the full amount at one time. I'd like to ask the court for installment payments.": agrees_to_pay_installments
-    datatype: yesno
-    show if: agrees_with_complaint
+    none of the above: false
+    maxlength: 1
+    minlength: 1
   - "I can pay this amount": agrees_to_pay_installments_amount
     datatype: currency
     min: 0
-    show if: agrees_to_pay_installments
+    js show if: |
+      val("payment") == "agrees_to_pay_installments"
   - Every: agrees_to_pay_installments_period
     datatype: radio
     choices:
@@ -391,10 +414,12 @@ fields:
       - Two weeks
       - Month
       - Two months
-    show if: agrees_to_pay_installments
+    js show if: |
+      val("payment") == "agrees_to_pay_installments"
   - Starting on this date: agrees_to_pay_installments_start_date
     datatype: date
-    show if: agrees_to_pay_installments
+    js show if: |
+      val("payment") == "agrees_to_pay_installments"
 continue button field: agreeing_with_complaint_and_payments
 ---
 id: exempt income
@@ -429,7 +454,7 @@ id: counterclaims options
 question: |
   Do you want to make counterclaims?
 subquestion: |
-  Your answers to the following questions can help figure out if you (the defendant) have “counterclaims” against the plaintiff (the person or company that sued you).
+  This screen can help figure out if you have “counterclaims” against the plaintiff (the person or company that sued you).
 
   If you decide to file counterclaims, you are asking the court to give YOU money.
   
@@ -439,17 +464,17 @@ subquestion: |
   - You would pay $35 if your counterclaims are between $501 and $10,000.
   - If you have a low income, you can ask the court to waive the fee. You can use our VTCourtForms tool for the fee waiver form.
 
-  Check any box that describes your situation.
+  **Check any box that describes your situation.**
 
 fields:
   - no label: counterclaims
     datatype: checkboxes
     choices:
       - I believe the plaintiff owes me money.
-      - The person suing me is not the original creditor or lender of the money.
-      - I didn't get a letter from the debt collection company alerting me to my debt before I was sued.
-      - The debt collection company made statements that were not true or were misleading about the debt.
-      - The debt collection company harassed me.
+      - The plaintiff is not the original creditor or lender of the money.
+      - I didn't get a letter from the plaintiff alerting me to my debt before I was sued.
+      - The plaintiff made statements that were not true or were misleading about the debt.
+      - The plaintiff harassed me.
 
   - note: |
       Note about harassment: You can bring a counterclaim for a violation of the Fair Debt Collection Practices Act (FDCPA) for misleading claims, threats, major harassment, etc. The FDCPA applies to third party debt collectors, so one element of an FDCPA violation claim is acknowledging that the debt collector is not the original creditor. However, this alone does not provide grounds for an FDCPA counterclaim.
@@ -475,7 +500,7 @@ fields:
     js show if: |
       val("has_counterclaims") == true
   - note: |
-        When you ask for money in a counterclaim, you are asking for "damages." In small claims court, the amount must be $10,000 or less.
+        When you ask for money in a counterclaim, you are asking for "damages." In small claims court, the amount must be less than $10,001.
     js show if: |
       val("has_counterclaims") == true
   - "Further describe the reason(s) for your counterclaims": counterclaims_description
