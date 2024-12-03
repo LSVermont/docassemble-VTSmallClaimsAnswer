@@ -132,6 +132,7 @@ code: |
   if not len(defenses.true_values()) > 0:
     nav.set_section('payments')
     agreeing_with_complaint_and_payments
+  get_merged_defenses
   set_progress(42)
   nav.set_section("exempt_income")
   has_exempt_income_state
@@ -140,6 +141,7 @@ code: |
     has_counterclaims
   else:
     no_counterclaims
+
   set_progress(56)
   interview_order_small_claims_answer = True
 ---
@@ -427,6 +429,8 @@ question: |
   Do you have "exempt" income?
 subquestion: |
 
+  ${ merged_defenses_text }
+
   As part of your answer, you can let the plaintiff and the court know if all or some of your income may be "exempt" from collection. Certain types of income and assets (things you own) are called exempt and cannot be taken to pay a debt.
 
   **Check any boxes that apply to you.**
@@ -652,6 +656,7 @@ review:
     button: |
       **Have exempt income**:
       ${ word(yesno(has_exempt_income)) }
+
   - Edit: has_counterclaims
     button: |
       **Have a counterclaim**:
@@ -805,7 +810,7 @@ attachment:
       - "agrees_to_pay_installments_start_date": ${ agrees_to_pay_installments_start_date.format() }
       - "disagrees_with_complaint": |
           % if len(defenses.true_values()) > 0:
-            { True }
+          ${ True }
           % endif
       - "disagrees_with_complaint_description": |
           % if defenses["do_not_recognize"]:
@@ -835,13 +840,16 @@ attachment:
             - ${ small_claims_answer_attachment.safe_value("disagrees_additional_explanation") }
       - "has_exempt_income": |
           % if len(has_exempt_income_state.true_values()) > 0:
-            ${ True }
+          ${ True }
           % elif len(has_exempt_income_other.true_values()) > 0:
-            ${ True }
+          ${ True }
           % else:
-            ${ False }
+          ${ False }
           % endif
-      - "has_counterclaim": ${ has_counterclaims }
+      - "has_counterclaim": |
+          % if len(counterclaims.true_values()) > 0:
+          ${ True }
+          % endif
       - "counterclaim_description": |
           % if len(counterclaims.true_values()) > 0:
           % for item in counterclaims.true_values():
@@ -856,9 +864,24 @@ attachment:
       - "users1_daytime_phone_number": ${ users[0].daytime_phone_number }
       - "users1_email": ${ users[0].email }
 ---
+# "!!omap" makes these terms ordered: 
+# their order here will be their same order when shown to users.
+variable name: defenses_terms
+data: !!omap
+  - do_not_recognize: "I don't recognize this debt."
+  - amount_doesnt_match: "The dollar amount the debt collectors are asking of me does not correspond to the dollar amount I actually owe."
+---
+id: combining individual defenses and the explanation
 code: |
-  small_claims_answer_attachment.overflow_fields["disagrees_additional_explanation"].overflow_trigger = 348
-  small_claims_answer_attachment.overflow_fields["disagrees_additional_explanation"].label = "Please explain"
+  merged_defenses_text = ""
+  for item in defenses.true_values():
+    merged_defenses_text += "- " + defenses_terms[item] + "\n"
+  merged_defenses_text += disagrees_additional_explanation
+  get_merged_defenses = True
+---
+code: |
+  small_claims_answer_attachment.overflow_fields["merged_defenses_text"].overflow_trigger = 348
+  small_claims_answer_attachment.overflow_fields["merged_defenses_text"].label = "Please explain"
   small_claims_answer_attachment.overflow_fields["counterclaims_description"].overflow_trigger = 344
   small_claims_answer_attachment.overflow_fields["counterclaims_description"].label = "Please describe"
   small_claims_answer_attachment.overflow_fields.gathered = True
