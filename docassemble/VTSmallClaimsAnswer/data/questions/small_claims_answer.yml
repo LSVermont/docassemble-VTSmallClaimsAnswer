@@ -384,7 +384,13 @@ id: agrees with the complaint
 question: |
   You agree with the complaint?
 subquestion: |
-  On the last screen, you did not choose any "defenses" to the small claims complaint. That means you agree with the amount you owe and who you owe. If that is true, check the box below.
+  On the last screen, you did not choose any "defenses" to the small claims complaint against you. That means you agree with the amount you owe and who you owe. If that is true, check the box below.
+
+  You should only check the box below if your recall everything that the plaintiff is saying in their complaint as true. If you are not sure, do not check this box. Go back one screen and choose a defense, instead.
+
+  When you agree with the complaint
+
+  Depending on your financial situation, the court may make a judgement to say you need to pay the debt. You will have to pay the money back within 30 days after the judgment is made. If you don't pay within 30 days, you will also have to pay interest on the unpaid money at the rate of 12% per year. 
   
   **I agree that I owe the plaintiff the full amount claimed in the complaint and the court may enter a judgment against me.**
 fields:
@@ -393,6 +399,8 @@ fields:
   - note: |
       If you do **not** agree and want to revisit the list of defenses, tap the Undo button.
   - note: |
+      If the court finds you need to pay the debt and enters a judgment against you, what do you plan to do?
+      
       Choose one of the following.
     show if: agrees_with_complaint  
   - "Check one of the following.": payment
@@ -422,6 +430,9 @@ fields:
     datatype: date
     js show if: |
       val("payment") == "agrees_to_pay_installments"
+
+  - note: |
+      Should we ask this agreeable user if they want to do a counterclaim???
 continue button field: agreeing_with_complaint_and_payments
 ---
 id: exempt income
@@ -432,6 +443,8 @@ subquestion: |
   ${ merged_defenses_text }
 
   As part of your answer, you can let the plaintiff and the court know if all or some of your income may be "exempt" from collection. Certain types of income and assets (things you own) are called exempt and cannot be taken to pay a debt.
+
+  The following are examples of exempt income.
 
   **Check any boxes that apply to you.**
 
@@ -481,7 +494,9 @@ fields:
       - The plaintiff harassed me.
 
   - note: |
-      Note about harassment: You can bring a counterclaim for a violation of the Fair Debt Collection Practices Act (FDCPA) for misleading claims, threats, major harassment, etc. The FDCPA applies to third party debt collectors, so one element of an FDCPA violation claim is acknowledging that the debt collector is not the original creditor. However, this alone does not provide grounds for an FDCPA counterclaim.
+      Notes about harassment: 
+      - You can successfully claim harassment in a case like this if the plaintiff's behavior was **beyond** annoying. For example, they called you at odd hours of the night or early morning, they used swear words or they called you multiple times a day. Those are harassing behaviors.
+      - You can bring a counterclaim for a violation of the Fair Debt Collection Practices Act (FDCPA) for misleading claims, threats, major harassment, etc. The FDCPA applies to third party debt collectors, so one element of an FDCPA violation claim is acknowledging that the debt collector is not the original creditor. However, this alone does not provide grounds for an FDCPA counterclaim.
 ---
 id: counterclaims amount
 question: |
