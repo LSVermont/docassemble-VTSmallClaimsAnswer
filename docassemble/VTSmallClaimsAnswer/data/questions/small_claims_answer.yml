@@ -129,10 +129,10 @@ code: |
   nav.set_section('defenses')
   if len(defenses.true_values()) > 0:
     disagrees_additional_explanation
+    get_merged_defenses
   if not len(defenses.true_values()) > 0:
     nav.set_section('payments')
     agreeing_with_complaint_and_payments
-  get_merged_defenses
   set_progress(42)
   nav.set_section("exempt_income")
   has_exempt_income_state
@@ -351,6 +351,12 @@ variable name: defenses_terms
 data: !!omap
   - do_not_recognize: "I don't recognize this debt."
   - amount_doesnt_match: "The dollar amount the debt collectors are asking of me does not correspond to the dollar amount I actually owe."
+  - already_paid: "I have already paid the debt."
+  - bankruptcy: "This debt is discharged due to personal bankruptcy."
+  - llc_debt: "This debt is of a Limited Liability Corporation registered in my name."
+  - not_orginal_creditor: "The Plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt."
+  - long_time_since_debt: "It has been six years since I incurred this debt."
+  - long_time_since_payment: "It has been six years since my last payment of this debt."
 ---
 id: combining individual defenses and the explanation
 code: |
@@ -404,22 +410,19 @@ question: |
 subquestion: |
   On the last screen, you did not choose any "defenses" to the small claims complaint against you. That means you agree with the amount you owe and who you owe. If that is true, check the box below.
 
-  You should only check the box below if your recall everything that the plaintiff is saying in their complaint as true. If you are not sure, do not check this box. Go back one screen and choose a defense, instead.
+  You should only check the box below if your recall everything that the plaintiff is saying in their complaint as true. If you are not sure, do not check this box. Go back one screen and choose a defense instead.
 
-  When you agree with the complaint
-
-  Depending on your financial situation, the court may make a judgement to say you need to pay the debt. You will have to pay the money back within 30 days after the judgment is made. If you don't pay within 30 days, you will also have to pay interest on the unpaid money at the rate of 12% per year. 
+  **When you agree with the complaint**: Depending on your financial situation, the court may make a judgement to say you need to pay the debt. You will have to pay the money back within 30 days after the judgment is made. If you don't pay within 30 days, you will also have to pay interest on the unpaid money at the rate of 12% per year. 
   
   **I agree that I owe the plaintiff the full amount claimed in the complaint and the court may enter a judgment against me.**
 fields:
   - "I agree": agrees_with_complaint
     datatype: yesno
   - note: |
-      If you do **not** agree and want to revisit the list of defenses, tap the Undo button.
+      Check the box if you agree. If you do **not** agree and want to revisit the list of defenses, tap the Undo button.
   - note: |
       If the court finds you need to pay the debt and enters a judgment against you, what do you plan to do?
       
-      Choose one of the following.
     show if: agrees_with_complaint  
   - "Check one of the following.": payment
     datatype: checkboxes
@@ -843,8 +846,8 @@ attachment:
       - "other_parties1_name": ${ other_parties.short_list(2) }
       - "users1_name": ${ users[0] }
       - "agrees_with_complaint": ${ agrees_with_complaint }
-      - "agrees_to_pay_in_full": ${ agrees_to_pay_in_full }
-      - "agrees_to_pay_installments": ${ agrees_to_pay_installments }
+      - "agrees_to_pay_in_full": ${ payment["agrees_to_pay_in_full"] }
+      - "agrees_to_pay_installments": ${ payment["agrees_to_pay_installments"] }
       - "agrees_to_pay_installments_amount": ${ currency(agrees_to_pay_installments_amount) }
       - "agrees_to_pay_installments_period": ${ agrees_to_pay_installments_period }
       - "agrees_to_pay_installments_start_date": ${ agrees_to_pay_installments_start_date.format() }
@@ -853,7 +856,7 @@ attachment:
           ${ True }
           % endif
       - "disagrees_with_complaint_description": |
-           ${ small_claims_answer_attachment.safe_value("merged_defenses_text") }
+          ${ small_claims_answer_attachment.safe_value("merged_defenses_text") }
       - "has_exempt_income": |
           % if len(has_exempt_income_state.true_values()) > 0:
           ${ True }
