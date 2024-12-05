@@ -155,6 +155,8 @@ code: |
   interview_order_small_claims_answer
   nav.set_section("review_small_claims_answer")
   trial_court.address.county
+  if len(defenses.true_values()) > 0:
+    get_merged_defenses
   small_claims_answer_preview_question
   nav.set_section("sign")
   signature_date
@@ -322,9 +324,11 @@ id: defenses
 question: |
   Any reasons why you believe you do **not** owe this debt?
 subquestion: |
-  In this small claims case, a "plaintiff" has started the case by filing a "complaint." The plaintiff is the company or person who says you owe money. You are called the "defendant." You will be filing an "answer" to the complaint.
+  In this small claims case, a "plaintiff" has started the case by filing a "complaint" against you. The plaintiff is the company or person who says you owe money.
   
-  “Defenses” to debt collection are reasons why the plaintiff may not have a legal right to the money they say you owe. This screen will help you report any possible defenses.
+  You are called the "defendant." You will be filing an "answer" to the complaint.
+  
+  “Defenses” to debt collection are reasons why the plaintiff may not have a legal right to the money. This screen will help you report any possible defenses.
 
   NOTE: If you choose any of these defenses, you are choosing to disagree with what the plaintiff has claimed.
 
@@ -340,13 +344,27 @@ fields:
     - "The plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt.": not_orginal_creditor
     - "It has been six years since I incurred this debt.": long_time_since_debt
     - "It has been six years since my last payment of this debt.": long_time_since_payment
-
+---
+# "!!omap" makes these terms ordered: 
+# their order here will be their same order when shown to users.
+variable name: defenses_terms
+data: !!omap
+  - do_not_recognize: "I don't recognize this debt."
+  - amount_doesnt_match: "The dollar amount the debt collectors are asking of me does not correspond to the dollar amount I actually owe."
+---
+id: combining individual defenses and the explanation
+code: |
+  merged_defenses_text = ""
+  for item in defenses.true_values():
+    merged_defenses_text += defenses_terms[item] + "\n"
+  merged_defenses_text += disagrees_additional_explanation
+  get_merged_defenses = True
 ---
 id: disagrees with the complaint
 question: |
-  Do you want to add any more explanation?
+  Do you want to add any more details?
 subquestion: |
-  So far, this is what we have to explain your defense(s).
+  So far, this is the text we have to explain your defense(s). You can explain a little more if you want.
   
   **I disagree that I owe the plaintiff the full amount claimed in the complaint and I request a court hearing.**
 
@@ -439,13 +457,10 @@ id: exempt income
 question: |
   Do you have "exempt" income?
 subquestion: |
-
-  ${ merged_defenses_text }
-
-  As part of your answer, you can let the plaintiff and the court know if all or some of your income may be "exempt" from collection. Certain types of income and assets (things you own) are called exempt and cannot be taken to pay a debt.
-
-  The following are examples of exempt income.
-
+  Certain types of income and assets (things you own) are called "exempt" and cannot be taken to pay a debt.
+  
+  As part of your answer, you can let the plaintiff and the court know if all or some of your income may be exempt from collection. Below are examples of exempt income.
+  
   **Check any boxes that apply to you.**
 
   I am currently eligible, or was eligible within the last two months, for benefits from these exempt sources:
@@ -495,7 +510,9 @@ fields:
 
   - note: |
       Notes about harassment: 
-      - You can successfully claim harassment in a case like this if the plaintiff's behavior was **beyond** annoying. For example, they called you at odd hours of the night or early morning, they used swear words or they called you multiple times a day. Those are harassing behaviors.
+      
+      - You can successfully claim harassment in a case like this if the plaintiff's behavior was **beyond** annoying. For example, they called you at late hours of the night or early morning, they used swear words or they called you multiple times a day. Those are harassing behaviors.
+      
       - You can bring a counterclaim for a violation of the Fair Debt Collection Practices Act (FDCPA) for misleading claims, threats, major harassment, etc. The FDCPA applies to third party debt collectors, so one element of an FDCPA violation claim is acknowledging that the debt collector is not the original creditor. However, this alone does not provide grounds for an FDCPA counterclaim.
 ---
 id: counterclaims amount
@@ -785,6 +802,14 @@ subquestion: |
 
 progress: 100
 ---
+code: |
+  small_claims_answer_attachment.overflow_fields["merged_defenses_text"].overflow_trigger = 348
+  small_claims_answer_attachment.overflow_fields["merged_defenses_text"].label = "Please explain"
+  small_claims_answer_attachment.overflow_fields["counterclaims_description"].overflow_trigger = 344
+  small_claims_answer_attachment.overflow_fields["counterclaims_description"].label = "Please describe"
+  small_claims_answer_attachment.overflow_fields.gathered = True
+---
+---
 # ALDocument objects specify the metadata for each template
 objects:
   - small_claims_answer_Post_interview_instructions: ALDocument.using(title="Instructions", filename="small_claims_answer_next_steps.docx", enabled=True, has_addendum=False)
@@ -828,31 +853,7 @@ attachment:
           ${ True }
           % endif
       - "disagrees_with_complaint_description": |
-          % if defenses["do_not_recognize"]:
-            - I don't recognize this debt.
-          % endif
-          % if defenses["amount_doesnt_match"]:
-            - The dollar amount the debt collectors are asking of me does not correspond to the dollar amount I actually owe.
-          % endif  
-          % if defenses["already_paid"]:
-            - I have already paid the debt.
-          % endif
-          % if defenses["bankruptcy"]:
-            - This debt is discharged due to personal bankruptcy.
-          % endif
-          % if defenses["llc_debt"]:
-            - This debt is of a Limited Liability Corporation registered in my name.
-          % endif
-          % if defenses["not_orginal_creditor"]:
-            - The Plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt.
-          % endif
-          % if defenses["long_time_since_debt"]:
-            - It has been six years since I incurred this debt.
-          % endif
-          % if defenses["long_time_since_payment"]:
-            - It has been six years since my last payment of this debt.
-          % endif
-            - ${ small_claims_answer_attachment.safe_value("disagrees_additional_explanation") }
+           ${ small_claims_answer_attachment.safe_value("merged_defenses_text") }
       - "has_exempt_income": |
           % if len(has_exempt_income_state.true_values()) > 0:
           ${ True }
@@ -879,27 +880,7 @@ attachment:
       - "users1_daytime_phone_number": ${ users[0].daytime_phone_number }
       - "users1_email": ${ users[0].email }
 ---
-# "!!omap" makes these terms ordered: 
-# their order here will be their same order when shown to users.
-variable name: defenses_terms
-data: !!omap
-  - do_not_recognize: "I don't recognize this debt."
-  - amount_doesnt_match: "The dollar amount the debt collectors are asking of me does not correspond to the dollar amount I actually owe."
----
-id: combining individual defenses and the explanation
-code: |
-  merged_defenses_text = ""
-  for item in defenses.true_values():
-    merged_defenses_text += "- " + defenses_terms[item] + "\n"
-  merged_defenses_text += disagrees_additional_explanation
-  get_merged_defenses = True
----
-code: |
-  small_claims_answer_attachment.overflow_fields["merged_defenses_text"].overflow_trigger = 348
-  small_claims_answer_attachment.overflow_fields["merged_defenses_text"].label = "Please explain"
-  small_claims_answer_attachment.overflow_fields["counterclaims_description"].overflow_trigger = 344
-  small_claims_answer_attachment.overflow_fields["counterclaims_description"].label = "Please describe"
-  small_claims_answer_attachment.overflow_fields.gathered = True
+
 
 
 
