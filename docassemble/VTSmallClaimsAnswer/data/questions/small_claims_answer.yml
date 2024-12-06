@@ -79,7 +79,7 @@ code: |
   trial_court_index = all_courts.matching_courts_in_county(county_name=user_selected_county,search_columns=['division_abbr'],search_string=trial_court_division)[0][0]
 ---
 sections:
-  - intro: Is this interview right for you
+  - intro: Is this tool right for you?
   - about_you: About you
   - other_party: The other party
   - case_info: Your court case
@@ -88,8 +88,8 @@ sections:
   - exempt_income: Any exempt income?
   - counterclaims: Any counterclaims?
   - review_small_claims_answer: Edit your answers
-  - sign: Sign your document
-  - get_docs: Download your document
+  - sign: Sign your documents
+  - get_docs: Download your documents
 ---
 #################### Interview order #####################
 comment: |
@@ -141,6 +141,11 @@ code: |
     get_merged_counterclaims
   else:
     no_counterclaims
+
+  if len(has_exempt_income_state.true_values()) == 0 and len(has_exempt_income_other.true_values()) == 0:
+    wants_to_fill_out_financial_disclosure
+  if has_counterclaims:
+    wants_to_fill_out_fee_waiver 
 
   set_progress(56)
   interview_order_small_claims_answer = True
@@ -254,6 +259,10 @@ question: |
   Stop
 subquestion: | 
   This is not the right tool for you to use.
+
+  % if was_sued == False or sued_for >= 10001:
+  This tool is only for use in small claims court where you have been sued for $10,000 or less.
+  % endif
 
   Ask for general help with court forms or the court process by contacting the [Vermont Judiciary Access and Resource Center.](https://www.vermontjudiciary.org/self-help/ARC) Their services are free and they serve the whole state. They do NOT give legal advice.
 
@@ -422,31 +431,10 @@ subquestion: |
   
   **I disagree that I owe the plaintiff the full amount claimed in the complaint and I request a court hearing.**
 
-  % if defenses["do_not_recognize"]:
-    - **I don't recognize this debt.**
-  % endif
-  % if defenses["amount_doesnt_match"]:
-    - **The dollar amount the debt collectors are asking of me does not correspond to the dollar amount I actually owe.**
-  % endif  
-  % if defenses["already_paid"]:
-    - **I have already paid the debt.**
-  % endif
-  % if defenses["bankruptcy"]:
-    - **This debt is discharged due to personal bankruptcy.**
-  % endif
-  % if defenses["llc_debt"]:
-    - **This debt is of a Limited Liability Corporation registered in my name.**
-  % endif
-  % if defenses["not_orginal_creditor"]:
-    - **The Plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt.**
-  % endif
-  % if defenses["long_time_since_debt"]:
-    - **It has been six years since I incurred this debt.**
-  % endif
-  % if defenses["long_time_since_payment"]:
-    - **It has been six years since my last payment of this debt.**
-  % endif
+  % for item in defenses.true_values():
+  - **${ defenses_terms[item] }**
   
+  % endfor
 fields:
   - "More explanation (optional)": disagrees_additional_explanation
     input type: area
@@ -537,9 +525,9 @@ id: counterclaims options
 question: |
   Do you want to make counterclaims?
 subquestion: |
-  This screen can help figure out if you have “counterclaims” against the plaintiff (the person or company that sued you).
+  This screen can help you figure out if you have “counterclaims” against the plaintiff (the person or company that sued you).
 
-  If you decide to file counterclaims, you are asking the court to give YOU money.
+  If you decide to file counterclaims, you are asking the court to award YOU money.
   
   There is a court filing fee for counterclaims:
   
@@ -621,6 +609,75 @@ code: |
     merged_counterclaims_text += counterclaims_terms[item] + "\n"
   merged_counterclaims_text += counterclaims_description
   get_merged_counterclaims = True
+---
+id: want to fill out financial disclosure affidavit
+question: |
+  Do you want to fill out a Financial Disclosure Affidavit?
+
+subquestion: |
+  Earlier, you said you don't have "exempt" income like income from public assistance. Do you think your "reasonable living expenses" for you and your family members living with you are **more** than your income after taxes? If so, it may be worth your time to show the court why you think you should pay less than you owe.
+
+  Do you want to answer questions about your expenses and income so you can submit a Financial Disclosure Affidavit form?
+
+  If yes, consider making an account to save your work. This is because there are quite a few questions to answer for this form. You might want to start it and come back to finish it. 
+
+  **My reasonable living expenses for myself and my family members living with me are more than my income after taxes. I want to attach a Financial Disclosure Affidavit showing my income and expenses.**
+fields:
+  - "Attach a Financial Disclosure Affidavit?": wants_to_fill_out_financial_disclosure
+    datatype: yesnoradio
+  - "I want to fill out that form now.": wants_to_do_financial_disclosure_now
+    datatype: yesnoradio
+  - "I have other reasons why I think my income is exempt. They are:": otherwise_exempt
+    maxlength: 500
+    required: false
+  - note: |
+      Examples could be: I have no income. Or, my income is less than $290 per week and that is protected in a consumer credit card case.
+---
+id: want to fill out fee waiver
+question: |
+  Do you want to fill out a fee waiver form for your counterclaims?
+
+subquestion: |
+  When you have counterclaims, you pay a court filing fee. You would pay $25 if your counterclaims are for $500 or less. You would pay $35 if your counterclaims are between $501 and $10,000.
+
+  If you get public assistance or have a low income, you can ask the court to waive the fees.
+
+  ${ start_accordion('<h2 class="h5">Who can get their fees waived?</h2>') }
+  The Vermont Judiciary says the court can waive your filing fee and service costs if:
+  
+  <ul><li>you get any kind of public assistance, or</li>
+  <li>your gross income is at or below <a href="https://www.vtlawhelp.org/150-federal-poverty-level-fpl">150% of the federal poverty guidelines,</a> or</li>
+  <li>the court finds you can't pay the fee without expending resources needed to support you and your dependents.</li></ul>
+
+  ${ next_accordion('<h2 class="h5">Information you will need</h2>') }
+  <ul><li>the name and address of any employer you might have</li>
+  <li>any public assistance that you get (like 3SquaresVT food help, ReachUp help for families, SSI, etc.) and the amount, and</li>
+  <li>information about the court case for which you want a fee waiver. (You can find this information on other court papers you have about this case. If you are starting a court action — like filing for divorce — you won't have a case number or docket number yet.)</li></ul>
+  
+  <p>If you get public assistance, that's all you need. <strong>If you don't get public assistance</strong>, you will also need to know:</p>
+  
+  <ul><li>your income — If you work or get unemployment, have those paystubs on hand. If you get child support, have that information on hand. If you are self-employed, have your IRS Schedule C on hand or have your income and business expenses from the last 12 months.
+  <li>your expenses (like rent, utilities, insurance payments, child care, etc.) — looking back over the last 12 months
+  <li>the amount of money you have in the bank and on hand
+  <li>the approximate value of your vehicle/car, real estate/home, and any other major things you might own, and
+  <li>if filling out form on behalf of a minor or incompetent adult, you need that person’s information.</ul>
+  ${ next_accordion('<h2 class="h5">Where to learn more</h2>') }
+  <p>Visit the Vermont Judiciary website to learn more about <a href="https://www.vermontjudiciary.org/fees">filing and service fees</a> and <a href="https://www.vermontjudiciary.org/fees"https://www.vermontjudiciary.org/self-help/application-waive-filing-fees-and-service-costs>asking to file court papers for free in Vermont.</a></p>
+
+  <p>Ask for general help with court forms or the court process by contacting the <a href="https://www.vermontjudiciary.org/self-help/ARC">Vermont Judiciary Access and Resource Center.</a> Their services are free and they serve the whole state. They do NOT give legal advice.</p>
+
+  ${ end_accordion() }
+  
+  
+  % if len(has_exempt_income_state.true_values()) > 0 or len(has_exempt_income_other.true_values()) > 0:
+    You said you get some public assistance. You **may** be able to get your fees waived.
+  % endif
+  % if len(has_exempt_income_state.true_values()) == 0 or len(has_exempt_income_other.true_values()) == 0:
+    **Do you want to answer questions about your income and expenses so you can fill out the fee waiver form now?**
+  % endif
+fields:
+  - no label: wants_to_fill_out_fee_waiver
+    datatype: yesnoradio
 ---
 id: preview small_claims_answer
 question: |
