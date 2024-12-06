@@ -88,8 +88,8 @@ sections:
   - exempt_income: Any exempt income?
   - counterclaims: Any counterclaims?
   - review_small_claims_answer: Edit your answers
-  - sign: Sign your document
-  - get_docs: Download your document
+  - sign: Sign your documents
+  - get_docs: Download your documents
 ---
 #################### Interview order #####################
 comment: |
@@ -142,12 +142,10 @@ code: |
   else:
     no_counterclaims
 
-
-  if len(has_exempt_income_state.true_values()) == 0 or len(has_exempt_income_other.true_values()) == 0:
+  if len(has_exempt_income_state.true_values()) == 0 and len(has_exempt_income_other.true_values()) == 0:
     wants_to_fill_out_financial_disclosure
   if has_counterclaims:
-    wants_to_fill_out_fee_waiver
-   
+    wants_to_fill_out_fee_waiver 
 
   set_progress(56)
   interview_order_small_claims_answer = True
@@ -261,6 +259,10 @@ question: |
   Stop
 subquestion: | 
   This is not the right tool for you to use.
+
+  % if was_sued == False or sued_for >= 10001:
+  This tool is only for use in small claims court where you have been sued for $10,000 or less.
+  % endif
 
   Ask for general help with court forms or the court process by contacting the [Vermont Judiciary Access and Resource Center.](https://www.vermontjudiciary.org/self-help/ARC) Their services are free and they serve the whole state. They do NOT give legal advice.
 
@@ -523,9 +525,9 @@ id: counterclaims options
 question: |
   Do you want to make counterclaims?
 subquestion: |
-  This screen can help figure out if you have “counterclaims” against the plaintiff (the person or company that sued you).
+  This screen can help you figure out if you have “counterclaims” against the plaintiff (the person or company that sued you).
 
-  If you decide to file counterclaims, you are asking the court to give YOU money.
+  If you decide to file counterclaims, you are asking the court to award YOU money.
   
   There is a court filing fee for counterclaims:
   
@@ -608,7 +610,6 @@ code: |
   merged_counterclaims_text += counterclaims_description
   get_merged_counterclaims = True
 ---
----
 id: want to fill out financial disclosure affidavit
 question: |
   Do you want to fill out a Financial Disclosure Affidavit?
@@ -626,16 +627,18 @@ fields:
     datatype: yesnoradio
   - "I want to fill out that form now.": wants_to_do_financial_disclosure_now
     datatype: yesnoradio
-  - "My income is otherwise exempt because": otherwise_exempt
+  - "I have other reasons why I think my income is exempt. They are:": otherwise_exempt
     maxlength: 500
     required: false
+  - note: |
+      Examples could be: I have no income. Or, my income is less than $290 per week and that is protected in a consumer credit card case.
 ---
 id: want to fill out fee waiver
 question: |
   Do you want to fill out a fee waiver form for your counterclaims?
 
 subquestion: |
-  When you have counterclaims, you pay a court filing fee. It is xxxxxxx.
+  When you have counterclaims, you pay a court filing fee. You would pay $25 if your counterclaims are for $500 or less. You would pay $35 if your counterclaims are between $501 and $10,000.
 
   If you get public assistance or have a low income, you can ask the court to waive the fees.
 
@@ -667,7 +670,7 @@ subquestion: |
   
   
   % if len(has_exempt_income_state.true_values()) > 0 or len(has_exempt_income_other.true_values()) > 0:
-    You said you get some public assistance. You **may** be able to get your fees waived. Do you want to answer questions about your income and expenses so you can fill out the fee waiver form now?
+    You said you get some public assistance. You **may** be able to get your fees waived.
   % endif
   % if len(has_exempt_income_state.true_values()) == 0 or len(has_exempt_income_other.true_values()) == 0:
     **Do you want to answer questions about your income and expenses so you can fill out the fee waiver form now?**
