@@ -129,6 +129,7 @@ code: |
   nav.set_section('defenses')
   if len(defenses.true_values()) > 0:
     disagrees_additional_explanation
+    get_merged_defenses
   if not len(defenses.true_values()) > 0:
     nav.set_section('payments')
     agreeing_with_complaint_and_payments
@@ -137,9 +138,10 @@ code: |
   has_exempt_income_state
   nav.set_section("counterclaims")
   if len(counterclaims.true_values()) > 0:
-    has_counterclaims
+    get_merged_counterclaims
   else:
     no_counterclaims
+
   set_progress(56)
   interview_order_small_claims_answer = True
 ---
@@ -153,6 +155,10 @@ code: |
   interview_order_small_claims_answer
   nav.set_section("review_small_claims_answer")
   trial_court.address.county
+  if len(defenses.true_values()) > 0:
+    get_merged_defenses
+  if len(counterclaims.true_values()) > 0:
+    get_merged_counterclaims
   small_claims_answer_preview_question
   nav.set_section("sign")
   signature_date
@@ -302,6 +308,54 @@ fields:
   - "Your email address": users[0].email
     maxlength: 38  
 ---
+id: names of opposing parties
+sets:
+  - other_parties[i].name.first
+  - other_parties[i].name.last
+  - other_parties[i].name.middle
+  - other_parties[i].name.suffix
+question: |
+  % if user_started_case:
+  Name of ${ ordinal(i) } defendant
+  % else:
+  Name of ${ ordinal(i) } plaintiff in this matter
+  % endif
+subquestion: |
+  % if user_started_case:
+  A defendant is the person who was sued and is responding to a court action.
+  % else:
+  A plaintiff is a person, company or organization who started this case.
+  % endif
+fields:
+  - code: |
+      other_parties[i].name_fields(person_or_business='unsure')
+---
+id: any other opposing parties
+question: |
+  % if user_started_case:
+  Is there any other defendant in this matter?
+  % else:
+  Is there any other plaintiff in this matter?
+  % endif
+fields:
+  - no label: other_parties.there_is_another
+    datatype: yesnoradio
+---
+id: docket number
+question: |
+  What is the case number used to track this case in court?
+subquestion: |
+  Look at the forms you got from the court. They probably have a docket number / case number.
+fields:
+  - I don't know the case number: dont_know_docket_number
+    datatype: yesno    
+  - Case number: docket_number
+    hide if: dont_know_docket_number
+validation code: |
+  # This should be safe too
+  if dont_know_docket_number:
+    docket_number = ''   
+---
 id: choose a court county
 question: |
   What county is your case in?
@@ -318,11 +372,11 @@ fields:
 ---
 id: defenses
 question: |
-  Any reasons why you believe you do **not** owe this debt?
+  Any reasons why you believe you do **not** owe this money?
 subquestion: |
-  In this small claims case, a "plaintiff" has started the case by filing a "complaint." The plaintiff is the company or person who says you owe money. You are called the "defendant." You will be filing an "answer" to the complaint.
+  In this small claims case, a plaintiff has started the case by filing a "complaint" against you.
   
-  “Defenses” to debt collection are reasons why the plaintiff may not have a legal right to the money they say you owe. This screen will help you report any possible defenses.
+  “Defenses” to debt collection are reasons why the plaintiff may not have a legal right to the money. This screen will help you report any possible defenses in your answer.
 
   NOTE: If you choose any of these defenses, you are choosing to disagree with what the plaintiff has claimed.
 
@@ -330,21 +384,41 @@ fields:
 - "Check any boxes that describe your situation.": defenses
   datatype: checkboxes
   choices:
-    - "I don't recognize this debt. (If you cannot recall everything that the plaintiff is saying in their complaint, or if you are not sure, check this box.)": do_not_recognize
-    - "The dollar amount the debt collectors are asking of me does not match the dollar amount I actually owe. (If you cannot recall all the amounts, or if you are not sure, check this box.)": amount_doesnt_match
+    - "I don't recognize this debt. (Tip: If you cannot recall everything that the plaintiff is saying in their complaint, or if you are not sure, check this box.)": do_not_recognize
+    - "The dollar amount the debt collectors are asking of me does not match the dollar amount I actually owe. (Tip: If you cannot recall all the amounts, or if you are not sure, check this box.)": amount_doesnt_match
     - "I have already paid the debt.": already_paid
     - "This debt is discharged due to my personal bankruptcy.": bankruptcy
     - "This debt is of a Limited Liability Corporation (LLC) registered in my name.": llc_debt
     - "The plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt.": not_orginal_creditor
     - "It has been six years since I incurred this debt.": long_time_since_debt
     - "It has been six years since my last payment of this debt.": long_time_since_payment
-
+---
+# "!!omap" makes these terms ordered: 
+# their order here will be their same order when shown to users.
+variable name: defenses_terms
+data: !!omap
+  - do_not_recognize: "I don't recognize this debt."
+  - amount_doesnt_match: "The dollar amount the debt collectors are asking of me does not correspond to the dollar amount I actually owe."
+  - already_paid: "I have already paid the debt."
+  - bankruptcy: "This debt is discharged due to personal bankruptcy."
+  - llc_debt: "This debt is of a Limited Liability Corporation registered in my name."
+  - not_orginal_creditor: "The Plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt."
+  - long_time_since_debt: "It has been six years since I incurred this debt."
+  - long_time_since_payment: "It has been six years since my last payment of this debt."
+---
+id: combining individual defenses and the explanation
+code: |
+  merged_defenses_text = ""
+  for item in defenses.true_values():
+    merged_defenses_text += defenses_terms[item] + "\n"
+  merged_defenses_text += disagrees_additional_explanation
+  get_merged_defenses = True
 ---
 id: disagrees with the complaint
 question: |
-  Do you want to add any more explanation?
+  Do you want to add any more details?
 subquestion: |
-  So far, this is what we have to explain your defense(s).
+  So far, this is the text we have to explain your defense(s). You can explain a little more if you want.
   
   **I disagree that I owe the plaintiff the full amount claimed in the complaint and I request a court hearing.**
 
@@ -382,16 +456,21 @@ id: agrees with the complaint
 question: |
   You agree with the complaint?
 subquestion: |
-  On the last screen, you did not choose any "defenses" to the small claims complaint. That means you agree with the amount you owe and who you owe. If that is true, check the box below.
+  On the last screen, you did not choose any "defenses" to the small claims complaint against you. That means you agree with the amount you owe and who you owe. If that is true, check the box below.
+
+  You should only check the box below if your recall everything that the plaintiff is saying in their complaint as true. If you are not sure, do not check this box. Go back one screen and choose a defense instead.
+
+  **When you agree with the complaint**: Depending on your financial situation, the court may make a judgement to say you need to pay the debt. You will have to pay the money back within 30 days after the judgment is made. If you don't pay within 30 days, you will also have to pay interest on the unpaid money at the rate of 12% per year. 
   
   **I agree that I owe the plaintiff the full amount claimed in the complaint and the court may enter a judgment against me.**
 fields:
   - "I agree": agrees_with_complaint
     datatype: yesno
   - note: |
-      If you do **not** agree and want to revisit the list of defenses, tap the Undo button.
+      Check the box if you agree. If you do **not** agree and want to revisit the list of defenses, tap the Undo button.
   - note: |
-      Choose one of the following.
+      If the court finds you need to pay the debt and enters a judgment against you, what do you plan to do?
+      
     show if: agrees_with_complaint  
   - "Check one of the following.": payment
     datatype: checkboxes
@@ -420,15 +499,19 @@ fields:
     datatype: date
     js show if: |
       val("payment") == "agrees_to_pay_installments"
+
+  - note: |
+      Should we ask this agreeable user if they want to do a counterclaim???
 continue button field: agreeing_with_complaint_and_payments
 ---
 id: exempt income
 question: |
   Do you have "exempt" income?
 subquestion: |
-
-  As part of your answer, you can let the plaintiff and the court know if all or some of your income may be "exempt" from collection. Certain types of income and assets (things you own) are called exempt and cannot be taken to pay a debt.
-
+  Certain types of income and assets (things you own) are called "exempt" and cannot be taken to pay a debt.
+  
+  As part of your answer, you can let the plaintiff and the court know if all or some of your income may be exempt from collection. Below are examples of exempt income.
+  
   **Check any boxes that apply to you.**
 
   I am currently eligible, or was eligible within the last two months, for benefits from these exempt sources:
@@ -470,14 +553,18 @@ fields:
   - no label: counterclaims
     datatype: checkboxes
     choices:
-      - I believe the plaintiff owes me money.
-      - The plaintiff is not the original creditor or lender of the money.
-      - I didn't get a letter from the plaintiff alerting me to my debt before I was sued.
-      - The plaintiff made statements that were not true or were misleading about the debt.
-      - The plaintiff harassed me.
+      - "I believe the plaintiff owes me money.": plaintiff_owes_money
+      - "The plaintiff is not the original creditor or lender of the money.": plaintiff_not_original_creditor
+      - "I didn't get a letter from the plaintiff alerting me to my debt before I was sued.": no_notice
+      - "The plaintiff made statements that were not true or were misleading about the debt.": false_statements
+      - "The plaintiff harassed me.": harassment
 
   - note: |
-      Note about harassment: You can bring a counterclaim for a violation of the Fair Debt Collection Practices Act (FDCPA) for misleading claims, threats, major harassment, etc. The FDCPA applies to third party debt collectors, so one element of an FDCPA violation claim is acknowledging that the debt collector is not the original creditor. However, this alone does not provide grounds for an FDCPA counterclaim.
+      Notes about harassment: 
+      
+      - You can successfully claim harassment in a case like this if the plaintiff's behavior was **beyond** annoying. For example, they called you at late hours of the night or early morning, they used swear words or they called you multiple times a day. Those are harassing behaviors.
+      
+      - You can bring a counterclaim for a violation of the Fair Debt Collection Practices Act (FDCPA) for misleading claims, threats, major harassment, etc. The FDCPA applies to third party debt collectors, so one element of an FDCPA violation claim is acknowledging that the debt collector is not the original creditor. However, this alone does not provide grounds for an FDCPA counterclaim.
 ---
 id: counterclaims amount
 question: |
@@ -486,7 +573,7 @@ subquestion: |
   You've selected a reason(s) for filing counterclaims:
   
   % for item in counterclaims.true_values():
-  - **${ item }**
+  - **${ counterclaims_terms[item] }**
   
   % endfor
   
@@ -516,6 +603,24 @@ subquestion: |
 
   Tap Next to continue.
 continue button field: no_counterclaims
+---
+# "!!omap" makes these terms ordered: 
+# their order here will be their same order when shown to users.
+variable name: counterclaims_terms
+data: !!omap
+  - plaintiff_owes_money: "I believe the plaintiff owes me money."
+  - plaintiff_not_original_creditor: "The plaintiff is not the original creditor or lender of the money."
+  - no_notice: "I didn't get a letter from the plaintiff alerting me to my debt before I was sued."
+  - false_statements: "The plaintiff made statements that were not true or were misleading about the debt."
+  - harassment: "The plaintiff harassed me."
+---
+id: combining individual counterclaims and the explanation
+code: |
+  merged_counterclaims_text = ""
+  for item in counterclaims.true_values():
+    merged_counterclaims_text += counterclaims_terms[item] + "\n"
+  merged_counterclaims_text += counterclaims_description
+  get_merged_counterclaims = True
 ---
 id: preview small_claims_answer
 question: |
@@ -652,6 +757,7 @@ review:
     button: |
       **Have exempt income**:
       ${ word(yesno(has_exempt_income)) }
+
   - Edit: has_counterclaims
     button: |
       **Have a counterclaim**:
@@ -765,6 +871,14 @@ subquestion: |
 
 progress: 100
 ---
+code: |
+  small_claims_answer_attachment.overflow_fields["merged_defenses_text"].overflow_trigger = 348
+  small_claims_answer_attachment.overflow_fields["merged_defenses_text"].label = "Please explain"
+  small_claims_answer_attachment.overflow_fields["merged_counterclaims_text"].overflow_trigger = 344
+  small_claims_answer_attachment.overflow_fields["merged_counterclaims_text"].label = "Please describe"
+  small_claims_answer_attachment.overflow_fields.gathered = True
+---
+---
 # ALDocument objects specify the metadata for each template
 objects:
   - small_claims_answer_Post_interview_instructions: ALDocument.using(title="Instructions", filename="small_claims_answer_next_steps.docx", enabled=True, has_addendum=False)
@@ -798,57 +912,31 @@ attachment:
       - "other_parties1_name": ${ other_parties.short_list(2) }
       - "users1_name": ${ users[0] }
       - "agrees_with_complaint": ${ agrees_with_complaint }
-      - "agrees_to_pay_in_full": ${ agrees_to_pay_in_full }
-      - "agrees_to_pay_installments": ${ agrees_to_pay_installments }
+      - "agrees_to_pay_in_full": ${ payment["agrees_to_pay_in_full"] }
+      - "agrees_to_pay_installments": ${ payment["agrees_to_pay_installments"] }
       - "agrees_to_pay_installments_amount": ${ currency(agrees_to_pay_installments_amount) }
-      - "agrees_to_pay_installments_period": ${ agrees_to_pay_installments_period }
+      - "agrees_to_pay_installments_period": ${ agrees_to_pay_installments_period.lower() }
       - "agrees_to_pay_installments_start_date": ${ agrees_to_pay_installments_start_date.format() }
       - "disagrees_with_complaint": |
           % if len(defenses.true_values()) > 0:
-            { True }
+          ${ True }
           % endif
       - "disagrees_with_complaint_description": |
-          % if defenses["do_not_recognize"]:
-            - I don't recognize this debt.
-          % endif
-          % if defenses["amount_doesnt_match"]:
-            - The dollar amount the debt collectors are asking of me does not correspond to the dollar amount I actually owe.
-          % endif  
-          % if defenses["already_paid"]:
-            - I have already paid the debt.
-          % endif
-          % if defenses["bankruptcy"]:
-            - This debt is discharged due to personal bankruptcy.
-          % endif
-          % if defenses["llc_debt"]:
-            - This debt is of a Limited Liability Corporation registered in my name.
-          % endif
-          % if defenses["not_orginal_creditor"]:
-            - The Plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt.
-          % endif
-          % if defenses["long_time_since_debt"]:
-            - It has been six years since I incurred this debt.
-          % endif
-          % if defenses["long_time_since_payment"]:
-            - It has been six years since my last payment of this debt.
-          % endif
-            - ${ small_claims_answer_attachment.safe_value("disagrees_additional_explanation") }
+          ${ small_claims_answer_attachment.safe_value("merged_defenses_text") }
       - "has_exempt_income": |
           % if len(has_exempt_income_state.true_values()) > 0:
-            ${ True }
+          ${ True }
           % elif len(has_exempt_income_other.true_values()) > 0:
-            ${ True }
+          ${ True }
           % else:
-            ${ False }
+          ${ False }
           % endif
-      - "has_counterclaim": ${ has_counterclaims }
-      - "counterclaim_description": |
+      - "has_counterclaim": |
           % if len(counterclaims.true_values()) > 0:
-          % for item in counterclaims.true_values():
-            - ${ item }
-          % endfor
+          ${ True }
           % endif
-            - ${ small_claims_answer_attachment.safe_value("counterclaims_description") }
+      - "counterclaim_description": |
+          ${ small_claims_answer_attachment.safe_value("merged_counterclaims_text") }
       - "users1_signature": ${ users[0].signature_if_final(i) }
       - "users1_name_1": ${ users[0] }
       - "users1_address_on_one_line": ${ users[0].address.on_one_line() }
@@ -856,12 +944,7 @@ attachment:
       - "users1_daytime_phone_number": ${ users[0].daytime_phone_number }
       - "users1_email": ${ users[0].email }
 ---
-code: |
-  small_claims_answer_attachment.overflow_fields["disagrees_additional_explanation"].overflow_trigger = 348
-  small_claims_answer_attachment.overflow_fields["disagrees_additional_explanation"].label = "Please explain"
-  small_claims_answer_attachment.overflow_fields["counterclaims_description"].overflow_trigger = 344
-  small_claims_answer_attachment.overflow_fields["counterclaims_description"].label = "Please describe"
-  small_claims_answer_attachment.overflow_fields.gathered = True
+
 
 
 
