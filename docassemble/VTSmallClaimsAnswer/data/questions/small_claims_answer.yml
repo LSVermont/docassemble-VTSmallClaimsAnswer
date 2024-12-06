@@ -138,7 +138,7 @@ code: |
   has_exempt_income_state
   nav.set_section("counterclaims")
   if len(counterclaims.true_values()) > 0:
-    has_counterclaims
+    get_merged_counterclaims
   else:
     no_counterclaims
 
@@ -157,6 +157,8 @@ code: |
   trial_court.address.county
   if len(defenses.true_values()) > 0:
     get_merged_defenses
+  if len(counterclaims.true_values()) > 0:
+    get_merged_counterclaims
   small_claims_answer_preview_question
   nav.set_section("sign")
   signature_date
@@ -306,6 +308,54 @@ fields:
   - "Your email address": users[0].email
     maxlength: 38  
 ---
+id: names of opposing parties
+sets:
+  - other_parties[i].name.first
+  - other_parties[i].name.last
+  - other_parties[i].name.middle
+  - other_parties[i].name.suffix
+question: |
+  % if user_started_case:
+  Name of ${ ordinal(i) } defendant
+  % else:
+  Name of ${ ordinal(i) } plaintiff in this matter
+  % endif
+subquestion: |
+  % if user_started_case:
+  A defendant is the person who was sued and is responding to a court action.
+  % else:
+  A plaintiff is a person, company or organization who started this case.
+  % endif
+fields:
+  - code: |
+      other_parties[i].name_fields(person_or_business='unsure')
+---
+id: any other opposing parties
+question: |
+  % if user_started_case:
+  Is there any other defendant in this matter?
+  % else:
+  Is there any other plaintiff in this matter?
+  % endif
+fields:
+  - no label: other_parties.there_is_another
+    datatype: yesnoradio
+---
+id: docket number
+question: |
+  What is the case number used to track this case in court?
+subquestion: |
+  Look at the forms you got from the court. They probably have a docket number / case number.
+fields:
+  - I don't know the case number: dont_know_docket_number
+    datatype: yesno    
+  - Case number: docket_number
+    hide if: dont_know_docket_number
+validation code: |
+  # This should be safe too
+  if dont_know_docket_number:
+    docket_number = ''   
+---
 id: choose a court county
 question: |
   What county is your case in?
@@ -322,13 +372,11 @@ fields:
 ---
 id: defenses
 question: |
-  Any reasons why you believe you do **not** owe this debt?
+  Any reasons why you believe you do **not** owe this money?
 subquestion: |
-  In this small claims case, a "plaintiff" has started the case by filing a "complaint" against you. The plaintiff is the company or person who says you owe money.
+  In this small claims case, a plaintiff has started the case by filing a "complaint" against you.
   
-  You are called the "defendant." You will be filing an "answer" to the complaint.
-  
-  “Defenses” to debt collection are reasons why the plaintiff may not have a legal right to the money. This screen will help you report any possible defenses.
+  “Defenses” to debt collection are reasons why the plaintiff may not have a legal right to the money. This screen will help you report any possible defenses in your answer.
 
   NOTE: If you choose any of these defenses, you are choosing to disagree with what the plaintiff has claimed.
 
@@ -336,8 +384,8 @@ fields:
 - "Check any boxes that describe your situation.": defenses
   datatype: checkboxes
   choices:
-    - "I don't recognize this debt. (If you cannot recall everything that the plaintiff is saying in their complaint, or if you are not sure, check this box.)": do_not_recognize
-    - "The dollar amount the debt collectors are asking of me does not match the dollar amount I actually owe. (If you cannot recall all the amounts, or if you are not sure, check this box.)": amount_doesnt_match
+    - "I don't recognize this debt. (Tip: If you cannot recall everything that the plaintiff is saying in their complaint, or if you are not sure, check this box.)": do_not_recognize
+    - "The dollar amount the debt collectors are asking of me does not match the dollar amount I actually owe. (Tip: If you cannot recall all the amounts, or if you are not sure, check this box.)": amount_doesnt_match
     - "I have already paid the debt.": already_paid
     - "This debt is discharged due to my personal bankruptcy.": bankruptcy
     - "This debt is of a Limited Liability Corporation (LLC) registered in my name.": llc_debt
@@ -505,11 +553,11 @@ fields:
   - no label: counterclaims
     datatype: checkboxes
     choices:
-      - I believe the plaintiff owes me money.
-      - The plaintiff is not the original creditor or lender of the money.
-      - I didn't get a letter from the plaintiff alerting me to my debt before I was sued.
-      - The plaintiff made statements that were not true or were misleading about the debt.
-      - The plaintiff harassed me.
+      - "I believe the plaintiff owes me money.": plaintiff_owes_money
+      - "The plaintiff is not the original creditor or lender of the money.": plaintiff_not_original_creditor
+      - "I didn't get a letter from the plaintiff alerting me to my debt before I was sued.": no_notice
+      - "The plaintiff made statements that were not true or were misleading about the debt.": false_statements
+      - "The plaintiff harassed me.": harassment
 
   - note: |
       Notes about harassment: 
@@ -525,7 +573,7 @@ subquestion: |
   You've selected a reason(s) for filing counterclaims:
   
   % for item in counterclaims.true_values():
-  - **${ item }**
+  - **${ counterclaims_terms[item] }**
   
   % endfor
   
@@ -555,6 +603,24 @@ subquestion: |
 
   Tap Next to continue.
 continue button field: no_counterclaims
+---
+# "!!omap" makes these terms ordered: 
+# their order here will be their same order when shown to users.
+variable name: counterclaims_terms
+data: !!omap
+  - plaintiff_owes_money: "I believe the plaintiff owes me money."
+  - plaintiff_not_original_creditor: "The plaintiff is not the original creditor or lender of the money."
+  - no_notice: "I didn't get a letter from the plaintiff alerting me to my debt before I was sued."
+  - false_statements: "The plaintiff made statements that were not true or were misleading about the debt."
+  - harassment: "The plaintiff harassed me."
+---
+id: combining individual counterclaims and the explanation
+code: |
+  merged_counterclaims_text = ""
+  for item in counterclaims.true_values():
+    merged_counterclaims_text += counterclaims_terms[item] + "\n"
+  merged_counterclaims_text += counterclaims_description
+  get_merged_counterclaims = True
 ---
 id: preview small_claims_answer
 question: |
@@ -808,8 +874,8 @@ progress: 100
 code: |
   small_claims_answer_attachment.overflow_fields["merged_defenses_text"].overflow_trigger = 348
   small_claims_answer_attachment.overflow_fields["merged_defenses_text"].label = "Please explain"
-  small_claims_answer_attachment.overflow_fields["counterclaims_description"].overflow_trigger = 344
-  small_claims_answer_attachment.overflow_fields["counterclaims_description"].label = "Please describe"
+  small_claims_answer_attachment.overflow_fields["merged_counterclaims_text"].overflow_trigger = 344
+  small_claims_answer_attachment.overflow_fields["merged_counterclaims_text"].label = "Please describe"
   small_claims_answer_attachment.overflow_fields.gathered = True
 ---
 ---
@@ -849,7 +915,7 @@ attachment:
       - "agrees_to_pay_in_full": ${ payment["agrees_to_pay_in_full"] }
       - "agrees_to_pay_installments": ${ payment["agrees_to_pay_installments"] }
       - "agrees_to_pay_installments_amount": ${ currency(agrees_to_pay_installments_amount) }
-      - "agrees_to_pay_installments_period": ${ agrees_to_pay_installments_period }
+      - "agrees_to_pay_installments_period": ${ agrees_to_pay_installments_period.lower() }
       - "agrees_to_pay_installments_start_date": ${ agrees_to_pay_installments_start_date.format() }
       - "disagrees_with_complaint": |
           % if len(defenses.true_values()) > 0:
@@ -870,12 +936,7 @@ attachment:
           ${ True }
           % endif
       - "counterclaim_description": |
-          % if len(counterclaims.true_values()) > 0:
-          % for item in counterclaims.true_values():
-            - ${ item }
-          % endfor
-          % endif
-            - ${ small_claims_answer_attachment.safe_value("counterclaims_description") }
+          ${ small_claims_answer_attachment.safe_value("merged_counterclaims_text") }
       - "users1_signature": ${ users[0].signature_if_final(i) }
       - "users1_name_1": ${ users[0] }
       - "users1_address_on_one_line": ${ users[0].address.on_one_line() }
