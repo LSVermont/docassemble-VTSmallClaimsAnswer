@@ -79,7 +79,7 @@ code: |
   trial_court_index = all_courts.matching_courts_in_county(county_name=user_selected_county,search_columns=['division_abbr'],search_string=trial_court_division)[0][0]
 ---
 sections:
-  - intro: Is this interview right for you
+  - intro: Is this tool right for you?
   - about_you: About you
   - other_party: The other party
   - case_info: Your court case
@@ -422,31 +422,10 @@ subquestion: |
   
   **I disagree that I owe the plaintiff the full amount claimed in the complaint and I request a court hearing.**
 
-  % if defenses["do_not_recognize"]:
-    - **I don't recognize this debt.**
-  % endif
-  % if defenses["amount_doesnt_match"]:
-    - **The dollar amount the debt collectors are asking of me does not correspond to the dollar amount I actually owe.**
-  % endif  
-  % if defenses["already_paid"]:
-    - **I have already paid the debt.**
-  % endif
-  % if defenses["bankruptcy"]:
-    - **This debt is discharged due to personal bankruptcy.**
-  % endif
-  % if defenses["llc_debt"]:
-    - **This debt is of a Limited Liability Corporation registered in my name.**
-  % endif
-  % if defenses["not_orginal_creditor"]:
-    - **The Plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt.**
-  % endif
-  % if defenses["long_time_since_debt"]:
-    - **It has been six years since I incurred this debt.**
-  % endif
-  % if defenses["long_time_since_payment"]:
-    - **It has been six years since my last payment of this debt.**
-  % endif
+  % for item in defenses.true_values():
+  - **${ defenses_terms[item] }**
   
+  % endfor
 fields:
   - "More explanation (optional)": disagrees_additional_explanation
     input type: area
