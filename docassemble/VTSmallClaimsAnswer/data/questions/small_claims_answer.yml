@@ -14,14 +14,7 @@ metadata:
   can_I_use_this_form: |
     If you are have been sued in small claims court, you can use this tool to respond.
   before_you_start: |
-    This tool will help you respond to a small claims case.
-    
-    Before you get started, please gather:
-    
-    
-    When you are finished, you will need to:
-    
-
+    0
   maturity: production
   estimated_completion_minutes: 30
   estimated_completion_delta: 10
@@ -280,7 +273,8 @@ id: lets get started
 question: |
   Getting started
 subquestion: |
-
+  <i class="fas fa-check fa-3x" style="color: #429a3c;" aria-hidden="true"></i>  Yes, you can use this tool to fill out these forms.
+  
   Before you get started, have these things on hand:
   
   1. The papers you got from the court, including the Small Claims Complaint.
