@@ -139,8 +139,9 @@ code: |
 
   if len(has_exempt_income_state.true_values()) == 0 and len(has_exempt_income_other.true_values()) == 0:
     wants_to_fill_out_financial_disclosure
-  if has_counterclaims:
-    wants_to_fill_out_fee_waiver 
+  if len(counterclaims.true_values()) > 0:
+    if has_counterclaims:
+      wants_to_fill_out_fee_waiver 
 
   set_progress(56)
   interview_order_small_claims_answer = True
@@ -402,9 +403,6 @@ question: |
 subquestion: |
   Look at the forms you got from the court to see the name of the county.
 fields:
-  - note: |
-      Choose the county where you will file this form.
-
   - County: user_selected_county
     code: sorted(all_courts.unique_column_values('branch') - {"Environmental", "Judicial Bureau"} )
   
@@ -541,18 +539,18 @@ fields:
   - no label: has_exempt_income_state
     datatype: checkboxes
     choices:
-      - the Vermont Department for Children and Families (DCF) (examples…)
-      - the Department of Vermont Health Access (DVHA).(examples…)
+      - "the Vermont Department for Children and Families (DCF) (examples…)": DCF
+      - "the Department of Vermont Health Access (DVHA).(examples…)": DVHA
   - note: |
       I have income from these exempt sources:
   - no label: has_exempt_income_other
     datatype: checkboxes
     choices:      
-      - Social Security Income (examples…)
-      - Social Security or Social Security Disability (SSDI?)
-      - Veteran’s Benefits
-      - Unemployment Compensation
-      - Workers’ Compensation
+      - "Social Security Income (examples…)": SS
+      - "Social Security or Social Security Disability (SSDI?)": SSDI
+      - "Veteran’s Benefits": VA
+      - "Unemployment Compensation": unemployment
+      - "Workers’ Compensation": workers_comp
 ---
 id: counterclaims options
 question: |
@@ -620,7 +618,7 @@ id: if no counterclaims
 question: |
   No counterclaims
 subquestion: |
-  You have not selected a reason for a counterclaim. We will not include a counterclaim form in this package.
+  You have not selected a reason for a counterclaim. We will not include counterclaims in your answer.
 
   Tap Next to continue.
 continue button field: no_counterclaims
