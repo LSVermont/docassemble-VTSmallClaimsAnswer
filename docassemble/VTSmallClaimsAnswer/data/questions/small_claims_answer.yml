@@ -479,7 +479,7 @@ subquestion: |
 
   You should only check the box below if your recall everything that the plaintiff is saying in their complaint as true. If you are not sure, do not check this box. Go back one screen and choose a defense instead.
 
-  **When you agree with the complaint**: Depending on your financial situation, the court may make a judgement to say you need to pay the debt. You will have to pay the money back within 30 days after the judgment is made. If you don't pay within 30 days, you will also have to pay interest on the unpaid money at the rate of 12% per year. 
+  **When you agree with the complaint**: Depending on your financial situation, the court may make a judgement to say you need to pay the debt. You will have to pay the money back. 
   
   **I agree that I owe the plaintiff the full amount claimed in the complaint and the court may enter a judgment against me.**
 fields:
@@ -646,19 +646,34 @@ question: |
   Do you want to fill out a Financial Disclosure Affidavit?
 
 subquestion: |
-  Earlier, you said you don't have "exempt" income like income from public assistance. Do you think your "reasonable living expenses" for you and your family members living with you are **more** than your income after taxes? If so, it may be worth your time to show the court why you think you should pay less than you owe.
-
-  Do you want to answer questions about your expenses and income so you can submit a Financial Disclosure Affidavit form?
-
-  If yes, consider making an account to save your work. This is because there are quite a few questions to answer for this form. You might want to start it and come back to finish it. 
-
-  **My reasonable living expenses for myself and my family members living with me are more than my income after taxes. I want to attach a Financial Disclosure Affidavit showing my income and expenses.**
+  Earlier, you said you don't have "exempt" income from public assistance.
+  
+  Do you think your "reasonable living expenses" for you and your family members living with you are **more** than your income after taxes? If so, it may be worth your time to show the court why you think you should pay less than you owe.
 fields:
-  - "Attach a Financial Disclosure Affidavit?": wants_to_fill_out_financial_disclosure
+  - note: |
+      Do you want to answer questions about your expenses and income and submit a Financial Disclosure Affidavit form?
+  - no label: wants_to_fill_out_financial_disclosure
     datatype: yesnoradio
-  - "I want to fill out that form now.": wants_to_do_financial_disclosure_now
-    datatype: yesnoradio
-  - "I have other reasons why I think my income is exempt. They are:": otherwise_exempt
+  - note: |
+      Do you want to do that now with this tool? Or later on your own?
+    js show if: |
+      val("wants_to_fill_out_financial_disclosure") == true
+  - no label: wants_to_do_financial_disclosure_now
+    input type: radio
+    label above field: True
+    choices:
+    - Now, with this tool
+    - Later, on my own
+    js show if: |
+      val("wants_to_fill_out_financial_disclosure") == true
+  - note: |
+      If you said "now", consider making an account to save your work. This is because there are quite a few questions to answer for this form. You might want to start it and come back to finish it.
+    js show if: |
+      val("wants_to_fill_out_financial_disclosure") == true
+  - note: |
+      Do you have other reasons why you think your income is exempt? (Exempt income cannot be taken to pay a debt.)
+  - "If so, you can tell the court the other reasons:": otherwise_exempt
+    input type: area
     maxlength: 500
     required: false
   - note: |
