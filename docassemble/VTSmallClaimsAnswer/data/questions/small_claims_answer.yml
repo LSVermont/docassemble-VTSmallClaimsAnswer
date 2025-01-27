@@ -270,11 +270,20 @@ buttons:
   - DELETE your answers: restart
 continue button field: wrong_interview_kickout
 ---
+code: |
+  answer_deadline = sued_when_served.plus(days=30)
+---
 id: lets get started
 question: |
   Getting started
 subquestion: |
   <i class="fas fa-check fa-3x" style="color: #429a3c;" aria-hidden="true"></i>  Yes, you can use this tool to fill out these forms.
+
+  **Important 30-day deadline**: The court sets a deadline to send your answer in within 30 days of receiving the complaint. It's important to meet this deadline. If you are late, the plaintiff can ask for a default judgment against you any time after the 30-day deadline. Then you may lose your case.
+
+  You said you got the complaint on ${ sued_when_served }. That means you need to deliver or postmark your answer to the court by this date: **${ answer_deadline }**.
+
+  <hr>
   
   Before you get started, have these things on hand:
   
@@ -284,14 +293,12 @@ subquestion: |
   
   When you are finished, you will need to:
   
-  1. 
-  2.
+  - a
+  - b
   
   Keep in mind, you can edit your answers after you preview the finished forms. You can also do that anytime by choosing Edit My Answers on the side of the screen or in the Menu at the top-right of the screen.
   
   You can also go to the Menu and quickly Exit and Delete Your Answers if you need to. And, you may choose to make a free account so you can store your answers online and come back to them later.
-
-  **Important 30-day deadline**: The court sets a deadline to send your answer in within 30 days of receiving the complaint. It's important to meet this deadline. If you are late, the plaintiff can ask for a default judgment against you any time after the 30-day deadline. Then you may lose your case.
 
 fields:
   - To continue, please accept our [terms of use](https://vtlawhelp.org/vtcourtforms/terms-of-use).: acknowledged_information_use
