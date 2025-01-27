@@ -270,11 +270,20 @@ buttons:
   - DELETE your answers: restart
 continue button field: wrong_interview_kickout
 ---
+code: |
+  answer_deadline = sued_when_served.plus(days=30)
+---
 id: lets get started
 question: |
   Getting started
 subquestion: |
   <i class="fas fa-check fa-3x" style="color: #429a3c;" aria-hidden="true"></i>  Yes, you can use this tool to fill out these forms.
+
+  **Important 30-day deadline**: The court sets a deadline to send your answer in within 30 days of receiving the complaint. It's important to meet this deadline. If you are late, the plaintiff can ask for a default judgment against you any time after the 30-day deadline. Then you may lose your case.
+
+  You said you got the complaint on ${ sued_when_served }. That means you need to deliver or postmark your answer to the court by this date: **${ answer_deadline }**.
+
+  <hr>
   
   Before you get started, have these things on hand:
   
@@ -284,14 +293,12 @@ subquestion: |
   
   When you are finished, you will need to:
   
-  1. 
-  2.
+  - a
+  - b
   
   Keep in mind, you can edit your answers after you preview the finished forms. You can also do that anytime by choosing Edit My Answers on the side of the screen or in the Menu at the top-right of the screen.
   
   You can also go to the Menu and quickly Exit and Delete Your Answers if you need to. And, you may choose to make a free account so you can store your answers online and come back to them later.
-
-  **Important 30-day deadline**: The court sets a deadline to send your answer in within 30 days of receiving the complaint. It's important to meet this deadline. If you are late, the plaintiff can ask for a default judgment against you any time after the 30-day deadline. Then you may lose your case.
 
 fields:
   - To continue, please accept our [terms of use](https://vtlawhelp.org/vtcourtforms/terms-of-use).: acknowledged_information_use
@@ -338,12 +345,12 @@ fields:
     required: False
     show if: users_mailing_address_different
 ---
-id: Phone and email
+id: phone and email
 question: |
   Phone and email
 fields:
   - "Your daytime phone number": users[0].daytime_phone_number
-    maxlength: 27
+    datatype: al_international_phone
   - "Your email address": users[0].email
     maxlength: 38  
 ---
@@ -357,13 +364,13 @@ question: |
   % if user_started_case:
   Name of ${ ordinal(i) } defendant
   % else:
-  Name of ${ ordinal(i) } plaintiff in this matter
+  Name of ${ ordinal(i) } plaintiff in this case
   % endif
 subquestion: |
   % if user_started_case:
   A defendant is the person who was sued and is responding to a court action.
   % else:
-  A plaintiff is a person, company or organization who started this case.
+  A plaintiff is the person, company or organization who is suing you. There might be more than one plaintiff in your case.
 
   Look at the forms you got from the court to fill in this information.
   % endif
@@ -386,7 +393,7 @@ id: docket number
 question: |
   What is the case number used to track this case in court?
 subquestion: |
-  Look at the forms you got from the court to see the docket number / case number.
+  Look at the forms you got from the court to see the docket number / case number. It's usually in the upper-right of the forms.
 fields:
   - I don't know the case number: dont_know_docket_number
     datatype: yesno    
@@ -401,7 +408,7 @@ id: choose a court county
 question: |
   What county is your case in?
 subquestion: |
-  Look at the forms you got from the court to see the name of the county.
+  Look at the forms you got from the court to see the name of the county. It's usually in the upper-left of the forms.
 fields:
   - County: user_selected_county
     code: sorted(all_courts.unique_column_values('branch') - {"Environmental", "Judicial Bureau"} )
@@ -596,17 +603,17 @@ subquestion: |
   
   % endfor
   
-  Now, please confirm that you want to pursue the counterclaims. You can further explain the reason(s). And you can say how much you want to ask the court for in your counterclaims.
+  Now, please confirm that you want to pursue the counterclaims.
   
 fields:
   - "I want to file counterclaims. I know I will pay a filing fee or ask for a fee waiver.": has_counterclaims
     datatype: yesnoradio
-  - "I want to ask the court for this amount of money": counterclaims_amount
-    datatype: currency
+  - note: |
+        When you ask for money in a counterclaim, you are asking for "damages." You can include the counterclaims filing fee, too. In small claims court, the total amount must be less than $10,001.
     js show if: |
       val("has_counterclaims") == true
-  - note: |
-        When you ask for money in a counterclaim, you are asking for "damages." In small claims court, the amount must be less than $10,001.
+  - "I want to ask the court for this amount of money": counterclaims_amount
+    datatype: currency
     js show if: |
       val("has_counterclaims") == true
   - "Further describe the reason(s) for your counterclaims": counterclaims_description
@@ -1040,6 +1047,8 @@ attachment:
           ${ True }
           % elif len(has_exempt_income_other.true_values()) > 0:
           ${ True }
+          % elif wants_to_fill_out_financial_disclosure == True:
+          ${ True }
           % else:
           ${ False }
           % endif
@@ -1048,7 +1057,7 @@ attachment:
           ${ True }
           % endif
       - "counterclaim_description": |
-          ${ small_claims_answer_attachment.safe_value("merged_counterclaims_text") }
+          I have counterclaims for ${ currency(counterclaims_amount)}. ${ small_claims_answer_attachment.safe_value("merged_counterclaims_text") }
       - "users1_signature": ${ users[0].signature_if_final(i) }
       - "users1_name_1": ${ users[0] }
       - "users1_address_on_one_line": ${ users[0].address.on_one_line() }
