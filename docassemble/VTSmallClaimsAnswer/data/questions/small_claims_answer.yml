@@ -14,14 +14,7 @@ metadata:
   can_I_use_this_form: |
     If you are have been sued in small claims court, you can use this tool to respond.
   before_you_start: |
-    This tool will help you respond to a small claims case.
-    
-    Before you get started, please gather:
-    
-    
-    When you are finished, you will need to:
-    
-
+    0
   maturity: production
   estimated_completion_minutes: 30
   estimated_completion_delta: 10
@@ -138,14 +131,17 @@ code: |
   has_exempt_income_state
   nav.set_section("counterclaims")
   if len(counterclaims.true_values()) > 0:
-    get_merged_counterclaims
+    has_counterclaims
+    if has_counterclaims == True:
+      get_merged_counterclaims
   else:
     no_counterclaims
 
   if len(has_exempt_income_state.true_values()) == 0 and len(has_exempt_income_other.true_values()) == 0:
     wants_to_fill_out_financial_disclosure
-  if has_counterclaims:
-    wants_to_fill_out_fee_waiver 
+  if len(counterclaims.true_values()) > 0:
+    if has_counterclaims:
+      wants_to_fill_out_fee_waiver 
 
   set_progress(56)
   interview_order_small_claims_answer = True
@@ -163,7 +159,8 @@ code: |
   if len(defenses.true_values()) > 0:
     get_merged_defenses
   if len(counterclaims.true_values()) > 0:
-    get_merged_counterclaims
+    if has_counterclaims == True:
+      get_merged_counterclaims
   small_claims_answer_preview_question
   nav.set_section("sign")
   signature_date
@@ -277,17 +274,18 @@ id: lets get started
 question: |
   Getting started
 subquestion: |
-
+  <i class="fas fa-check fa-3x" style="color: #429a3c;" aria-hidden="true"></i>  Yes, you can use this tool to fill out these forms.
+  
   Before you get started, have these things on hand:
   
-  1. 
-  1. 
-  1. 
+  1. The papers you got from the court, including the Small Claims Complaint.
+  2. 
+  3. 
   
   When you are finished, you will need to:
   
   1. 
-  1.
+  2.
   
   Keep in mind, you can edit your answers after you preview the finished forms. You can also do that anytime by choosing Edit My Answers on the side of the screen or in the Menu at the top-right of the screen.
   
@@ -307,6 +305,38 @@ fields:
         You cannot continue unless you agree to the terms of use.        
 
 continue button field: lets_get_started
+---
+id: gather users address
+sets:
+  - users[0].address.address
+  - users[0].address.city
+  - users[0].address.zip
+  - users[0].address.unit
+  - users[0].address.state
+  - users[0].address.country
+question: |
+  What is your address?  
+fields:
+  - code: |
+      users[0].address_fields(default_state=AL_DEFAULT_STATE)
+  - I have a mailing address that is different from my street address: users_mailing_address_different
+    datatype: yesno
+  - Mailing address: users[0].mailing_address.address
+    address autocomplete: True
+    show if: users_mailing_address_different
+  - Unit: users[0].mailing_address.unit
+    required: False
+    show if: users_mailing_address_different
+  - City: users[0].mailing_address.city
+    show if: users_mailing_address_different
+  - State: users[0].mailing_address.state
+    code: |
+      states_list()
+    default: VT
+    show if: users_mailing_address_different
+  - Zip or postal code: users[0].mailing_address.zip
+    required: False
+    show if: users_mailing_address_different
 ---
 id: Phone and email
 question: |
@@ -334,6 +364,8 @@ subquestion: |
   A defendant is the person who was sued and is responding to a court action.
   % else:
   A plaintiff is a person, company or organization who started this case.
+
+  Look at the forms you got from the court to fill in this information.
   % endif
 fields:
   - code: |
@@ -354,7 +386,7 @@ id: docket number
 question: |
   What is the case number used to track this case in court?
 subquestion: |
-  Look at the forms you got from the court. They probably have a docket number / case number.
+  Look at the forms you got from the court to see the docket number / case number.
 fields:
   - I don't know the case number: dont_know_docket_number
     datatype: yesno    
@@ -368,10 +400,9 @@ validation code: |
 id: choose a court county
 question: |
   What county is your case in?
+subquestion: |
+  Look at the forms you got from the court to see the name of the county.
 fields:
-  - note: |
-      Choose the county where you will file this form.
-
   - County: user_selected_county
     code: sorted(all_courts.unique_column_values('branch') - {"Environmental", "Judicial Bureau"} )
   
@@ -448,7 +479,7 @@ subquestion: |
 
   You should only check the box below if your recall everything that the plaintiff is saying in their complaint as true. If you are not sure, do not check this box. Go back one screen and choose a defense instead.
 
-  **When you agree with the complaint**: Depending on your financial situation, the court may make a judgement to say you need to pay the debt. You will have to pay the money back within 30 days after the judgment is made. If you don't pay within 30 days, you will also have to pay interest on the unpaid money at the rate of 12% per year. 
+  **When you agree with the complaint**: Depending on your financial situation, the court may make a judgement to say you need to pay the debt. You will have to pay the money back. 
   
   **I agree that I owe the plaintiff the full amount claimed in the complaint and the court may enter a judgment against me.**
 fields:
@@ -508,18 +539,18 @@ fields:
   - no label: has_exempt_income_state
     datatype: checkboxes
     choices:
-      - the Vermont Department for Children and Families (DCF) (examples…)
-      - the Department of Vermont Health Access (DVHA).(examples…)
+      - "the Vermont Department for Children and Families (DCF) (examples…)": DCF
+      - "the Department of Vermont Health Access (DVHA).(examples…)": DVHA
   - note: |
       I have income from these exempt sources:
   - no label: has_exempt_income_other
     datatype: checkboxes
     choices:      
-      - Social Security Income (examples…)
-      - Social Security or Social Security Disability (SSDI?)
-      - Veteran’s Benefits
-      - Unemployment Compensation
-      - Workers’ Compensation
+      - "Social Security Income (examples…)": SS
+      - "Social Security or Social Security Disability (SSDI?)": SSDI
+      - "Veteran’s Benefits": VA
+      - "Unemployment Compensation": unemployment
+      - "Workers’ Compensation": workers_comp
 ---
 id: counterclaims options
 question: |
@@ -535,7 +566,7 @@ subquestion: |
   - You would pay $35 if your counterclaims are between $501 and $10,000.
   - If you have a low income, you can ask the court to waive the fee. You can use our VTCourtForms tool for the fee waiver form.
 
-  **Check any box that describes your situation.**
+  Check any box that describes your situation:
 
 fields:
   - no label: counterclaims
@@ -556,7 +587,7 @@ fields:
 ---
 id: counterclaims amount
 question: |
-  Counterclaim details
+  Counterclaims details
 subquestion: |
   You've selected a reason(s) for filing counterclaims:
   
@@ -587,7 +618,7 @@ id: if no counterclaims
 question: |
   No counterclaims
 subquestion: |
-  You have not selected a reason for a counterclaim. We will not include a counterclaim form in this package.
+  You have not selected a reason for a counterclaim. We will not include counterclaims in your answer.
 
   Tap Next to continue.
 continue button field: no_counterclaims
@@ -615,19 +646,34 @@ question: |
   Do you want to fill out a Financial Disclosure Affidavit?
 
 subquestion: |
-  Earlier, you said you don't have "exempt" income like income from public assistance. Do you think your "reasonable living expenses" for you and your family members living with you are **more** than your income after taxes? If so, it may be worth your time to show the court why you think you should pay less than you owe.
-
-  Do you want to answer questions about your expenses and income so you can submit a Financial Disclosure Affidavit form?
-
-  If yes, consider making an account to save your work. This is because there are quite a few questions to answer for this form. You might want to start it and come back to finish it. 
-
-  **My reasonable living expenses for myself and my family members living with me are more than my income after taxes. I want to attach a Financial Disclosure Affidavit showing my income and expenses.**
+  Earlier, you said you don't have "exempt" income from public assistance.
+  
+  Do you think your "reasonable living expenses" for you and your family members living with you are **more** than your income after taxes? If so, it may be worth your time to show the court why you think you should pay less than you owe.
 fields:
-  - "Attach a Financial Disclosure Affidavit?": wants_to_fill_out_financial_disclosure
+  - note: |
+      Do you want to answer questions about your expenses and income and submit a Financial Disclosure Affidavit form?
+  - no label: wants_to_fill_out_financial_disclosure
     datatype: yesnoradio
-  - "I want to fill out that form now.": wants_to_do_financial_disclosure_now
-    datatype: yesnoradio
-  - "I have other reasons why I think my income is exempt. They are:": otherwise_exempt
+  - note: |
+      Do you want to do that now with this tool? Or later on your own?
+    js show if: |
+      val("wants_to_fill_out_financial_disclosure") == true
+  - no label: wants_to_do_financial_disclosure_now
+    input type: radio
+    label above field: True
+    choices:
+    - Now, with this tool
+    - Later, on my own
+    js show if: |
+      val("wants_to_fill_out_financial_disclosure") == true
+  - note: |
+      If you said "now", consider making an account to save your work. This is because there are quite a few questions to answer for this form. You might want to start it and come back to finish it.
+    js show if: |
+      val("wants_to_fill_out_financial_disclosure") == true
+  - note: |
+      Do you have other reasons why you think your income is exempt? (Exempt income cannot be taken to pay a debt.)
+  - "If so, you can tell the court the other reasons:": otherwise_exempt
+    input type: area
     maxlength: 500
     required: false
   - note: |
@@ -908,23 +954,32 @@ fields:
         not al_form_requires_digital_signature
 continue button field: saw_signature_choice    
 ---
----
 id: download small_claims_answer
 event: small_claims_answer_download
 question: |
-  All done
+  ${ download_screen_instructions_headline }
 subquestion: |
-  Thank you ${users}. Your form is ready to download and deliver.
   
-  View, download and send your form below. Click the "Edit answers" button to fix any mistakes.
+  ${ download_screen_instructions }
 
-  ${ action_button_html(url_action('review_small_claims_answer'), label='Edit answers', color='info') }
+  ${ action_button_html(url_action('review_VT_fee_waiver'), label='<i class="fa-solid fa-pencil"></i> Edit your answers', color='info') }
+
+  <hr>
+  
+  <h4 style="margin-bottom: 18px;">Documents to download</h4>
   
   
   ${ al_user_bundle.download_list_html() }
   
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
+
+  <hr>  
+  
+  ${ download_screen_bottom_instructions }
+  
+  ${ collapse_template(not_seeing_email) }
+  ${ collapse_template(log_out_when_done) }
 
 progress: 100
 ---
@@ -938,7 +993,7 @@ code: |
 ---
 # ALDocument objects specify the metadata for each template
 objects:
-  - small_claims_answer_Post_interview_instructions: ALDocument.using(title="Instructions", filename="small_claims_answer_next_steps.docx", enabled=True, has_addendum=False)
+  - small_claims_answer_Post_interview_instructions: ALDocument.using(title="NEXT STEPS - Instructions for filing these forms with the court", filename="small_claims_answer_next_steps.docx", enabled=True, has_addendum=False)
   - small_claims_answer_attachment: ALDocument.using(title="Small claims answer", filename="small_claims_answer", enabled=True, has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 # Bundles group the ALDocuments into separate downloads, such as for court and for the user
