@@ -850,10 +850,8 @@ review:
   - Edit: agrees_with_complaint
     button: |
       **You agree with the complaint**:
-      % if len(defenses.true_values()) == 0:
-      Yes
-      % else:
-      No
+      % if defined(agrees_with_complaint):
+      ${ word(yesno(agrees_with_complaint)) }
       % endif
   - Edit: agrees_to_pay_in_full
     button: |
@@ -1054,7 +1052,13 @@ attachment:
       - "docket_number": ${ docket_number }
       - "other_parties1_name": ${ other_parties.short_list(2) }
       - "users1_name": ${ users[0] }
-      - "agrees_with_complaint": ${ agrees_with_complaint }
+      - "users1_address_on_one_line": ${ users[0].address.on_one_line() }
+      - "users1_daytime_phone_number": ${ users[0].daytime_phone_number }
+      - "users1_email": ${ users[0].email }
+      - "agrees_with_complaint": |
+          % if agrees_with_complaint:
+          ${ True }
+          % endif
       - "agrees_to_pay_in_full": ${ payment["agrees_to_pay_in_full"] }
       - "agrees_to_pay_installments": ${ payment["agrees_to_pay_installments"] }
       - "agrees_to_pay_installments_amount": ${ currency(agrees_to_pay_installments_amount) }
@@ -1082,12 +1086,10 @@ attachment:
           % endif
       - "counterclaim_description": |
           I have counterclaims for ${ currency(counterclaims_amount)}. ${ small_claims_answer_attachment.safe_value("merged_counterclaims_text") }
-      - "users1_signature": ${ users[0].signature_if_final(i) }
       - "users1_name_1": ${ users[0] }
-      - "users1_address_on_one_line": ${ users[0].address.on_one_line() }
       - "signature_date": ${ signature_date }
-      - "users1_daytime_phone_number": ${ users[0].daytime_phone_number }
-      - "users1_email": ${ users[0].email }
+      - "users1_signature": ${ users[0].signature_if_final(i) }
+
 ---
 
 
