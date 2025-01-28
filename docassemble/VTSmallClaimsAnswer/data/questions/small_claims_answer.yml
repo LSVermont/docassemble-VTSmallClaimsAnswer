@@ -77,7 +77,6 @@ sections:
   - other_party: The other party
   - case_info: Your court case
   - defenses: Any defenses?
-  - payments: Agree to payments?
   - exempt_income: Any exempt income?
   - counterclaims: Any counterclaims?
   - review_small_claims_answer: Edit your answers
@@ -124,7 +123,6 @@ code: |
     disagrees_additional_explanation
     get_merged_defenses
   if not len(defenses.true_values()) > 0:
-    nav.set_section('payments')
     agreeing_with_complaint_and_payments
   set_progress(42)
   nav.set_section("exempt_income")
@@ -855,21 +853,21 @@ review:
       ${ word(yesno(wants_to_fill_out_financial_disclosure)) }
   - Edit: agrees_with_complaint
     button: |
-      **You agree with complaint**: ${ word(yesno(agrees_with_complaint)) }
+      **You agree with the complaint**:
+      % if len(defenses.true_values()) == 0:
+      Yes
+      % else:
+      No
+      % endif
   - Edit: agrees_to_pay_in_full
     button: |
       **You agree to pay in full**: ${ word(yesno(agrees_to_pay_in_full)) }
-  - Edit: agrees_to_pay_installments
-    button: |
-      **You agree to pay installments**: ${ word(yesno(agrees_to_pay_installments)) }
   - Edit: agrees_to_pay_installments_amount
     button: |
-      **In this amount**: ${ currency(agrees_to_pay_installments_amount) }
-  - Edit: agrees_to_pay_installments_period
-    button: |
+      **You would like to pay installments in this amount**: ${ currency(agrees_to_pay_installments_amount) }
+
       **Every**: ${ agrees_to_pay_installments_period }
-  - Edit: agrees_to_pay_installments_start_date
-    button: |
+
       **Starting**: ${ agrees_to_pay_installments_start_date }
   - Edit: defenses
     button: |
