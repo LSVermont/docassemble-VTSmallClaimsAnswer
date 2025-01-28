@@ -801,7 +801,7 @@ question: |
 review:
   - Edit: trial_court
     button: |
-      **Your court case**
+      **About the court case**
       
       **Case is in**: Small Claims Court, 
       % if defined("trial_court.address.county"):
@@ -835,6 +835,24 @@ review:
       **Your email**:
       
       ${ users[0].email }
+
+  - Edit:
+      - has_exempt_income_state
+    button: |
+      **You have exempt income that cannot be taken to pay a debt**: 
+      % if len(has_exempt_income_state.true_values()) > 0:
+      Yes
+      % elif len(has_exempt_income_other.true_values()) > 0:
+      Yes
+      % elif wants_to_fill_out_financial_disclosure == True:
+      Yes
+      % else:
+      No
+      % endif
+  - Edit: wants_to_fill_out_financial_disclosure
+    button: |
+      **You want to fill out a financial disclosure form**:
+      ${ word(yesno(wants_to_fill_out_financial_disclosure)) }
   - Edit: agrees_with_complaint
     button: |
       **You agree with complaint**: ${ word(yesno(agrees_with_complaint)) }
@@ -855,12 +873,12 @@ review:
       **Starting**: ${ agrees_to_pay_installments_start_date }
   - Edit: defenses
     button: |
-      **You disagree with complaint**: 
+      **You disagree with the complaint**: 
       % if len(defenses.true_values()) > 0:
         Yes
 
       % for item in defenses.true_values():
-      - **${ defenses_terms[item] }**
+      - ${ defenses_terms[item] }
       % endfor
       % else:
         No
@@ -871,17 +889,24 @@ review:
       % if defined("disagrees_additional_explanation"):
       > ${ single_paragraph(disagrees_additional_explanation) }
       % endif
-
-  - Edit: has_exempt_income
+  - Edit: counterclaims
     button: |
-      **You have exempt income that cannot be taken to pay a debt**: ${ word(yesno(has_exempt_income)) }
+      **You have counterclaims**:
+      % if len(counterclaims.true_values()) > 0:
+        Yes
 
-  - Edit: has_counterclaims
-    button: |
-      **You have counterclaims**: ${ word(yesno(has_counterclaims)) }
+      % for item in counterclaims.true_values():
+      - ${ counterclaims_terms[item] }
+      % endfor
+      % else:
+        No
+      % endif
   - Edit: counterclaims_description
     button: |
-      **Description of counterclaims**:
+      **Amount you want to ask the court for**:
+      ${ currency(counterclaims_amount) }
+      
+      **More details**:
       % if defined("counterclaims_description"):
       > ${ single_paragraph(counterclaims_description) }
       % endif
