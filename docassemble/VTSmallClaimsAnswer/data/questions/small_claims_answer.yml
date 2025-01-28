@@ -999,7 +999,7 @@ subquestion: |
   
   ${ download_screen_instructions }
 
-  ${ action_button_html(url_action('review_VT_fee_waiver'), label='<i class="fa-solid fa-pencil"></i> Edit your answers', color='info') }
+  ${ action_button_html(url_action('review_small_claims_answer'), label='<i class="fa-solid fa-pencil"></i> Edit your answers', color='info') }
 
   <hr>
   
