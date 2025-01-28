@@ -285,16 +285,9 @@ subquestion: |
 
   <hr>
   
-  Before you get started, have these things on hand:
+  Before you get started, have the papers you got from the court at hand. This includes the Small Claims Complaint.
   
-  1. The papers you got from the court, including the Small Claims Complaint.
-  2. 
-  3. 
-  
-  When you are finished, you will need to:
-  
-  - a
-  - b
+  When you are finished, you will need to send your answer back to the court and send a copy to the other party (the plaintiff). Our Next Steps document at the end of this tool will give you instructions.
   
   Keep in mind, you can edit your answers after you preview the finished forms. You can also do that anytime by choosing Edit My Answers on the side of the screen or in the Menu at the top-right of the screen.
   
@@ -381,9 +374,9 @@ fields:
 id: any other opposing parties
 question: |
   % if user_started_case:
-  Is there any other defendant in this matter?
+  Is there any other defendant in this case?
   % else:
-  Is there any other plaintiff in this matter?
+  Is there any other plaintiff in this case?
   % endif
 fields:
   - no label: other_parties.there_is_another
@@ -808,82 +801,94 @@ question: |
 review:
   - Edit: trial_court
     button: |
-      **Trial court**
-  
+      **Your court case**
+      
+      **Case is in**: Small Claims Court, 
       % if defined("trial_court.address.county"):
-      * address: ${ trial_court.address.block() }
+      ${ trial_court.address.county } County, Vermont
       % endif
   - Edit: docket_number
     button: |
-      **Docket number**:
-      ${ docket_number }
+      **Docket number / case number**: ${ docket_number }
   - Edit: other_parties.revisit
     button: |
-      **Other parties**
+      **About the other party / plaintiff(s)**
 
       % for item in other_parties:
         * ${ item }
       % endfor
   - Edit: users.revisit
     button: |
-      **Users**
+      **About you**
 
       % for item in users:
-        * ${ item }
+      ${ item }
+      
+      ${ item.address }
       % endfor
+  - Edit: users[0].daytime_phone_number
+    button: |
+      **Your daytime phone**:
+      
+      ${ users[0].daytime_phone_number }
+      
+      **Your email**:
+      
+      ${ users[0].email }
   - Edit: agrees_with_complaint
     button: |
-      **Agree with complaint**:
-      ${ word(yesno(agrees_with_complaint)) }
+      **You agree with complaint**: ${ word(yesno(agrees_with_complaint)) }
   - Edit: agrees_to_pay_in_full
     button: |
-      **Agree to pay in full**:
-      ${ word(yesno(agrees_to_pay_in_full)) }
+      **You agree to pay in full**: ${ word(yesno(agrees_to_pay_in_full)) }
   - Edit: agrees_to_pay_installments
     button: |
-      **Agree to pay installments**:
-      ${ word(yesno(agrees_to_pay_installments)) }
+      **You agree to pay installments**: ${ word(yesno(agrees_to_pay_installments)) }
   - Edit: agrees_to_pay_installments_amount
     button: |
-      **In this amount**:
-      ${ currency(agrees_to_pay_installments_amount) }
+      **In this amount**: ${ currency(agrees_to_pay_installments_amount) }
   - Edit: agrees_to_pay_installments_period
     button: |
-      **Every**:
-      ${ agrees_to_pay_installments_period }
+      **Every**: ${ agrees_to_pay_installments_period }
   - Edit: agrees_to_pay_installments_start_date
     button: |
-      **Starting**:
-      ${ agrees_to_pay_installments_start_date }
-  - Edit: disagrees_with_complaint
+      **Starting**: ${ agrees_to_pay_installments_start_date }
+  - Edit: defenses
     button: |
-      **Disagree with complaint**:
-      ${ word(yesno(disagrees_with_complaint)) }
+      **You disagree with complaint**: 
+      % if len(defenses.true_values()) > 0:
+        Yes
+
+      % for item in defenses.true_values():
+      - **${ defenses_terms[item] }**
+      % endfor
+      % else:
+        No
+      % endif
   - Edit: disagrees_additional_explanation
     button: |
-      **Please explain**:
+      **More details**:
+      % if defined("disagrees_additional_explanation"):
       > ${ single_paragraph(disagrees_additional_explanation) }
+      % endif
+
   - Edit: has_exempt_income
     button: |
-      **Have exempt income**:
-      ${ word(yesno(has_exempt_income)) }
+      **You have exempt income that cannot be taken to pay a debt**: ${ word(yesno(has_exempt_income)) }
 
   - Edit: has_counterclaims
     button: |
-      **Have a counterclaim**:
-      ${ word(yesno(has_counterclaims)) }
+      **You have counterclaims**: ${ word(yesno(has_counterclaims)) }
   - Edit: counterclaims_description
     button: |
-      **Please describe**:
+      **Description of counterclaims**:
+      % if defined("counterclaims_description"):
       > ${ single_paragraph(counterclaims_description) }
+      % endif
   - Edit: signature_date
     button: |
-      **Date of signature**:
-      ${ signature_date }
-  - Edit: users[0].daytime_phone_number
-    button: |
-      **Your daytime phone number**:
-      ${ users[0].daytime_phone_number }
+      **Date of your signature**: ${ signature_date }
+
 ---
 continue button field: other_parties.revisit
 question: |
