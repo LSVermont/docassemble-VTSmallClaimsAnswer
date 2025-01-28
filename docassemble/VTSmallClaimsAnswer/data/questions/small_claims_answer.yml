@@ -826,13 +826,9 @@ review:
       % endfor
   - Edit: users[0].daytime_phone_number
     button: |
-      **Your daytime phone**:
+      **Your daytime phone**: ${ users[0].daytime_phone_number }
       
-      ${ users[0].daytime_phone_number }
-      
-      **Your email**:
-      
-      ${ users[0].email }
+      **Your email**: ${ users[0].email }
 
   - Edit:
       - has_exempt_income_state
