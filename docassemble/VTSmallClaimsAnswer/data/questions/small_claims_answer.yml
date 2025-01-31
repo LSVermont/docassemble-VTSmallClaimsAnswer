@@ -428,8 +428,8 @@ fields:
     - "This debt is discharged due to my personal bankruptcy.": bankruptcy
     - "This debt is of a Limited Liability Corporation (LLC) registered in my name.": llc_debt
     - "The plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt.": not_orginal_creditor
-    - "It has been six years since I incurred this debt.": long_time_since_debt
-    - "It has been six years since my last payment of this debt.": long_time_since_payment
+    - "It has been at least six years since I incurred this debt.": long_time_since_debt
+    - "It has been at least six years since my last payment of this debt.": long_time_since_payment
 ---
 # "!!omap" makes these terms ordered: 
 # their order here will be their same order when shown to users.
