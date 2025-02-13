@@ -428,8 +428,10 @@ fields:
     - "This debt is discharged due to my personal bankruptcy.": bankruptcy
     - "This debt is of a Limited Liability Corporation (LLC) registered in my name.": llc_debt
     - "The plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt.": not_orginal_creditor
-    - "It has been six years since I incurred this debt.": long_time_since_debt
-    - "It has been six years since my last payment of this debt.": long_time_since_payment
+    - "It has been at least six years since I incurred this debt.": long_time_since_debt
+    - "It has been at least six years since my last payment of this debt.": long_time_since_payment
+    - "I don't owe this debt for another reason. (Tip: You will explain the reason on the next screen.)": other_reason
+    - "I do not know if the plaintiff's claims are true.": dont_know
 ---
 # "!!omap" makes these terms ordered: 
 # their order here will be their same order when shown to users.
@@ -441,8 +443,10 @@ data: !!omap
   - bankruptcy: "This debt is discharged due to personal bankruptcy."
   - llc_debt: "This debt is of a Limited Liability Corporation registered in my name."
   - not_orginal_creditor: "The Plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt."
-  - long_time_since_debt: "It has been six years since I incurred this debt."
-  - long_time_since_payment: "It has been six years since my last payment of this debt."
+  - long_time_since_debt: "It has been at least six years since I incurred this debt."
+  - long_time_since_payment: "It has been at least six years since my last payment of this debt."
+  - dont_know: "I do not know if the plaintiff's claims are true."
+  - other_reason: "I don't owe this debt."
 ---
 id: combining individual defenses and the explanation
 code: |
@@ -477,7 +481,7 @@ subquestion: |
 
   You should only check the box below if your recall everything that the plaintiff is saying in their complaint as true. If you are not sure, do not check this box. Go back one screen and choose a defense instead.
 
-  **When you agree with the complaint**: Depending on your financial situation, the court may make a judgement to say you need to pay the debt. You will have to pay the money back. 
+  **When you agree with the complaint**: When you agree with the complaint, the court may make a judgment saying that you owe the debt. Depending on your financial situation, you may have to pay the money back.
   
   **I agree that I owe the plaintiff the full amount claimed in the complaint and the court may enter a judgment against me.**
 fields:
@@ -517,8 +521,6 @@ fields:
     js show if: |
       val("payment") == "agrees_to_pay_installments"
 
-  - note: |
-      Should we ask this agreeable user if they want to do a counterclaim???
 continue button field: agreeing_with_complaint_and_payments
 ---
 id: exempt income
@@ -537,18 +539,27 @@ fields:
   - no label: has_exempt_income_state
     datatype: checkboxes
     choices:
-      - "the Vermont Department for Children and Families (DCF) (examples…)": DCF
-      - "the Department of Vermont Health Access (DVHA).(examples…)": DVHA
+      - "the Vermont Department for Children and Families (DCF)": DCF
+      - "the Department of Vermont Health Access (DVHA)": DVHA
+  - note: |
+      Examples of DCF benefits include 3SquaresVT (food), Reach Up, General Assistance, Emergency Housing, Energy Assistance, Fuel Assistance and other programs as seen on this web page: [https://dcf.vermont.gov/benefits](https://dcf.vermont.gov/benefits).
   - note: |
       I have income from these exempt sources:
   - no label: has_exempt_income_other
     datatype: checkboxes
     choices:      
-      - "Social Security Income (examples…)": SS
-      - "Social Security or Social Security Disability (SSDI?)": SSDI
+      - "Social Security benefits (including SSDI, SSI and Social Security Retirement payments)": SSA
       - "Veteran’s Benefits": VA
       - "Unemployment Compensation": unemployment
       - "Workers’ Compensation": workers_comp
+  - note: |
+      Do you have other reasons why you think your income is exempt? (Exempt income cannot be taken to pay a debt.)
+  - "If so, you can tell the court the other reasons:": otherwise_exempt
+    input type: area
+    maxlength: 500
+    required: false
+  - note: |
+      Examples could be: I have no income. Or, my income is less than $290 per week and that is protected in cases about consumer credit cards or other loans.
 ---
 id: counterclaims options
 question: |
@@ -571,17 +582,21 @@ fields:
     datatype: checkboxes
     choices:
       - "I believe the plaintiff owes me money.": plaintiff_owes_money
-      - "The plaintiff is not the original creditor or lender of the money.": plaintiff_not_original_creditor
-      - "I didn't get a letter from the plaintiff alerting me to my debt before I was sued.": no_notice
+      - "The plaintiff is not the original creditor or lender of the money, and they violated the Fair Debt Collection Practices Act (FDCPA).": plaintiff_not_original_creditor
+      - "The plaintiff is not the original creditor or lender of the money, and I didn't get a letter from them alerting me to my debt before I was sued.": no_notice
       - "The plaintiff made statements that were not true or were misleading about the debt.": false_statements
-      - "The plaintiff harassed me.": harassment
+      - "The plaintiff harassed me and they violated the Fair Debt Collection Practices Act (FDCPA).": harassment
 
   - note: |
-      Notes about harassment: 
+      Notes about harassment and the FDCPA law: 
       
-      - You can successfully claim harassment in a case like this if the plaintiff's behavior was **beyond** annoying. For example, they called you at late hours of the night or early morning, they used swear words or they called you multiple times a day. Those are harassing behaviors.
+      - You can successfully claim harassment in a case like this if the plaintiff's behavior was **beyond** annoying. For example, they called you at late hours of the night or early morning, they used swear words, or they called you more than two times each day. Those are harassing behaviors.
       
-      - You can bring a counterclaim for a violation of the Fair Debt Collection Practices Act (FDCPA) for misleading claims, threats, major harassment, etc. The FDCPA applies to third party debt collectors, so one element of an FDCPA violation claim is acknowledging that the debt collector is not the original creditor. However, this alone does not provide grounds for an FDCPA counterclaim.
+      - You can bring a counterclaim for a violation of the Fair Debt Collection Practices Act (FDCPA) for misleading claims, threats, major harassment, etc. The FDCPA applies only to third-party debt collectors, so one element of an FDCPA violation claim is to state that the debt collector is **not** the original creditor. However, this alone does not provide grounds for an FDCPA counterclaim.
+
+      About getting notified:
+
+      - People often think that a debt collector or creditor must notify them that a lawsuit is going to be filed. In fact, they are not required to warn you of the lawsuit. 
 ---
 id: counterclaims amount
 question: |
@@ -626,10 +641,10 @@ continue button field: no_counterclaims
 variable name: counterclaims_terms
 data: !!omap
   - plaintiff_owes_money: "I believe the plaintiff owes me money."
-  - plaintiff_not_original_creditor: "The plaintiff is not the original creditor or lender of the money."
-  - no_notice: "I didn't get a letter from the plaintiff alerting me to my debt before I was sued."
+  - plaintiff_not_original_creditor: "The plaintiff is not the original creditor or lender of the money, and they violated the Fair Debt Collection Practices Act (FDCPA)."
+  - no_notice: "The plaintiff is not the original creditor or lender of the money, and I didn't get a letter from them alerting me to my debt before I was sued."
   - false_statements: "The plaintiff made statements that were not true or were misleading about the debt."
-  - harassment: "The plaintiff harassed me."
+  - harassment: "The plaintiff harassed me and they violated the Fair Debt Collection Practices Act (FDCPA)."
 ---
 id: combining individual counterclaims and the explanation
 code: |
@@ -668,14 +683,6 @@ fields:
       If you said "now", consider making an account to save your work. This is because there are quite a few questions to answer for this form. You might want to start it and come back to finish it.
     js show if: |
       val("wants_to_fill_out_financial_disclosure") == true
-  - note: |
-      Do you have other reasons why you think your income is exempt? (Exempt income cannot be taken to pay a debt.)
-  - "If so, you can tell the court the other reasons:": otherwise_exempt
-    input type: area
-    maxlength: 500
-    required: false
-  - note: |
-      Examples could be: I have no income. Or, my income is less than $290 per week and that is protected in a consumer credit card case.
 ---
 id: want to fill out fee waiver
 question: |
@@ -1014,9 +1021,9 @@ progress: 100
 ---
 code: |
   small_claims_answer_attachment.overflow_fields["merged_defenses_text"].overflow_trigger = 348
-  small_claims_answer_attachment.overflow_fields["merged_defenses_text"].label = "Please explain"
+  small_claims_answer_attachment.overflow_fields["merged_defenses_text"].label = "More about defenses"
   small_claims_answer_attachment.overflow_fields["merged_counterclaims_text"].overflow_trigger = 344
-  small_claims_answer_attachment.overflow_fields["merged_counterclaims_text"].label = "Please describe"
+  small_claims_answer_attachment.overflow_fields["merged_counterclaims_text"].label = "More about counterclaims"
   small_claims_answer_attachment.overflow_fields.gathered = True
 ---
 ---
