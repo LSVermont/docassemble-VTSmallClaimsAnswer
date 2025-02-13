@@ -3,6 +3,7 @@ include:
   - docassemble.AssemblyLine:assembly_line.yml
   - docassemble.ALToolbox:phone-number-validation.yml
   - docassemble.VTSharedYMLFile:VTSharedYMLFile.yml
+  - docassemble.VTDisclosureOfExemptIncome:disclosure_of_exempt_income_to_include.yml
 ---
 metadata:
   title: >-
@@ -852,12 +853,13 @@ review:
       % endif
   - Edit: wants_to_fill_out_financial_disclosure
     button: |
-      **You want to fill out a financial disclosure form**:
+      **You think your "reasonable living expenses" for you and your family members living with you are more than your income after taxes. You want to fill out a Financial Disclosure Affidavit form**:
       ${ word(yesno(wants_to_fill_out_financial_disclosure)) }
+
   - Edit: agrees_with_complaint
     button: |
       **You agree with the complaint**:
-      % if defined(agrees_with_complaint):
+      % if defined("agrees_with_complaint"):
       ${ word(yesno(agrees_with_complaint)) }
       % endif
   - Edit: agrees_to_pay_in_full
@@ -907,7 +909,7 @@ review:
       
       **More details**:
       % if defined("counterclaims_description"):
-      > ${ single_paragraph(counterclaims_description) }
+      ${ single_paragraph(counterclaims_description) }
       % endif
   - Edit: signature_date
     button: |
@@ -1031,11 +1033,12 @@ code: |
 objects:
   - small_claims_answer_Post_interview_instructions: ALDocument.using(title="NEXT STEPS - Instructions for filing these forms with the court", filename="small_claims_answer_next_steps.docx", enabled=True, has_addendum=False)
   - small_claims_answer_attachment: ALDocument.using(title="Small claims answer", filename="small_claims_answer", enabled=True, has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - disclosure_of_exempt_income_attachment: ALDocument.using(title="Disclosure of exempt income", filename="disclosure_of_exempt_income", enabled=True, has_addendum=False, )
 ---
 # Bundles group the ALDocuments into separate downloads, such as for court and for the user
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[small_claims_answer_Post_interview_instructions, small_claims_answer_attachment], filename="small_claims_answer", title="All forms to download for your records", enabled=True)
-  - al_court_bundle: ALDocumentBundle.using(elements=[small_claims_answer_attachment],  filename="small_claims_answer", title="All forms to deliver to court", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[small_claims_answer_Post_interview_instructions, small_claims_answer_attachment, disclosure_of_exempt_income_attachment], filename="small_claims_answer", title="All forms to download for your records", enabled=True)
+  - al_court_bundle: ALDocumentBundle.using(elements=[small_claims_answer_attachment, disclosure_of_exempt_income_attachment],  filename="small_claims_answer", title="All forms to deliver to court", enabled=True)
 ---
 # Each attachment defines a key in an ALDocument. We use `i` as the placeholder here so the same template is 
 # used for "preview" and "final" keys, and logic in the template checks the value of 
