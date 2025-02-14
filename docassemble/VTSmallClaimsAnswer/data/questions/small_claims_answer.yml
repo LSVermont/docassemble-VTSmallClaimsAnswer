@@ -723,6 +723,8 @@ subquestion: |
   
   % if len(has_exempt_income_state.true_values()) > 0 or len(has_exempt_income_other.true_values()) > 0:
     You said you get some public assistance. You **may** be able to get your fees waived.
+
+    Do you want to fill out the fee waiver form?
   % endif
   % if len(has_exempt_income_state.true_values()) == 0 or len(has_exempt_income_other.true_values()) == 0:
     **Do you want to answer questions about your income and expenses so you can fill out the fee waiver form now?**
