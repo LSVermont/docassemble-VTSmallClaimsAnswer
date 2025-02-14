@@ -890,7 +890,7 @@ review:
     button: |
       **More details**:
       % if defined("disagrees_additional_explanation"):
-      > ${ single_paragraph(disagrees_additional_explanation) }
+      ${ single_paragraph(disagrees_additional_explanation) }
       % endif
   - Edit: counterclaims
     button: |
