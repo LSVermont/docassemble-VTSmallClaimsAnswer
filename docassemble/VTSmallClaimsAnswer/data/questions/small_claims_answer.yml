@@ -94,6 +94,26 @@ code: |
   user_role = "defendant"
   user_ask_role = "defendant"
   nav.set_section('intro')
+
+  
+  other_parties.there_are_any = True
+  other_parties.gather()
+  if sued_by_collection_agency:
+    if len(counterclaims.true_values()) > 0:
+      if not has_counterclaims:
+        no_counterclaims
+    else:
+      no_counterclaims
+  else:
+    if plaintiff_owes_user_money:
+      if not has_counterclaims:
+        no_counterclaims
+    else:
+      no_counterclaims
+  stop_testing_here
+
+
+  
   if was_sued == False:
     wrong_interview_kickout
   else:
@@ -177,6 +197,11 @@ code: |
   )
   nav.set_section("get_docs")
   small_claims_answer_download
+---
+id: stop_testing_here
+question: |
+  **Stop testing here**
+continue button field: stop_testing_here
 ---
 id: basic questions intro screen
 question: |
@@ -560,70 +585,107 @@ fields:
     maxlength: 500
     required: false
   - note: |
-      Examples could be: I have no income. Or, my income is less than $290 per week and that is protected in cases about consumer credit cards or other loans.
+      Examples could be: I have no income. Or, my income is less than $290 per week and that is protected in cases about consumer credit cards or other loans. See the [list of exemptions in Vermont.](https://www.vermontjudiciary.org/media/23)
 ---
-id: counterclaims options
+id: counterclaims intro
 question: |
-  Do you want to make counterclaims?
+  Do you want to make counterclaims against ${ other_parties.short_list(2) }?
 subquestion: |
-  This screen can help you figure out if you have “counterclaims” against the plaintiff (the person or company that sued you).
+  This part of the tool can help you figure out if you have “counterclaims” against the creditor or plaintiff (the person or company that sued you).
 
-  If you decide to file counterclaims, you are asking the court to award YOU money.
+  If you decide to file counterclaims, you are asking the court to award YOU money. When you ask for money in a counterclaim, you are asking for "damages." You can include the counterclaims filing fee, too. In small claims court, the total amount must be $10,000 or less.
   
-  There is a court filing fee for counterclaims:
+  It's often helpful to get help from a lawyer if you want to make counterclaims. This is because there are some laws that only apply to how debt collection agencies do business. And for all kinds of creditors, to be successful you need to have proof that you suffered real damages. In many cases, people do not have counterclaims.
+  
+  **Filing fee**
+  
+  FYI, there is a court filing fee for counterclaims:
   
   - You would pay $25 if your counterclaims are for $500 or less.
   - You would pay $35 if your counterclaims are between $501 and $10,000.
   - If you have a low income, you can ask the court to waive the fee. You can use our VTCourtForms tool for the fee waiver form.
-
-  Check any box that describes your situation:
-
+  
+  <hr>
 fields:
-  - no label: counterclaims
+  - Is ${ other_parties.short_list(2) } **a debt collection agency** (which is not the original creditor)?: sued_by_collection_agency
+    datatype: yesnoradio
+---
+id: counterclaims debt collection agency
+question: |
+  Do you want to make counterclaims against the debt collection agency (${ other_parties.short_list(2) })?
+subquestion: |
+  Below is a list of some counterclaims that might apply to a collection agency because of a law called the Fair Debt Collection Practices Act (FDCPA). These only apply to collection agencies.
+
+  To be successful with a counterclaim, you would need to show proof to the court.
+
+  Learn more about counterclaims on [NCLC’s Surviving Debt website.](https://library.nclc.org/book/surviving-debt/common-counterclaims-raise)
+  
+fields:
+  - Check any box that describes your situation, or check None: counterclaims
     datatype: checkboxes
     choices:
-      - "I believe the plaintiff owes me money.": plaintiff_owes_money
-      - "The plaintiff is not the original creditor or lender of the money, and they violated the Fair Debt Collection Practices Act (FDCPA).": plaintiff_not_original_creditor
-      - "The plaintiff is not the original creditor or lender of the money, and I didn't get a letter from them alerting me to my debt before I was sued.": no_notice
-      - "The plaintiff made statements that were not true or were misleading about the debt.": false_statements
-      - "The plaintiff harassed me and they violated the Fair Debt Collection Practices Act (FDCPA).": harassment
-
+      - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and I didn't get a letter from them alerting me to my debt before I was sued.": no_notice
+      - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and they made statements that were not true or were misleading about the debt.": false_statements
+      - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and they harassed me and they violated the Fair Debt Collection Practices Act (FDCPA).": harassment
+      - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and they owe me money for another reason.": plaintiff_owes_me_other_reason
   - note: |
       Notes about harassment and the FDCPA law: 
       
       - You can successfully claim harassment in a case like this if the plaintiff's behavior was **beyond** annoying. For example, they called you at late hours of the night or early morning, they used swear words, or they called you more than two times each day. Those are harassing behaviors.
       
-      - You can bring a counterclaim for a violation of the Fair Debt Collection Practices Act (FDCPA) for misleading claims, threats, major harassment, etc. The FDCPA applies only to third-party debt collectors, so one element of an FDCPA violation claim is to state that the debt collector is **not** the original creditor. However, this alone does not provide grounds for an FDCPA counterclaim.
+      - The FDCPA applies only to third-party debt collectors, so one element of an FDCPA violation claim is to state that the debt collector is **not** the original creditor. However, this alone does not provide grounds for an FDCPA counterclaim.
 
+      About getting notified: People often think that a debt collector or creditor must notify them that a lawsuit is going to be filed. In fact, they are not required to warn you of the lawsuit.
+---
+id: counterclaims other creditors
+question: |
+  Do you want to make counterclaims against ${ other_parties.short_list(2) }?
+subquestion: |
+  To be successful with a counterclaim, you would need to show proof to the court.
+
+  Learn more about counterclaims on [NCLC’s Surviving Debt website.](https://library.nclc.org/book/surviving-debt/common-counterclaims-raise)
+fields:
+  - "Do you believe ${ other_parties.short_list(2) } owes you money?": plaintiff_owes_user_money
+    datatype: yesnoradio
+
+  - note: |
       About getting notified:
 
-      - People often think that a debt collector or creditor must notify them that a lawsuit is going to be filed. In fact, they are not required to warn you of the lawsuit. 
+      People often think that a debt collector or creditor must notify them that a lawsuit is going to be filed. In fact, they are not required to warn you of the lawsuit.
+    js show if: |
+      val("sued_by_collection_agency") == false
 ---
 id: counterclaims amount
 question: |
   Counterclaims details
 subquestion: |
-  You've selected a reason(s) for filing counterclaims:
+  % if sued_by_collection_agency:
+  % if len(counterclaims.true_values()) > 0:
+  You've selected a reason(s) for filing counterclaims against ${ other_parties.short_list(2) }:
   
   % for item in counterclaims.true_values():
   - **${ counterclaims_terms[item] }**
   
   % endfor
+  % endif
+  % else:
+  You said ${ other_parties.short_list(2) } owes you money.
+  % endif
   
-  Now, please confirm that you want to pursue the counterclaims.
+  Now, please confirm if you want to pursue counterclaims or not. If you say yes, we will ask follow-up questions.
   
 fields:
   - "I want to file counterclaims. I know I will pay a filing fee or ask for a fee waiver.": has_counterclaims
     datatype: yesnoradio
   - note: |
-        When you ask for money in a counterclaim, you are asking for "damages." You can include the counterclaims filing fee, too. In small claims court, the total amount must be less than $10,001.
+        Remember, when you ask for money in a counterclaim, you are asking for "damages." You can include the counterclaims filing fee, too. (Fee is $25 if your counterclaims are for $500 or less. Fee is $35 if your counterclaims are between $501 and $10,000.) In small claims court, the total amount must be $10,000 or less.
     js show if: |
       val("has_counterclaims") == true
   - "I want to ask the court for this amount of money": counterclaims_amount
     datatype: currency
     js show if: |
       val("has_counterclaims") == true
-  - "Further describe the reason(s) for your counterclaims": counterclaims_description
+  - "Describe the reason(s) for your counterclaims against ${ other_parties.short_list(2) }": counterclaims_description
     input type: area
     js show if: |
       val("has_counterclaims") == true
@@ -632,7 +694,7 @@ id: if no counterclaims
 question: |
   No counterclaims
 subquestion: |
-  You have not selected a reason for a counterclaim. We will not include counterclaims in your answer.
+  We will not include counterclaims in your answer.
 
   Tap Next to continue.
 continue button field: no_counterclaims
@@ -646,6 +708,7 @@ data: !!omap
   - no_notice: "The plaintiff is not the original creditor or lender of the money, and I didn't get a letter from them alerting me to my debt before I was sued."
   - false_statements: "The plaintiff made statements that were not true or were misleading about the debt."
   - harassment: "The plaintiff harassed me and they violated the Fair Debt Collection Practices Act (FDCPA)."
+  - plaintiff_owes_me_other_reason: "The plaintiff is not the original creditor or lender of the money, and they owe me money for another reason."
 ---
 id: combining individual counterclaims and the explanation
 code: |
@@ -1097,7 +1160,16 @@ attachment:
           ${ True }
           % endif
       - "counterclaim_description": |
-          I have counterclaims for ${ currency(counterclaims_amount)}. ${ small_claims_answer_attachment.safe_value("merged_counterclaims_text") }
+          % if len(counterclaims.true_values()) > 0:
+          % if counterclaims_amount > 0:
+          I have a counterclaim for ${ currency(counterclaims_amount)}. ${ small_claims_answer_attachment.safe_value("merged_counterclaims_text") } 
+          % endif
+          % endif
+          % if not sued_by_collection_agency:
+          % if counterclaims_amount > 0:
+          I have a counterclaim for ${ currency(counterclaims_amount)}. ${ counterclaims_description }
+          % endif
+          % endif
       - "users1_name_1": ${ users[0] }
       - "signature_date": ${ signature_date }
       - "users1_signature": ${ users[0].signature_if_final(i) }
