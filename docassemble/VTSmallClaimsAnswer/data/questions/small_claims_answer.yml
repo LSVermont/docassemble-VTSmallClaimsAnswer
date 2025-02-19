@@ -85,17 +85,10 @@ sections:
   - get_docs: Download your documents
 ---
 #################### Interview order #####################
+---
 comment: |
   Controls order and branching logic for questions specific to this form
-id: interview_order_small_claims_answer
-code: |
-  # Set the allowed courts for this interview
-  allowed_courts = []
-  user_role = "defendant"
-  user_ask_role = "defendant"
-  nav.set_section('intro')
 
-  
   other_parties.there_are_any = True
   other_parties.gather()
   if sued_by_collection_agency:
@@ -111,9 +104,15 @@ code: |
     else:
       no_counterclaims
   stop_testing_here
-
-
+---
+id: interview_order_small_claims_answer
+code: |
+  # Set the allowed courts for this interview
+  allowed_courts = []
+  user_role = "defendant"
+  user_ask_role = "defendant"
   
+  nav.set_section('intro')
   if was_sued == False:
     wrong_interview_kickout
   else:
@@ -124,45 +123,63 @@ code: |
       if sued_when_served <= today().minus(months=1):
         late_answer_warning
   lets_get_started
+  
   nav.set_section('about_you')
   users.gather()
   set_progress(14)
   users[0].address.address
   users[0].daytime_phone_number
   users[0].email
-  set_progress(28)
+  set_progress(24)
+  
   nav.set_section('other_party')
   other_parties.there_are_any = True
   other_parties.gather()
+  set_progress(32)
+  
   nav.set_section('case_info')
   docket_number
   trial_court_division = "Civil"
   user_selected_county
   trial_court.address.county
+  set_progress(40)
+  
   nav.set_section('defenses')
   if len(defenses.true_values()) > 0:
     disagrees_additional_explanation
     get_merged_defenses
   if not len(defenses.true_values()) > 0:
     agreeing_with_complaint_and_payments
-  set_progress(42)
+  set_progress(50)
+  
   nav.set_section("exempt_income")
   has_exempt_income_state
+  set_progress(60)
+  
   nav.set_section("counterclaims")
-  if len(counterclaims.true_values()) > 0:
-    has_counterclaims
-    if has_counterclaims == True:
-      get_merged_counterclaims
+  if sued_by_collection_agency:
+    if len(counterclaims.true_values()) > 0:
+      if not has_counterclaims:
+        no_counterclaims
+      if has_counterclaims:
+        get_merged_counterclaims
+        wants_to_fill_out_fee_waiver 
+    else:
+      no_counterclaims
   else:
-    no_counterclaims
-
+    if plaintiff_owes_user_money:
+      if has_counterclaims:
+        wants_to_fill_out_fee_waiver 
+      else:
+        no_counterclaims
+    else:
+      no_counterclaims
+  set_progress(76)
+  
   if len(has_exempt_income_state.true_values()) == 0 and len(has_exempt_income_other.true_values()) == 0:
     wants_to_fill_out_financial_disclosure
-  if len(counterclaims.true_values()) > 0:
-    if has_counterclaims:
-      wants_to_fill_out_fee_waiver 
+  set_progress(86)
 
-  set_progress(56)
   interview_order_small_claims_answer = True
 ---
 ###################### Main order ######################
@@ -177,10 +194,11 @@ code: |
   trial_court.address.county
   if len(defenses.true_values()) > 0:
     get_merged_defenses
-  if len(counterclaims.true_values()) > 0:
+  if sued_by_collection_agency:
     if has_counterclaims == True:
       get_merged_counterclaims
   small_claims_answer_preview_question
+  set_progress(90)
   nav.set_section("sign")
   signature_date
   set_progress(95)
@@ -311,7 +329,7 @@ subquestion: |
   
   Before you get started, have the papers you got from the court at hand. This includes the Small Claims Complaint.
   
-  **Important: This tool does not file your forms for you.**: When you are finished, you will need to send your answer back to the court and send a copy to the other party (the plaintiff). Our Next Steps document at the end of this tool will give you instructions.
+  **Important: This tool does not file your forms for you.** When you are finished, you will need to send your answer back to the court and send a copy to the other party (the plaintiff). Our Next Steps document at the end of this tool will give you instructions.
   
   Keep in mind, you can edit your answers after you preview the finished forms. You can also do that anytime by choosing Edit My Answers on the side of the screen or in the Menu at the top-right of the screen.
   
@@ -425,7 +443,7 @@ id: choose a court county
 question: |
   What county is your case in?
 subquestion: |
-  Look at the forms you got from the court to see the name of the county. It's usually in the upper-left of the forms.
+  Look at the forms you got from the court to see the name of the county. It's usually in the upper-left of the forms next to the word "Unit."
 fields:
   - County: user_selected_county
     code: sorted(all_courts.unique_column_values('branch') - {"Environmental", "Judicial Bureau"} )
@@ -438,14 +456,21 @@ id: defenses
 question: |
   Any reasons why you believe you do **not** owe this money?
 subquestion: |
-  In this small claims case, a plaintiff has started the case by filing a "complaint" against you.
+  % if defined("other_parties[1]"):
+  In this small claims case, plaintiffs (${ other_parties.short_list(2) }) have started the case by filing a "complaint" against you.
+  % else:
+  In this small claims case, a plaintiff (${ other_parties.short_list(2) }) has started the case by filing a "complaint" against you.
+  % endif
   
-  “Defenses” to debt collection are reasons why the plaintiff may not have a legal right to the money. This screen will help you report any possible defenses in your answer.
+  “Defenses” to debt collection are reasons why ${ other_parties.short_list(2) } may not have a legal right to the money. This screen will help you report any possible defenses in your answer.
 
-  NOTE: If you choose any of these defenses, you are choosing to disagree with what the plaintiff has claimed.
-
+  % if defined("other_parties[1]"):
+  NOTE: If you choose any of these defenses, you are choosing to disagree with what ${ other_parties.short_list(2) } have claimed.
+  % else:
+  NOTE: If you choose any of these defenses, you are choosing to disagree with what ${ other_parties.short_list(2) } has claimed.
+  % endif
 fields:
-- "Check any boxes that describe your situation.": defenses
+- "Check any boxes that describe your situation, or check None.": defenses
   datatype: checkboxes
   choices:
     - "I don't recognize this debt. (Tip: If you cannot recall everything that the plaintiff is saying in their complaint, or if you are not sure, check this box.)": do_not_recognize
@@ -505,11 +530,11 @@ question: |
 subquestion: |
   On the last screen, you did not choose any "defenses" to the small claims complaint against you. That means you agree with the amount you owe and who you owe. If that is true, check the box below.
 
-  You should only check the box below if your recall everything that the plaintiff is saying in their complaint as true. If you are not sure, do not check this box. Go back one screen and choose a defense instead.
+  You should only check the box below if your recall everything that ${ other_parties.short_list(2) } is saying in their complaint as true. If you are not sure, do not check this box. Go back one screen and choose a defense instead.
 
   **When you agree with the complaint**: When you agree with the complaint, the court may make a judgment saying that you owe the debt. Depending on your financial situation, you may have to pay the money back.
   
-  **I agree that I owe the plaintiff the full amount claimed in the complaint and the court may enter a judgment against me.**
+  **I agree that I owe ${ other_parties.short_list(2) } the full amount claimed in the complaint and the court may enter a judgment against me.**
 fields:
   - "I agree": agrees_with_complaint
     datatype: yesno
@@ -683,7 +708,7 @@ fields:
     datatype: currency
     js show if: |
       val("has_counterclaims") == true
-  - "Describe the reason(s) for your counterclaims against ${ other_parties.short_list(2) }": counterclaims_description
+  - "Describe the reason(s) for your counterclaims against ${ other_parties.short_list(2) }. Be specific.": counterclaims_description
     input type: area
     js show if: |
       val("has_counterclaims") == true
@@ -867,8 +892,12 @@ id: small claims answer review screen
 event: review_small_claims_answer
 question: |
   Review your answers
+subquestion: |  
+  ${ review_screen_instructions }
 review:
-  - Edit: trial_court
+  - Edit:
+      - trial_court
+      - docket_number
     button: |
       **About the court case**
       
@@ -876,8 +905,7 @@ review:
       % if defined("trial_court.address.county"):
       ${ trial_court.address.county } County, Vermont
       % endif
-  - Edit: docket_number
-    button: |
+
       **Docket number / case number**: ${ docket_number }
   - Edit: other_parties.revisit
     button: |
@@ -886,23 +914,24 @@ review:
       % for item in other_parties:
         * ${ item }
       % endfor
-  - Edit: users.revisit
+  - Edit: 
+      - users.revisit
     button: |
       **About you**
 
       % for item in users:
-      ${ item }
+      - ${ item }
       
       ${ item.address }
-      % endfor
-  - Edit: users[0].daytime_phone_number
-    button: |
-      **Your daytime phone**: ${ users[0].daytime_phone_number }
       
-      **Your email**: ${ users[0].email }
+      ${ item.daytime_phone_number }
+      
+      ${ item.email }
+      % endfor
 
   - Edit:
       - has_exempt_income_state
+      - otherwise_exempt
     button: |
       **You have exempt income that cannot be taken to pay a debt**: 
       % if len(has_exempt_income_state.true_values()) > 0:
@@ -913,6 +942,13 @@ review:
       Yes
       % else:
       No
+      % endif
+      
+      **Other reason(s) why your income may be exempt**:
+      % if otherwise_exempt != '':
+      ${ otherwise_exempt }
+      % else:
+      None
       % endif
   - Edit: wants_to_fill_out_financial_disclosure
     button: |
@@ -925,7 +961,7 @@ review:
       % if defined("agrees_with_complaint"):
       ${ word(yesno(agrees_with_complaint)) }
       % endif
-  - Edit: agrees_to_pay_in_full
+  - Edit: payment
     button: |
       **You agree to pay in full**: ${ word(yesno(agrees_to_pay_in_full)) }
   - Edit: agrees_to_pay_installments_amount
@@ -935,7 +971,9 @@ review:
       **Every**: ${ agrees_to_pay_installments_period }
 
       **Starting**: ${ agrees_to_pay_installments_start_date }
-  - Edit: defenses
+  - Edit: 
+      - defenses
+      - disagrees_additional_explanation
     button: |
       **You disagree with the complaint**: 
       % if len(defenses.true_values()) > 0:
@@ -947,15 +985,19 @@ review:
       % else:
         No
       % endif
-  - Edit: disagrees_additional_explanation
-    button: |
-      **More details**:
+            
       % if defined("disagrees_additional_explanation"):
+      **More details**:
       ${ single_paragraph(disagrees_additional_explanation) }
       % endif
+
+  - Edit: has_counterclaims
+    button: |
+      **You have a counterclaim**: ${ word(yesno(has_counterclaims)) }
+  
   - Edit: counterclaims
     button: |
-      **You have counterclaims**:
+      **You have a counterclaim**:
       % if len(counterclaims.true_values()) > 0:
         Yes
 
@@ -967,10 +1009,10 @@ review:
       % endif
   - Edit: counterclaims_description
     button: |
-      **Amount you want to ask the court for**:
+      **Amount you want to ask the court for in your counterclaim**:
       ${ currency(counterclaims_amount) }
       
-      **More details**:
+      **More details about your counterclaim**:
       % if defined("counterclaims_description"):
       ${ single_paragraph(counterclaims_description) }
       % endif
@@ -1010,12 +1052,14 @@ rows: users
 columns:
   - Name: |
       row_item.name.full() if defined("row_item.name.first") else ""
-  - Signature: |
-      row_item.signature if defined("row_item.signature") else ""
   - Address: |
       row_item.address.block() if defined("row_item.address.address") else ""
+  - Phone: |
+      row_item.daytime_phone_number if defined("row_item.daytime_phone_number") else ""
   - Email: |
       row_item.email if defined("row_item.email") else ""
+  - Signature: |
+      row_item.signature if defined("row_item.signature") else ""
 edit:
   - name.first
   - signature
@@ -1166,17 +1210,17 @@ attachment:
           ${ False }
           % endif
       - "has_counterclaim": |
-          % if len(counterclaims.true_values()) > 0:
+          % if has_counterclaims:
           ${ True }
           % endif
       - "counterclaim_description": |
-          % if len(counterclaims.true_values()) > 0:
-          % if counterclaims_amount > 0:
+          % if sued_by_collection_agency:
+          % if has_counterclaims:
           I have a counterclaim for ${ currency(counterclaims_amount)}. ${ small_claims_answer_attachment.safe_value("merged_counterclaims_text") } 
           % endif
           % endif
           % if not sued_by_collection_agency:
-          % if counterclaims_amount > 0:
+          % if has_counterclaims:
           I have a counterclaim for ${ currency(counterclaims_amount)}. ${ counterclaims_description }
           % endif
           % endif
