@@ -13,7 +13,7 @@ metadata:
   description: |-
     This interview helps someone in Vermont respond to a small claims case.
   can_I_use_this_form: |
-    If you are have been sued in small claims court, you can use this tool to respond.
+    If you have been sued in small claims court, you can use this tool to respond.
   before_you_start: |
     0
   maturity: production
@@ -39,7 +39,7 @@ metadata:
   languages:
     - en
   jurisdiction: NAM-US-US+VT
-  review_date: 2024-11-14
+  review_date: 2025-02-19
   form_titles:
     - Small claims answer
   form_numbers:
@@ -135,8 +135,8 @@ code: |
   other_parties.there_are_any = True
   other_parties.gather()
   nav.set_section('case_info')
-  trial_court_division = "Civil"
   docket_number
+  trial_court_division = "Civil"
   user_selected_county
   trial_court.address.county
   nav.set_section('defenses')
@@ -311,7 +311,7 @@ subquestion: |
   
   Before you get started, have the papers you got from the court at hand. This includes the Small Claims Complaint.
   
-  When you are finished, you will need to send your answer back to the court and send a copy to the other party (the plaintiff). Our Next Steps document at the end of this tool will give you instructions.
+  **Important: This tool does not file your forms for you.**: When you are finished, you will need to send your answer back to the court and send a copy to the other party (the plaintiff). Our Next Steps document at the end of this tool will give you instructions.
   
   Keep in mind, you can edit your answers after you preview the finished forms. You can also do that anytime by choosing Edit My Answers on the side of the screen or in the Menu at the top-right of the screen.
   
@@ -595,7 +595,7 @@ subquestion: |
 
   If you decide to file counterclaims, you are asking the court to award YOU money. When you ask for money in a counterclaim, you are asking for "damages." You can include the counterclaims filing fee, too. In small claims court, the total amount must be $10,000 or less.
   
-  It's often helpful to get help from a lawyer if you want to make counterclaims. This is because there are some laws that only apply to how debt collection agencies do business. And for all kinds of creditors, to be successful you need to have proof that you suffered real damages. In many cases, people do not have counterclaims.
+  It's often helpful to get help from a lawyer if you want to make counterclaims. This is because there are some [laws that only apply to how debt collectors do business.](https://files.consumerfinance.gov/f/documents/102012_cfpb_fair-debt-collections-practices-act-fdcpa_procedures.pdf) And for all kinds of creditors, to be successful you need to have proof that you suffered real damages. In many cases, people do not have counterclaims.
   
   **Filing fee**
   
@@ -607,14 +607,14 @@ subquestion: |
   
   <hr>
 fields:
-  - Is ${ other_parties.short_list(2) } **a debt collection agency** (which is not the original creditor)?: sued_by_collection_agency
+  - Is ${ other_parties.short_list(2) } **a debt collector** (which is not the original creditor)?: sued_by_collection_agency
     datatype: yesnoradio
 ---
-id: counterclaims debt collection agency
+id: counterclaims debt collector
 question: |
-  Do you want to make counterclaims against the debt collection agency (${ other_parties.short_list(2) })?
+  Do you want to make counterclaims against the debt collector (${ other_parties.short_list(2) })?
 subquestion: |
-  Below is a list of some counterclaims that might apply to a collection agency because of a law called the Fair Debt Collection Practices Act (FDCPA). These only apply to collection agencies.
+  Below is a list of some counterclaims that might apply to debt collectors because of a law called the [Fair Debt Collection Practices Act (FDCPA).](https://files.consumerfinance.gov/f/documents/102012_cfpb_fair-debt-collections-practices-act-fdcpa_procedures.pdf) These only apply to debt collectors.
 
   To be successful with a counterclaim, you would need to show proof to the court.
 
@@ -635,7 +635,7 @@ fields:
       
       - The FDCPA applies only to third-party debt collectors, so one element of an FDCPA violation claim is to state that the debt collector is **not** the original creditor. However, this alone does not provide grounds for an FDCPA counterclaim.
 
-      About getting notified: People often think that a debt collector or creditor must notify them that a lawsuit is going to be filed. In fact, they are not required to warn you of the lawsuit.
+      About getting notified: A debt collector or creditor is not required to tell you that they plan to file a lawsuit.
 ---
 id: counterclaims other creditors
 question: |
@@ -649,11 +649,9 @@ fields:
     datatype: yesnoradio
 
   - note: |
-      About getting notified:
-
-      People often think that a debt collector or creditor must notify them that a lawsuit is going to be filed. In fact, they are not required to warn you of the lawsuit.
+      Did you know?: A debt collector or creditor is not required to tell you that they plan to file a lawsuit.
     js show if: |
-      val("sued_by_collection_agency") == false
+      val("plaintiff_owes_user_money") == true
 ---
 id: counterclaims amount
 question: |
@@ -1115,6 +1113,18 @@ attachment:
   variable name: small_claims_answer_Post_interview_instructions[i]
   skip undefined: True
   tagged pdf: True
+  fields:
+    - "address_county": ${ trial_court.address.county }
+    - "division": ${ trial_court.division }
+    - "name": ${ trial_court }
+    - "address_address": ${ trial_court.address.address }
+    - "address_unit": ${ trial_court.address.unit }
+    - "address_city": ${ trial_court.address.city }
+    - "address_state": ${ trial_court.address.state }
+    - "address_zip": ${ trial_court.address.zip }
+    - "arbitrary_attribute": ${ trial_court.arbitrary_attribute }
+    - "phone": ${ trial_court.phone }
+    - "email": ${ trial_court.email }
 ---
 attachment:
   name: small claims answer
@@ -1175,7 +1185,3 @@ attachment:
       - "users1_signature": ${ users[0].signature_if_final(i) }
 
 ---
-
-
-
-
