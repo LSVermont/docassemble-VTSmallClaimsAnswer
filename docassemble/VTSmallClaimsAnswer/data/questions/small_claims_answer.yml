@@ -944,7 +944,7 @@ review:
       % endif
   - Edit: wants_to_fill_out_financial_disclosure
     button: |
-      **You think your "reasonable living expenses" for you and your family members living with you are more than your income after taxes. You want to fill out a Financial Disclosure Affidavit form**:
+      **You want to fill out a Financial Disclosure Affidavit form.** You think your "reasonable living expenses" for you and your family members living with you are more than your income after taxes.:
       ${ word(yesno(wants_to_fill_out_financial_disclosure)) }
 
   - Edit: agrees_with_complaint
