@@ -923,25 +923,24 @@ review:
       % endfor
 
   - Edit:
-      - has_exempt_income_state
       - otherwise_exempt
+      - recompute:
+          - wants_to_fill_out_financial_disclosure
     button: |
       **You have exempt income that cannot be taken to pay a debt**: 
       % if len(has_exempt_income_state.true_values()) > 0:
       Yes
       % elif len(has_exempt_income_other.true_values()) > 0:
       Yes
-      % elif wants_to_fill_out_financial_disclosure == True:
+      % elif otherwise_exempt != '':
       Yes
       % else:
       No
       % endif
       
-      **Other reason(s) why your income may be exempt**:
       % if otherwise_exempt != '':
+      **Other reason(s) why your income may be exempt**:
       ${ otherwise_exempt }
-      % else:
-      None
       % endif
   - Edit: wants_to_fill_out_financial_disclosure
     button: |
@@ -1133,12 +1132,21 @@ code: |
   small_claims_answer_attachment.overflow_fields["merged_counterclaims_text"].label = "More about counterclaims"
   small_claims_answer_attachment.overflow_fields.gathered = True
 ---
----
 # ALDocument objects specify the metadata for each template
 objects:
   - small_claims_answer_Post_interview_instructions: ALDocument.using(title="NEXT STEPS - Instructions for filing these forms with the court", filename="small_claims_answer_next_steps.docx", enabled=True, has_addendum=False)
   - small_claims_answer_attachment: ALDocument.using(title="Small claims answer", filename="small_claims_answer", enabled=True, has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
-  - disclosure_of_exempt_income_attachment: ALDocument.using(title="Disclosure of exempt income", filename="disclosure_of_exempt_income", enabled=True, has_addendum=False, )
+  - disclosure_of_exempt_income_attachment: ALDocument.using(title="Disclosure of exempt income", filename="disclosure_of_exempt_income", has_addendum=False, )
+---
+code: |
+  if len(has_exempt_income_state.true_values()) > 0:
+    disclosure_of_exempt_income_attachment.enabled = True
+  elif len(has_exempt_income_other.true_values()) > 0:
+    disclosure_of_exempt_income_attachment.enabled = True
+  elif wants_to_fill_out_financial_disclosure == True:
+    disclosure_of_exempt_income_attachment.enabled = True
+  else:
+    disclosure_of_exempt_income_attachment.enabled = False
 ---
 # Bundles group the ALDocuments into separate downloads, such as for court and for the user
 objects:
