@@ -84,10 +84,8 @@ sections:
   - sign: Sign your documents
   - get_docs: Download your documents
 ---
-#################### Interview order #####################
----
 comment: |
-  Controls order and branching logic for questions specific to this form
+  My test code from earlier
 
   other_parties.there_are_any = True
   other_parties.gather()
@@ -105,10 +103,10 @@ comment: |
       no_counterclaims
   stop_testing_here
 ---
+#################### Interview order #####################
+---
 id: interview_order_small_claims_answer
 code: |
-  # Set the allowed courts for this interview
-  allowed_courts = []
   user_role = "defendant"
   user_ask_role = "defendant"
   
@@ -122,6 +120,8 @@ code: |
       sued_when_served
       if sued_when_served <= today().minus(months=1):
         late_answer_warning
+      else:
+        you_can_use_this_tool
   lets_get_started
   
   nav.set_section('about_you')
@@ -281,16 +281,6 @@ subquestion: |
 
   You can still use this tool, but because you are late, be warned that the plaintiff may be asking the court for a default judgment against you now or very soon.
 
-fields:
-  - To continue, please accept our [terms of use](https://vtlawhelp.org/vtcourtforms/terms-of-use).: acknowledged_information_use
-    datatype: checkboxes
-    none of the above: False    
-    minlength: 1
-    choices:
-      - I accept the terms of use.
-    validation messages:
-      minlength: |
-        You cannot continue unless you agree to the terms of use.
 continue button field: late_answer_warning
 ---
 id: screening wrong interview kickout
@@ -315,18 +305,21 @@ continue button field: wrong_interview_kickout
 code: |
   answer_deadline = sued_when_served.plus(days=30)
 ---
-id: lets get started
+id: you can use this tool
 question: |
-  Getting started
-subquestion: |
+  Important
+subquestion: |  
   <i class="fas fa-check fa-3x" style="color: #429a3c;" aria-hidden="true"></i>  Yes, you can use this tool to fill out these forms.
 
   **Important 30-day deadline**: The court sets a deadline to send your answer in within 30 days of receiving the complaint. It's important to meet this deadline. If you are late, the plaintiff can ask for a default judgment against you any time after the 30-day deadline. Then you may lose your case.
 
   You said you got the complaint on ${ sued_when_served }. That means you need to deliver or postmark your answer to the court by this date: **${ answer_deadline }**.
-
-  <hr>
-  
+continue button field: you_can_use_this_tool
+---
+id: lets get started
+question: |
+  Getting started
+subquestion: |  
   Before you get started, have the papers you got from the court at hand. This includes the Small Claims Complaint.
   
   **Important: This tool does not file your forms for you.** When you are finished, you will need to send your answer back to the court and send a copy to the other party (the plaintiff). Our Next Steps document at the end of this tool will give you instructions.
@@ -405,7 +398,7 @@ subquestion: |
   % if user_started_case:
   A defendant is the person who was sued and is responding to a court action.
   % else:
-  A plaintiff is the person, company or organization who is suing you. There might be more than one plaintiff in your case.
+  A plaintiff is a person, company or organization who is suing you. There might be more than one plaintiff in your case. We'll collect their names one at a time.
 
   Look at the forms you got from the court to fill in this information.
   % endif
@@ -532,7 +525,7 @@ subquestion: |
 
   You should only check the box below if your recall everything that ${ other_parties.short_list(2) } is saying in their complaint as true. If you are not sure, do not check this box. Go back one screen and choose a defense instead.
 
-  **When you agree with the complaint**: When you agree with the complaint, the court may make a judgment saying that you owe the debt. Depending on your financial situation, you may have to pay the money back.
+  **When you agree with the complaint**: When you agree, the court may make a judgment saying that you owe the debt. Depending on your financial situation, you may have to pay the money back. You can ask the court for installment payments, but it is not certain that they will allow it.
   
   **I agree that I owe ${ other_parties.short_list(2) } the full amount claimed in the complaint and the court may enter a judgment against me.**
 fields:
@@ -551,8 +544,8 @@ fields:
       - "I cannot pay the full amount at one time. I'd like to ask the court for installment payments.": agrees_to_pay_installments
     show if: agrees_with_complaint
     none of the above: false
-    maxlength: 1
     minlength: 1
+    maxlength: 1
   - "I can pay this amount": agrees_to_pay_installments_amount
     datatype: currency
     min: 0
@@ -729,8 +722,8 @@ data: !!omap
   - plaintiff_owes_money: "I believe the plaintiff owes me money."
   - plaintiff_not_original_creditor: "The plaintiff is not the original creditor or lender of the money, and they violated the Fair Debt Collection Practices Act (FDCPA)."
   - no_notice: "The plaintiff is not the original creditor or lender of the money, and I didn't get a letter from them alerting me to my debt before I was sued."
-  - false_statements: "The plaintiff made statements that were not true or were misleading about the debt."
-  - harassment: "The plaintiff harassed me and they violated the Fair Debt Collection Practices Act (FDCPA)."
+  - false_statements: "The plaintiff is not the original creditor or lender of the money, and they made statements that were not true or were misleading about the debt."
+  - harassment: "The plaintiff is not the original creditor or lender of the money, and they harassed me and they violated the Fair Debt Collection Practices Act (FDCPA)."
   - plaintiff_owes_me_other_reason: "The plaintiff is not the original creditor or lender of the money, and they owe me money for another reason."
 ---
 id: combining individual counterclaims and the explanation
@@ -930,29 +923,28 @@ review:
       % endfor
 
   - Edit:
-      - has_exempt_income_state
       - otherwise_exempt
+      - recompute:
+          - wants_to_fill_out_financial_disclosure
     button: |
       **You have exempt income that cannot be taken to pay a debt**: 
       % if len(has_exempt_income_state.true_values()) > 0:
       Yes
       % elif len(has_exempt_income_other.true_values()) > 0:
       Yes
-      % elif wants_to_fill_out_financial_disclosure == True:
+      % elif otherwise_exempt != '':
       Yes
       % else:
       No
       % endif
       
-      **Other reason(s) why your income may be exempt**:
       % if otherwise_exempt != '':
+      **Other reason(s) why your income may be exempt**:
       ${ otherwise_exempt }
-      % else:
-      None
       % endif
   - Edit: wants_to_fill_out_financial_disclosure
     button: |
-      **You think your "reasonable living expenses" for you and your family members living with you are more than your income after taxes. You want to fill out a Financial Disclosure Affidavit form**:
+      **You want to fill out a Financial Disclosure Affidavit form.** You think your "reasonable living expenses" for you and your family members living with you are more than your income after taxes.:
       ${ word(yesno(wants_to_fill_out_financial_disclosure)) }
 
   - Edit: agrees_with_complaint
@@ -995,17 +987,22 @@ review:
     button: |
       **You have a counterclaim**: ${ word(yesno(has_counterclaims)) }
   
-  - Edit: counterclaims
+  - Edit: 
+      - sued_by_collection_agency
+      - counterclaims
     button: |
-      **You have a counterclaim**:
-      % if len(counterclaims.true_values()) > 0:
-        Yes
+      % if sued_by_collection_agency:
+      ${ other_parties.short_list(2) } is a debt collector (not the original creditor).
+      % else:
+      ${ other_parties.short_list(2) } is the original creditor.
+      % endif
 
+      % if len(counterclaims.true_values()) > 0:
+      **About your counterclaim**:
+      
       % for item in counterclaims.true_values():
       - ${ counterclaims_terms[item] }
       % endfor
-      % else:
-        No
       % endif
   - Edit: counterclaims_description
     button: |
@@ -1135,12 +1132,21 @@ code: |
   small_claims_answer_attachment.overflow_fields["merged_counterclaims_text"].label = "More about counterclaims"
   small_claims_answer_attachment.overflow_fields.gathered = True
 ---
----
 # ALDocument objects specify the metadata for each template
 objects:
   - small_claims_answer_Post_interview_instructions: ALDocument.using(title="NEXT STEPS - Instructions for filing these forms with the court", filename="small_claims_answer_next_steps.docx", enabled=True, has_addendum=False)
   - small_claims_answer_attachment: ALDocument.using(title="Small claims answer", filename="small_claims_answer", enabled=True, has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
-  - disclosure_of_exempt_income_attachment: ALDocument.using(title="Disclosure of exempt income", filename="disclosure_of_exempt_income", enabled=True, has_addendum=False, )
+  - disclosure_of_exempt_income_attachment: ALDocument.using(title="Disclosure of exempt income", filename="disclosure_of_exempt_income", has_addendum=False, )
+---
+code: |
+  if len(has_exempt_income_state.true_values()) > 0:
+    disclosure_of_exempt_income_attachment.enabled = True
+  elif len(has_exempt_income_other.true_values()) > 0:
+    disclosure_of_exempt_income_attachment.enabled = True
+  elif wants_to_fill_out_financial_disclosure == True:
+    disclosure_of_exempt_income_attachment.enabled = True
+  else:
+    disclosure_of_exempt_income_attachment.enabled = False
 ---
 # Bundles group the ALDocuments into separate downloads, such as for court and for the user
 objects:
