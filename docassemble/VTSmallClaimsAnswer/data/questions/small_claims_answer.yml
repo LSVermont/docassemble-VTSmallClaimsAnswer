@@ -84,10 +84,8 @@ sections:
   - sign: Sign your documents
   - get_docs: Download your documents
 ---
-#################### Interview order #####################
----
 comment: |
-  Controls order and branching logic for questions specific to this form
+  My test code from earlier
 
   other_parties.there_are_any = True
   other_parties.gather()
@@ -105,10 +103,10 @@ comment: |
       no_counterclaims
   stop_testing_here
 ---
+#################### Interview order #####################
+---
 id: interview_order_small_claims_answer
 code: |
-  # Set the allowed courts for this interview
-  allowed_courts = []
   user_role = "defendant"
   user_ask_role = "defendant"
   
@@ -122,6 +120,8 @@ code: |
       sued_when_served
       if sued_when_served <= today().minus(months=1):
         late_answer_warning
+      else:
+        you_can_use_this_tool
   lets_get_started
   
   nav.set_section('about_you')
@@ -281,16 +281,6 @@ subquestion: |
 
   You can still use this tool, but because you are late, be warned that the plaintiff may be asking the court for a default judgment against you now or very soon.
 
-fields:
-  - To continue, please accept our [terms of use](https://vtlawhelp.org/vtcourtforms/terms-of-use).: acknowledged_information_use
-    datatype: checkboxes
-    none of the above: False    
-    minlength: 1
-    choices:
-      - I accept the terms of use.
-    validation messages:
-      minlength: |
-        You cannot continue unless you agree to the terms of use.
 continue button field: late_answer_warning
 ---
 id: screening wrong interview kickout
@@ -315,18 +305,21 @@ continue button field: wrong_interview_kickout
 code: |
   answer_deadline = sued_when_served.plus(days=30)
 ---
-id: lets get started
+id: you can use this tool
 question: |
-  Getting started
-subquestion: |
+  Important
+subquestion: |  
   <i class="fas fa-check fa-3x" style="color: #429a3c;" aria-hidden="true"></i>  Yes, you can use this tool to fill out these forms.
 
   **Important 30-day deadline**: The court sets a deadline to send your answer in within 30 days of receiving the complaint. It's important to meet this deadline. If you are late, the plaintiff can ask for a default judgment against you any time after the 30-day deadline. Then you may lose your case.
 
   You said you got the complaint on ${ sued_when_served }. That means you need to deliver or postmark your answer to the court by this date: **${ answer_deadline }**.
-
-  <hr>
-  
+continue button field: you_can_use_this_tool
+---
+id: lets get started
+question: |
+  Getting started
+subquestion: |  
   Before you get started, have the papers you got from the court at hand. This includes the Small Claims Complaint.
   
   **Important: This tool does not file your forms for you.** When you are finished, you will need to send your answer back to the court and send a copy to the other party (the plaintiff). Our Next Steps document at the end of this tool will give you instructions.
