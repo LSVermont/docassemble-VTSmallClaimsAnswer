@@ -398,7 +398,7 @@ subquestion: |
   % if user_started_case:
   A defendant is the person who was sued and is responding to a court action.
   % else:
-  A plaintiff is the person, company or organization who is suing you. There might be more than one plaintiff in your case.
+  A plaintiff is a person, company or organization who is suing you. There might be more than one plaintiff in your case. We'll collect their names one at a time.
 
   Look at the forms you got from the court to fill in this information.
   % endif
@@ -525,7 +525,7 @@ subquestion: |
 
   You should only check the box below if your recall everything that ${ other_parties.short_list(2) } is saying in their complaint as true. If you are not sure, do not check this box. Go back one screen and choose a defense instead.
 
-  **When you agree with the complaint**: When you agree with the complaint, the court may make a judgment saying that you owe the debt. Depending on your financial situation, you may have to pay the money back.
+  **When you agree with the complaint**: When you agree, the court may make a judgment saying that you owe the debt. Depending on your financial situation, you may have to pay the money back. You can ask the court for installment payments, but it is not certain that they will allow it.
   
   **I agree that I owe ${ other_parties.short_list(2) } the full amount claimed in the complaint and the court may enter a judgment against me.**
 fields:
@@ -544,8 +544,8 @@ fields:
       - "I cannot pay the full amount at one time. I'd like to ask the court for installment payments.": agrees_to_pay_installments
     show if: agrees_with_complaint
     none of the above: false
-    maxlength: 1
     minlength: 1
+    maxlength: 1
   - "I can pay this amount": agrees_to_pay_installments_amount
     datatype: currency
     min: 0
@@ -722,8 +722,8 @@ data: !!omap
   - plaintiff_owes_money: "I believe the plaintiff owes me money."
   - plaintiff_not_original_creditor: "The plaintiff is not the original creditor or lender of the money, and they violated the Fair Debt Collection Practices Act (FDCPA)."
   - no_notice: "The plaintiff is not the original creditor or lender of the money, and I didn't get a letter from them alerting me to my debt before I was sued."
-  - false_statements: "The plaintiff made statements that were not true or were misleading about the debt."
-  - harassment: "The plaintiff harassed me and they violated the Fair Debt Collection Practices Act (FDCPA)."
+  - false_statements: "The plaintiff is not the original creditor or lender of the money, and they made statements that were not true or were misleading about the debt."
+  - harassment: "The plaintiff is not the original creditor or lender of the money, and they harassed me and they violated the Fair Debt Collection Practices Act (FDCPA)."
   - plaintiff_owes_me_other_reason: "The plaintiff is not the original creditor or lender of the money, and they owe me money for another reason."
 ---
 id: combining individual counterclaims and the explanation
@@ -988,17 +988,22 @@ review:
     button: |
       **You have a counterclaim**: ${ word(yesno(has_counterclaims)) }
   
-  - Edit: counterclaims
+  - Edit: 
+      - sued_by_collection_agency
+      - counterclaims
     button: |
-      **You have a counterclaim**:
-      % if len(counterclaims.true_values()) > 0:
-        Yes
+      % if sued_by_collection_agency:
+      ${ other_parties.short_list(2) } is a debt collector (not the original creditor).
+      % else:
+      ${ other_parties.short_list(2) } is the original creditor.
+      % endif
 
+      % if len(counterclaims.true_values()) > 0:
+      **About your counterclaim**:
+      
       % for item in counterclaims.true_values():
       - ${ counterclaims_terms[item] }
       % endfor
-      % else:
-        No
       % endif
   - Edit: counterclaims_description
     button: |
