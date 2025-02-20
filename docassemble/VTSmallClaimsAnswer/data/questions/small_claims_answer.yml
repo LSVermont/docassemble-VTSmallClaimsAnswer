@@ -1164,6 +1164,8 @@ attachment:
   skip undefined: True
   tagged pdf: True
   fields:
+    - "sued_when_served": ${ sued_when_served }
+    - "answer_deadline": ${ answer_deadline }
     - "address_county": ${ trial_court.address.county }
     - "division": ${ trial_court.division }
     - "name": ${ trial_court }
