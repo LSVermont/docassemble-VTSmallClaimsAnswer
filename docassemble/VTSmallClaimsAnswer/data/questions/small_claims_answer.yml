@@ -453,7 +453,9 @@ id: is plaintiff a debt collector
 question: |
   Is ${ other_parties.short_list(2) } a debt collector?
 subquestion: |
-  A debt collector is a person or company who is not the original creditor. They work to collect debts for other people, companies or organizations.
+  A debt collector generally is a person or a company that regularly collects debts owed to others, usually when those debts are past-due.
+
+  Debt collectors include collection agencies or lawyers who collect debts as part of their business. There are also companies that buy past-due debts from creditors or other businesses and then try to collect them. These debt collectors are also called debt collection agencies, debt collection companies or debt buyers.
 fields:
   - Is ${ other_parties.short_list(2) } a **debt collector**?: sued_by_collection_agency
     input type: radio
@@ -649,7 +651,7 @@ continue button field: counterclaims_intro
 ---
 id: counterclaims debt collector
 question: |
-  Do you want to make counterclaims against the debt collector (${ other_parties.short_list(2) })?
+  Do you want to make a counterclaim against the debt collector (${ other_parties.short_list(2) })?
 subquestion: |
   Below is a list of some counterclaims that might apply to debt collectors because of a law called the [Fair Debt Collection Practices Act (FDCPA).](https://files.consumerfinance.gov/f/documents/102012_cfpb_fair-debt-collections-practices-act-fdcpa_procedures.pdf) These only apply to debt collectors.
 
@@ -676,19 +678,14 @@ fields:
 ---
 id: counterclaims other creditors
 question: |
-  Do you want to make counterclaims against ${ other_parties.short_list(2) }?
+  Do you want to make a counterclaim?
 subquestion: |
   To be successful with a counterclaim, you would need to show proof to the court.
 
   Learn more about counterclaims on [NCLC’s Surviving Debt website.](https://library.nclc.org/book/surviving-debt/common-counterclaims-raise)
 fields:
-  - "Do you believe ${ other_parties.short_list(2) } owes you money?": plaintiff_owes_user_money
+  - "Do you want to file a counterclaim against ${ other_parties.short_list(2) }": plaintiff_owes_user_money
     datatype: yesnoradio
-
-  - note: |
-      Did you know?: A debt collector or creditor is not required to tell you that they plan to file a lawsuit.
-    js show if: |
-      val("plaintiff_owes_user_money") == true
 ---
 id: counterclaims amount
 question: |
