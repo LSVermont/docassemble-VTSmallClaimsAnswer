@@ -379,8 +379,10 @@ question: |
 fields:
   - "Your daytime phone number": users[0].daytime_phone_number
     datatype: al_international_phone
+    required: false
   - "Your email address": users[0].email
-    maxlength: 38  
+    maxlength: 38
+    required: false
 ---
 id: names of opposing parties
 sets:
@@ -421,7 +423,7 @@ id: docket number
 question: |
   What is the case number used to track this case in court?
 subquestion: |
-  Look at the forms you got from the court to see the docket number / case number. It's usually in the upper-right of the forms.
+  Look at the forms you got from the court to see the docket number / case number. It's usually in the upper-right of the forms. The number will be formatted like this example: 25-SC-00000.
 fields:
   - I don't know the case number: dont_know_docket_number
     datatype: yesno    
@@ -455,7 +457,7 @@ subquestion: |
   In this small claims case, a plaintiff (${ other_parties.short_list(2) }) has started the case by filing a "complaint" against you.
   % endif
   
-  “Defenses” to debt collection are reasons why ${ other_parties.short_list(2) } may not have a legal right to the money. This screen will help you report any possible defenses in your answer.
+  “Defenses” are reasons why ${ other_parties.short_list(2) } may not have a legal right to the money. This screen will help you report any possible defenses in your answer.
 
   % if defined("other_parties[1]"):
   NOTE: If you choose any of these defenses, you are choosing to disagree with what ${ other_parties.short_list(2) } have claimed.
@@ -466,30 +468,33 @@ fields:
 - "Check any boxes that describe your situation, or check None.": defenses
   datatype: checkboxes
   choices:
+    - "I don’t owe money to the plaintiff.": dont_owe
+    - "I do not know if the plaintiff's claims are true.": dont_know
+    - "I have already paid the plaintiff.": already_paid
     - "I don't recognize this debt. (Tip: If you cannot recall everything that the plaintiff is saying in their complaint, or if you are not sure, check this box.)": do_not_recognize
     - "The dollar amount the debt collectors are asking of me does not match the dollar amount I actually owe. (Tip: If you cannot recall all the amounts, or if you are not sure, check this box.)": amount_doesnt_match
-    - "I have already paid the debt.": already_paid
     - "This debt is discharged due to my personal bankruptcy.": bankruptcy
     - "This debt is of a Limited Liability Corporation (LLC) registered in my name.": llc_debt
     - "The plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt.": not_orginal_creditor
     - "It has been at least six years since I incurred this debt.": long_time_since_debt
     - "It has been at least six years since my last payment of this debt.": long_time_since_payment
     - "I don't owe this debt for another reason. (Tip: You will explain the reason on the next screen.)": other_reason
-    - "I do not know if the plaintiff's claims are true.": dont_know
+
 ---
 # "!!omap" makes these terms ordered: 
 # their order here will be their same order when shown to users.
 variable name: defenses_terms
 data: !!omap
+  - dont_owe: "I don’t owe money to the plaintiff."
+  - dont_know: "I do not know if the plaintiff's claims are true."
+  - already_paid: "I have already paid the plaintiff."
   - do_not_recognize: "I don't recognize this debt."
   - amount_doesnt_match: "The dollar amount the debt collectors are asking of me does not correspond to the dollar amount I actually owe."
-  - already_paid: "I have already paid the debt."
   - bankruptcy: "This debt is discharged due to personal bankruptcy."
   - llc_debt: "This debt is of a Limited Liability Corporation registered in my name."
   - not_orginal_creditor: "The Plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt."
   - long_time_since_debt: "It has been at least six years since I incurred this debt."
   - long_time_since_payment: "It has been at least six years since my last payment of this debt."
-  - dont_know: "I do not know if the plaintiff's claims are true."
   - other_reason: "I don't owe this debt."
 ---
 id: combining individual defenses and the explanation
