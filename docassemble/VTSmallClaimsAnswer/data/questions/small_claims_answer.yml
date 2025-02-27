@@ -24,7 +24,7 @@ metadata:
   tags:
     - "MO-10-00-00-00"
   authors:
-    - Kris Surette, VTCourtForms / Legal Services Vermont
+    - K. Surette, VTCourtForms / Legal Services Vermont
   original_form:
     - https://vtlawhelp.org/cfp/respond-small-claims-complaint
   original_form_published_on: 2025-02-01
@@ -519,6 +519,7 @@ fields:
   - "More explanation (optional)": disagrees_additional_explanation
     input type: area
     required: false
+    max: 800
 ---
 id: agrees with the complaint
 question: |
@@ -603,7 +604,7 @@ fields:
       Do you have other reasons why you think your income is exempt? (Exempt income cannot be taken to pay a debt.)
   - "If so, you can tell the court the other reasons:": otherwise_exempt
     input type: area
-    maxlength: 500
+    maxlength: 290
     required: false
   - note: |
       Examples could be: I have no income. Or, my income is less than $290 per week and that is protected in cases about consumer credit cards or other loans. See the [list of exemptions in Vermont.](https://www.vermontjudiciary.org/media/23)
@@ -693,6 +694,9 @@ fields:
     datatype: currency
   - "Describe the reason(s) for your counterclaim against ${ other_parties.short_list(2) }. Be specific.": counterclaims_description
     input type: area
+    max: 800
+    js show if: |
+      val("counterclaims_amount") > 0
   - note: |
       If you do not want to file a counterclaim, tap the Undo button and go back to change your answer.
 ---
@@ -980,30 +984,32 @@ review:
       % endif
   - Edit: 
       - sued_by_collection_agency
+    button: |
+      **${ other_parties.short_list(2) } is a debt collector**: 
+      ${ word(yesno(sued_by_collection_agency)) }  
+  - Edit: 
       - counterclaims
     button: |
-      % if counterclaims_amount > 0:
-      **Counterclaim against ${ other_parties.short_list(2) }**
-      % endif
-
       % if len(counterclaims.true_values()) > 0:
       **About your counterclaim**:
       
       % for item in counterclaims.true_values():
       - ${ counterclaims_terms[item] }
       % endfor
+      % else:
+      **You have a counterclaim against ${ other_parties.short_list(2) }**: No
       % endif
   - Edit: counterclaims_description
     button: |
       % if sued_by_collection_agency:
       **More details about your counterclaim**:
-      % else:
+      % elif defined("counterclaims_description"):
       **Details about your counterclaim**:
       % endif
-      % if defined("counterclaims_description"):
       ${ single_paragraph(counterclaims_description) }
-      % endif
-
+  - Edit:
+      - counterclaims_amount
+    button: |
       **Amount you want to ask the court for in a counterclaim**:
       ${ currency(counterclaims_amount) }
   - Edit: signature_date
@@ -1126,10 +1132,14 @@ subquestion: |
 
 progress: 100
 ---
+attachment:
+  variable name: small_claims_answer_attachment.addendum
+  docx template file: small_claims_answer_addendum.docx
+---
 code: |
-  small_claims_answer_attachment.overflow_fields["merged_defenses_text"].overflow_trigger = 348
+  small_claims_answer_attachment.overflow_fields["merged_defenses_text"].overflow_trigger = 400
   small_claims_answer_attachment.overflow_fields["merged_defenses_text"].label = "More about defenses"
-  small_claims_answer_attachment.overflow_fields["merged_counterclaims_text"].overflow_trigger = 344
+  small_claims_answer_attachment.overflow_fields["merged_counterclaims_text"].overflow_trigger = 400
   small_claims_answer_attachment.overflow_fields["merged_counterclaims_text"].label = "More about counterclaims"
   small_claims_answer_attachment.overflow_fields.gathered = True
 ---
