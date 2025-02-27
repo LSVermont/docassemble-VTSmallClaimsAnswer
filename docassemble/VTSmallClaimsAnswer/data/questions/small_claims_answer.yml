@@ -693,6 +693,8 @@ fields:
     datatype: currency
   - "Describe the reason(s) for your counterclaim against ${ other_parties.short_list(2) }. Be specific.": counterclaims_description
     input type: area
+    js show if: |
+      val("counterclaims_amount") > 0
   - note: |
       If you do not want to file a counterclaim, tap the Undo button and go back to change your answer.
 ---
@@ -980,30 +982,32 @@ review:
       % endif
   - Edit: 
       - sued_by_collection_agency
+    button: |
+      **${ other_parties.short_list(2) } is a debt collector**: 
+      ${ word(yesno(sued_by_collection_agency)) }  
+  - Edit: 
       - counterclaims
     button: |
-      % if counterclaims_amount > 0:
-      **Counterclaim against ${ other_parties.short_list(2) }**
-      % endif
-
       % if len(counterclaims.true_values()) > 0:
       **About your counterclaim**:
       
       % for item in counterclaims.true_values():
       - ${ counterclaims_terms[item] }
       % endfor
+      % else:
+      **You have a counterclaim against ${ other_parties.short_list(2) }**: No
       % endif
   - Edit: counterclaims_description
     button: |
       % if sued_by_collection_agency:
       **More details about your counterclaim**:
-      % else:
+      % elif defined("counterclaims_description"):
       **Details about your counterclaim**:
       % endif
-      % if defined("counterclaims_description"):
       ${ single_paragraph(counterclaims_description) }
-      % endif
-
+  - Edit:
+      - counterclaims_amount
+    button: |
       **Amount you want to ask the court for in a counterclaim**:
       ${ currency(counterclaims_amount) }
   - Edit: signature_date
@@ -1127,9 +1131,9 @@ subquestion: |
 progress: 100
 ---
 code: |
-  small_claims_answer_attachment.overflow_fields["merged_defenses_text"].overflow_trigger = 348
+  small_claims_answer_attachment.overflow_fields["merged_defenses_text"].overflow_trigger = 500
   small_claims_answer_attachment.overflow_fields["merged_defenses_text"].label = "More about defenses"
-  small_claims_answer_attachment.overflow_fields["merged_counterclaims_text"].overflow_trigger = 344
+  small_claims_answer_attachment.overflow_fields["merged_counterclaims_text"].overflow_trigger = 500
   small_claims_answer_attachment.overflow_fields["merged_counterclaims_text"].label = "More about counterclaims"
   small_claims_answer_attachment.overflow_fields.gathered = True
 ---
