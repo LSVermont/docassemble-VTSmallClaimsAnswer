@@ -11,7 +11,7 @@ metadata:
   short title: >-
     Small claims answer
   description: |-
-    This interview helps someone in Vermont respond to a small claims case.
+    Small Claims Answer form for Vermont. Based on Vermont Judiciary paper form 100-00126 (2/2025).
   can_I_use_this_form: |
     If you have been sued in small claims court, you can use this tool to respond.
   before_you_start: |
@@ -27,7 +27,7 @@ metadata:
     - Kris Surette, VTCourtForms / Legal Services Vermont
   original_form:
     - https://vtlawhelp.org/cfp/respond-small-claims-complaint
-  original_form_published_on: 2015-07-01
+  original_form_published_on: 2025-02-01
   help_page_url: >-
     https://vtlawhelp.org/cfp/respond-small-claims-complaint
   help_page_title: >-
