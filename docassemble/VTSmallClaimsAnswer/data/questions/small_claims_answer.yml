@@ -11,7 +11,7 @@ metadata:
   short title: >-
     Small claims answer
   description: |-
-    This interview helps someone in Vermont respond to a small claims case.
+    Small Claims Answer form for Vermont. Based on Vermont Judiciary paper form 100-00126 (2/2025).
   can_I_use_this_form: |
     If you have been sued in small claims court, you can use this tool to respond.
   before_you_start: |
@@ -27,7 +27,7 @@ metadata:
     - Kris Surette, VTCourtForms / Legal Services Vermont
   original_form:
     - https://vtlawhelp.org/cfp/respond-small-claims-complaint
-  original_form_published_on: 2015-07-01
+  original_form_published_on: 2025-02-01
   help_page_url: >-
     https://vtlawhelp.org/cfp/respond-small-claims-complaint
   help_page_title: >-
@@ -109,7 +109,7 @@ code: |
   users.gather()
   set_progress(14)
   users[0].address.address
-  users[0].daytime_phone_number
+  users[0].phone_number
   users[0].email
   set_progress(24)
   
@@ -355,7 +355,10 @@ id: phone and email
 question: |
   Phone and email
 fields:
-  - "Your daytime phone number": users[0].daytime_phone_number
+  - "Your home or cell phone number": users[0].phone_number
+    datatype: al_international_phone
+    required: false
+  - "Your work phone number": users[0].work_phone_number
     datatype: al_international_phone
     required: false
   - "Your email address": users[0].email
@@ -908,7 +911,9 @@ review:
       ${ item.mailing_address }
       % endif
       
-      ${ item.daytime_phone_number }
+      ${ item.phone_number }
+      
+      ${ item.work_phone_number }
       
       ${ item.email }
       % endfor
@@ -1043,8 +1048,10 @@ columns:
       row_item.address.block() if defined("row_item.address.address") else ""
   - Mailing address: |
       row_item.mailing_address.block() if defined("row_item.mailing_address.address") else ""
-  - Phone: |
-      row_item.daytime_phone_number if defined("row_item.daytime_phone_number") else ""
+  - Home phone or cell: |
+      row_item.phone_number if defined("row_item.phone_number") else ""
+  - Work phone: |
+      row_item.work_phone_number if defined("row_item.work_phone_number") else ""
   - Email: |
       row_item.email if defined("row_item.email") else ""
   - Signature: |
@@ -1053,7 +1060,8 @@ edit:
   - name.first
   - address.address
   - mailing_address.address
-  - daytime_phone_number
+  - phone_number
+  - work_phone_number
   - email
   - signature
 confirm: True
@@ -1183,7 +1191,8 @@ attachment:
       - "other_parties1_name": ${ other_parties.short_list(2) }
       - "users1_name": ${ users[0] }
       - "users1_address_on_one_line": ${ users[0].address.on_one_line() }
-      - "users1_daytime_phone_number": ${ users[0].daytime_phone_number }
+      - "users1_phone_number": ${ users[0].phone_number }
+      - "users1_work_phone_number": ${ users[0].work_phone_number }
       - "users1_email": ${ users[0].email }
       - "agrees_with_complaint": |
           % if agrees_with_complaint:
