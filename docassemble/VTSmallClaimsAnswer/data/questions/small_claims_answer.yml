@@ -429,11 +429,11 @@ id: is plaintiff a debt collector
 question: |
   Is ${ other_parties.short_list(2) } a debt collector?
 subquestion: |
+  We ask this question because it may affect what you might ask for in a counterclaim.
+  
   A debt collector generally is a person or a company that regularly collects debts owed to others, usually when those debts are past-due.
 
   Debt collectors include collection agencies or lawyers who collect debts as part of their business. There are also companies that buy past-due debts from creditors or other businesses and then try to collect them. These debt collectors are also called debt collection agencies, debt collection companies or debt buyers.
-
-  We ask this question because it may affect what you might ask for in a counterclaim.
   
 fields:
   - Is ${ other_parties.short_list(2) } a **debt collector**?: sued_by_collection_agency
@@ -456,9 +456,9 @@ subquestion: |
   “Defenses” are reasons why ${ other_parties.short_list(2) } may not have a legal right to the money. This screen will help you report any possible defenses in your answer.
 
   % if defined("other_parties[1]"):
-  NOTE: If you choose any defenses, you are choosing to disagree with what ${ other_parties.short_list(2) } have claimed and you are asking for a court hearing.
+  **Note**: If you choose any defenses, you are choosing to disagree with what ${ other_parties.short_list(2) } have claimed and you are asking for a court hearing.
   % else:
-  NOTE: If you choose any defenses, you are choosing to disagree with what ${ other_parties.short_list(2) } has claimed and you are asking for a court hearing.
+  **Note**: If you choose any defenses, you are choosing to disagree with what ${ other_parties.short_list(2) } has claimed and you are asking for a court hearing.
   % endif
 fields:
 - "Check any boxes that describe your situation, or check None.": defenses
@@ -624,6 +624,8 @@ subquestion: |
   - You would pay $25 if your counterclaim is for $500 or less.
   - You would pay $35 if your counterclaim is between $501 and $10,000.
   - If you have a low income, you can ask the court to waive the fee. You can use our VTCourtForms tool for the fee waiver form.
+
+  Tap Next for the next screen.
   
 continue button field: counterclaims_intro
 
