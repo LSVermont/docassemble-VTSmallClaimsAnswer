@@ -84,25 +84,6 @@ sections:
   - sign: Sign your documents
   - get_docs: Download your documents
 ---
-comment: |
-  My test code from earlier
-
-  other_parties.there_are_any = True
-  other_parties.gather()
-  if sued_by_collection_agency:
-    if len(counterclaims.true_values()) > 0:
-      if not has_counterclaims:
-        no_counterclaims
-    else:
-      no_counterclaims
-  else:
-    if plaintiff_owes_user_money:
-      if not has_counterclaims:
-        no_counterclaims
-    else:
-      no_counterclaims
-  stop_testing_here
----
 #################### Interview order #####################
 ---
 id: interview_order_small_claims_answer
@@ -142,7 +123,6 @@ code: |
   nav.set_section('other_party')
   other_parties.there_are_any = True
   other_parties.gather()
-  sued_by_collection_agency
   set_progress(40)
   
   nav.set_section('defenses')
@@ -160,20 +140,16 @@ code: |
   nav.set_section("counterclaims")
   counterclaims_intro
   if sued_by_collection_agency:
-    if len(counterclaims.true_values()) > 0:
-      if not has_counterclaims:
-        no_counterclaims
-      if has_counterclaims:
-        get_merged_counterclaims
-        wants_to_fill_out_fee_waiver 
-    else:
+    if len(counterclaims.true_values()) == 0:
       no_counterclaims
+    else:
+      get_merged_counterclaims
+      counterclaims_amount
+      wants_to_fill_out_fee_waiver 
   else:
     if plaintiff_owes_user_money:
-      if has_counterclaims:
-        wants_to_fill_out_fee_waiver 
-      else:
-        no_counterclaims
+      counterclaims_amount
+      wants_to_fill_out_fee_waiver 
     else:
       no_counterclaims
   set_progress(76)
@@ -197,7 +173,7 @@ code: |
   if len(defenses.true_values()) > 0:
     get_merged_defenses
   if sued_by_collection_agency:
-    if has_counterclaims == True:
+    if counterclaims_amount > 0:
       get_merged_counterclaims
   small_claims_answer_preview_question
   set_progress(90)
@@ -453,9 +429,12 @@ id: is plaintiff a debt collector
 question: |
   Is ${ other_parties.short_list(2) } a debt collector?
 subquestion: |
+  We ask this question because it may affect what you might ask for in a counterclaim.
+  
   A debt collector generally is a person or a company that regularly collects debts owed to others, usually when those debts are past-due.
 
   Debt collectors include collection agencies or lawyers who collect debts as part of their business. There are also companies that buy past-due debts from creditors or other businesses and then try to collect them. These debt collectors are also called debt collection agencies, debt collection companies or debt buyers.
+  
 fields:
   - Is ${ other_parties.short_list(2) } a **debt collector**?: sued_by_collection_agency
     input type: radio
@@ -477,9 +456,9 @@ subquestion: |
   “Defenses” are reasons why ${ other_parties.short_list(2) } may not have a legal right to the money. This screen will help you report any possible defenses in your answer.
 
   % if defined("other_parties[1]"):
-  NOTE: If you choose any of these defenses, you are choosing to disagree with what ${ other_parties.short_list(2) } have claimed.
+  **Note**: If you choose any defenses, you are choosing to disagree with what ${ other_parties.short_list(2) } have claimed and you are asking for a court hearing.
   % else:
-  NOTE: If you choose any of these defenses, you are choosing to disagree with what ${ other_parties.short_list(2) } has claimed.
+  **Note**: If you choose any defenses, you are choosing to disagree with what ${ other_parties.short_list(2) } has claimed and you are asking for a court hearing.
   % endif
 fields:
 - "Check any boxes that describe your situation, or check None.": defenses
@@ -492,7 +471,7 @@ fields:
     - "I don't recognize this debt. (Tip: If you cannot recall everything that the plaintiff is saying in their complaint, or if you are not sure, check this box.)": do_not_recognize
     - "This debt is discharged due to my personal bankruptcy.": bankruptcy
     - "This debt is of a Limited Liability Corporation (LLC) registered in my name.": llc_debt
-    - "The plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt.": not_orginal_creditor
+    - "The plaintiff is not the original creditor or lender of the money, and I don't believe the plaintiff has the right to collect the money.": not_orginal_creditor
     - "It has been at least six years since I incurred this debt.": long_time_since_debt
     - "It has been at least six years since my last payment of this debt.": long_time_since_payment
     - "I don't owe this money for another reason. (Tip: You will explain the reason on the next screen.)": other_reason
@@ -508,7 +487,7 @@ data: !!omap
   - amount_doesnt_match: "The dollar amount the plaintiff is asking for does not match the dollar amount I actually owe."
   - bankruptcy: "This debt is discharged due to personal bankruptcy."
   - llc_debt: "This debt is of a Limited Liability Corporation registered in my name."
-  - not_orginal_creditor: "The plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt."
+  - not_orginal_creditor: "The plaintiff is not the original creditor or lender of the money, and I don't believe the plaintiff has the right to collect the money."
   - long_time_since_debt: "It has been at least six years since I incurred this debt."
   - long_time_since_payment: "It has been at least six years since my last payment of this debt."
   - other_reason: "I don't owe this money."
@@ -638,18 +617,20 @@ subquestion: |
   
   In a small claims case, you can ask for up to $10,000 in a counterclaim. There is a fee to file a counterclaim, and the amount of the fee can be included in your counterclaim. 
   
-  You may want to talk to a lawyer if you are thinking about making a counterclaim. This is because there are some [laws that only apply to how debt collectors do business.](https://files.consumerfinance.gov/f/documents/102012_cfpb_fair-debt-collections-practices-act-fdcpa_procedures.pdf) And for all kinds of plaintiffs, you need to have proof that you suffered real damages. In many cases, people do not have counterclaims.
+  You may want to talk to a lawyer if you are thinking about making a counterclaim. This is because there are some [laws that only apply to how debt collectors do business.](https://files.consumerfinance.gov/f/documents/102012_cfpb_fair-debt-collections-practices-act-fdcpa_procedures.pdf) And for all kinds of plaintiffs, you need to have proof that you suffered real damages.
   
   **Counterclaim filing fee**
   
-  - You would pay $25 if your counterclaims are for $500 or less.
-  - You would pay $35 if your counterclaims are between $501 and $10,000.
+  - You would pay $25 if your counterclaim is for $500 or less.
+  - You would pay $35 if your counterclaim is between $501 and $10,000.
   - If you have a low income, you can ask the court to waive the fee. You can use our VTCourtForms tool for the fee waiver form.
+
+  Tap Next for the next screen.
   
 continue button field: counterclaims_intro
 
 ---
-id: counterclaims debt collector
+id: counterclaim debt collector
 question: |
   Do you want to make a counterclaim against the debt collector (${ other_parties.short_list(2) })?
 subquestion: |
@@ -676,7 +657,7 @@ fields:
 
       About getting notified: A debt collector or creditor is not required to tell you that they plan to file a lawsuit.
 ---
-id: counterclaims other creditors
+id: counterclaim other creditors
 question: |
   Do you want to make a counterclaim?
 subquestion: |
@@ -684,49 +665,39 @@ subquestion: |
 
   Learn more about counterclaims on [NCLC’s Surviving Debt website.](https://library.nclc.org/book/surviving-debt/common-counterclaims-raise)
 fields:
-  - "Do you want to file a counterclaim against ${ other_parties.short_list(2) }": plaintiff_owes_user_money
+  - "Do you want to file a counterclaim against ${ other_parties.short_list(2) }?": plaintiff_owes_user_money
     datatype: yesnoradio
 ---
-id: counterclaims amount
+id: counterclaim amount
 question: |
-  Counterclaims details
+  Counterclaim details
 subquestion: |
   % if sued_by_collection_agency:
   % if len(counterclaims.true_values()) > 0:
-  You've selected a reason(s) for filing counterclaims against ${ other_parties.short_list(2) }:
+  You've selected a reason(s) for filing a counterclaim against ${ other_parties.short_list(2) }:
   
   % for item in counterclaims.true_values():
   - **${ counterclaims_terms[item] }**
   
   % endfor
   % endif
-  % else:
-  You said ${ other_parties.short_list(2) } owes you money.
   % endif
   
-  Now, please confirm if you want to pursue counterclaims or not. If you say yes, we will ask follow-up questions.
-  
 fields:
-  - "I want to file counterclaims. I know I will pay a filing fee or ask for a fee waiver.": has_counterclaims
-    datatype: yesnoradio
   - note: |
-        Remember, when you ask for money in a counterclaim, you are asking for "damages." You can include the counterclaims filing fee, too. (Fee is $25 if your counterclaims are for $500 or less. Fee is $35 if your counterclaims are between $501 and $10,000.) In small claims court, the total amount must be $10,000 or less.
-    js show if: |
-      val("has_counterclaims") == true
-  - "I want to ask the court for this amount of money": counterclaims_amount
+        Remember, when you ask for money in a counterclaim, you are asking for "damages." You can include the counterclaim filing fee, too. (Fee is $25 if your counterclaim is for $500 or less. Fee is $35 if your counterclaim is between $501 and $10,000.) In small claims court, the total amount must be $10,000 or less.
+  - "I want to ask the court for this amount of money in my counterclaim": counterclaims_amount
     datatype: currency
-    js show if: |
-      val("has_counterclaims") == true
-  - "Describe the reason(s) for your counterclaims against ${ other_parties.short_list(2) }. Be specific.": counterclaims_description
+  - "Describe the reason(s) for your counterclaim against ${ other_parties.short_list(2) }. Be specific.": counterclaims_description
     input type: area
-    js show if: |
-      val("has_counterclaims") == true
+  - note: |
+      If you do not want to file a counterclaim, tap the Undo button and go back to change your answer.
 ---
-id: if no counterclaims
+id: if no counterclaim
 question: |
-  No counterclaims
+  No counterclaim
 subquestion: |
-  We will not include counterclaims in your answer.
+  We will not include a counterclaim in your answer.
 
   Tap Next to continue.
 continue button field: no_counterclaims
@@ -740,7 +711,7 @@ data: !!omap
   - no_notice: "The plaintiff is not the original creditor or lender of the money, and I didn't get a letter from them alerting me to my debt before I was sued."
   - false_statements: "The plaintiff is not the original creditor or lender of the money, and they made statements that were not true or were misleading about the debt."
   - harassment: "The plaintiff is not the original creditor or lender of the money, and they harassed me and they violated the Fair Debt Collection Practices Act (FDCPA)."
-  - plaintiff_owes_me_other_reason: "The plaintiff is not the original creditor or lender of the money, and they owe me money for another reason."
+  - plaintiff_owes_me_other_reason: "The plaintiff is not the original creditor or lender of the money, and they owe me money."
 ---
 id: combining individual counterclaims and the explanation
 code: |
@@ -776,18 +747,16 @@ fields:
     js show if: |
       val("wants_to_fill_out_financial_disclosure") == true
   - note: |
-      If you said "now", consider making an account to save your work. This is because there are quite a few questions to answer for this form. You might want to start it and come back to finish it.
+      If you said "now", consider making an account to save your work. This is because there are quite a few questions to answer on the Financial Disclosure Affidavit form. You might want to start it and come back to finish it.
     js show if: |
       val("wants_to_fill_out_financial_disclosure") == true
 ---
 id: want to fill out fee waiver
 question: |
-  Do you want to fill out a fee waiver form for your counterclaims?
+  Do you want to fill out a fee waiver form for your counterclaim?
 
 subquestion: |
-  When you have counterclaims, you pay a court filing fee. You would pay $25 if your counterclaims are for $500 or less. You would pay $35 if your counterclaims are between $501 and $10,000.
-
-  If you get public assistance or have a low income, you can ask the court to waive the fees.
+  When you have a counterclaim, you pay court fees. If you get public assistance or have a low income, you can ask the court to waive the fees.
 
   ${ start_accordion('<h2 class="h5">Who can get their fees waived?</h2>') }
   The Vermont Judiciary says the court can waive your filing fee and service costs if:
@@ -932,6 +901,12 @@ review:
       - ${ item }
       
       ${ item.address }
+
+      % if defined("item.mailing_address.address"):
+      Mailing address:
+      
+      ${ item.mailing_address }
+      % endif
       
       ${ item.daytime_phone_number }
       
@@ -998,19 +973,12 @@ review:
       **More details**:
       ${ single_paragraph(disagrees_additional_explanation) }
       % endif
-
-  - Edit: has_counterclaims
-    button: |
-      **You have a counterclaim**: ${ word(yesno(has_counterclaims)) }
-  
   - Edit: 
       - sued_by_collection_agency
       - counterclaims
     button: |
-      % if sued_by_collection_agency:
-      ${ other_parties.short_list(2) } is a debt collector (not the original creditor).
-      % else:
-      ${ other_parties.short_list(2) } is the original creditor.
+      % if counterclaims_amount > 0:
+      **Counterclaim against ${ other_parties.short_list(2) }**
       % endif
 
       % if len(counterclaims.true_values()) > 0:
@@ -1022,21 +990,27 @@ review:
       % endif
   - Edit: counterclaims_description
     button: |
-      **Amount you want to ask the court for in your counterclaim**:
-      ${ currency(counterclaims_amount) }
-      
+      % if sued_by_collection_agency:
       **More details about your counterclaim**:
+      % else:
+      **Details about your counterclaim**:
+      % endif
       % if defined("counterclaims_description"):
       ${ single_paragraph(counterclaims_description) }
       % endif
+
+      **Amount you want to ask the court for in a counterclaim**:
+      ${ currency(counterclaims_amount) }
   - Edit: signature_date
     button: |
       **Date of your signature**: ${ signature_date }
 
+  - note: |
+      **Select Resume, below, when you are done. It will take a moment to generate your form again.**
 ---
 continue button field: other_parties.revisit
 question: |
-  Edit other_parties
+  Edit info about the other party
 subquestion: |
   ${ other_parties.table }
 
@@ -1054,7 +1028,7 @@ confirm: True
 ---
 continue button field: users.revisit
 question: |
-  Edit users
+  Edit info about you
 subquestion: |
   ${ users.table }
 
@@ -1067,6 +1041,8 @@ columns:
       row_item.name.full() if defined("row_item.name.first") else ""
   - Address: |
       row_item.address.block() if defined("row_item.address.address") else ""
+  - Mailing address: |
+      row_item.mailing_address.block() if defined("row_item.mailing_address.address") else ""
   - Phone: |
       row_item.daytime_phone_number if defined("row_item.daytime_phone_number") else ""
   - Email: |
@@ -1075,10 +1051,11 @@ columns:
       row_item.signature if defined("row_item.signature") else ""
 edit:
   - name.first
-  - signature
   - address.address
+  - mailing_address.address
   - daytime_phone_number
   - email
+  - signature
 confirm: True
 ---
 ############################# SIGNATURE #############################
@@ -1234,17 +1211,17 @@ attachment:
           ${ False }
           % endif
       - "has_counterclaim": |
-          % if has_counterclaims:
+          % if counterclaims_amount > 0:
           ${ True }
           % endif
       - "counterclaim_description": |
           % if sued_by_collection_agency:
-          % if has_counterclaims:
+          % if counterclaims_amount > 0:
           I have a counterclaim for ${ currency(counterclaims_amount)}. ${ small_claims_answer_attachment.safe_value("merged_counterclaims_text") } 
           % endif
           % endif
           % if not sued_by_collection_agency:
-          % if has_counterclaims:
+          % if counterclaims_amount > 0:
           I have a counterclaim for ${ currency(counterclaims_amount)}. ${ counterclaims_description }
           % endif
           % endif
