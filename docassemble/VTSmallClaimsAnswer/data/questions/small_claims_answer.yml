@@ -79,7 +79,7 @@ sections:
   - case_info: Your court case
   - defenses: Any defenses?
   - exempt_income: Any exempt income?
-  - counterclaims: Any counterclaims?
+  - counterclaims: Any counterclaim?
   - review_small_claims_answer: Edit your answers
   - sign: Sign your documents
   - get_docs: Download your documents
@@ -132,16 +132,17 @@ code: |
   users[0].email
   set_progress(24)
   
-  nav.set_section('other_party')
-  other_parties.there_are_any = True
-  other_parties.gather()
-  set_progress(32)
-  
   nav.set_section('case_info')
   docket_number
   trial_court_division = "Civil"
   user_selected_county
   trial_court.address.county
+  set_progress(32)
+
+  nav.set_section('other_party')
+  other_parties.there_are_any = True
+  other_parties.gather()
+  sued_by_collection_agency
   set_progress(40)
   
   nav.set_section('defenses')
@@ -157,6 +158,7 @@ code: |
   set_progress(60)
   
   nav.set_section("counterclaims")
+  counterclaims_intro
   if sued_by_collection_agency:
     if len(counterclaims.true_values()) > 0:
       if not has_counterclaims:
@@ -234,7 +236,7 @@ subquestion: |
   - Certificate of Service
   - Disclosure of Exempt Income (VTCourtForms will tell you if you need this)
   - Financial Disclosure Affidavit (VTCourtForms will tell you if you need this)
-  - Court fee waiver form (if you want to make "counterclaims")
+  - Court fee waiver form (if you want to make a "counterclaim")
   
   <i class="fas fa-clock fa-2x"></i> It may take you 45 minutes to complete this. 
   
@@ -379,8 +381,10 @@ question: |
 fields:
   - "Your daytime phone number": users[0].daytime_phone_number
     datatype: al_international_phone
+    required: false
   - "Your email address": users[0].email
-    maxlength: 38  
+    maxlength: 38
+    required: false
 ---
 id: names of opposing parties
 sets:
@@ -421,7 +425,7 @@ id: docket number
 question: |
   What is the case number used to track this case in court?
 subquestion: |
-  Look at the forms you got from the court to see the docket number / case number. It's usually in the upper-right of the forms.
+  Look at the forms you got from the court to see the docket number / case number. It's usually in the upper-right of the forms. The number will be formatted like this example: 25-SC-00000.
 fields:
   - I don't know the case number: dont_know_docket_number
     datatype: yesno    
@@ -445,6 +449,21 @@ fields:
       ${ collapse_template(which_county_to_choose) }
       ${ collapse_template(in_which_county) }
 ---
+id: is plaintiff a debt collector
+question: |
+  Is ${ other_parties.short_list(2) } a debt collector?
+subquestion: |
+  A debt collector generally is a person or a company that regularly collects debts owed to others, usually when those debts are past-due.
+
+  Debt collectors include collection agencies or lawyers who collect debts as part of their business. There are also companies that buy past-due debts from creditors or other businesses and then try to collect them. These debt collectors are also called debt collection agencies, debt collection companies or debt buyers.
+fields:
+  - Is ${ other_parties.short_list(2) } a **debt collector**?: sued_by_collection_agency
+    input type: radio
+    choices:
+      - Yes: True
+      - No: False
+      - I don't know: None
+---
 id: defenses
 question: |
   Any reasons why you believe you do **not** owe this money?
@@ -455,7 +474,7 @@ subquestion: |
   In this small claims case, a plaintiff (${ other_parties.short_list(2) }) has started the case by filing a "complaint" against you.
   % endif
   
-  “Defenses” to debt collection are reasons why ${ other_parties.short_list(2) } may not have a legal right to the money. This screen will help you report any possible defenses in your answer.
+  “Defenses” are reasons why ${ other_parties.short_list(2) } may not have a legal right to the money. This screen will help you report any possible defenses in your answer.
 
   % if defined("other_parties[1]"):
   NOTE: If you choose any of these defenses, you are choosing to disagree with what ${ other_parties.short_list(2) } have claimed.
@@ -466,31 +485,33 @@ fields:
 - "Check any boxes that describe your situation, or check None.": defenses
   datatype: checkboxes
   choices:
+    - "I don’t owe money to the plaintiff.": dont_owe
+    - "I do not know if the plaintiff's claims are true.": dont_know
+    - "I have already paid the plaintiff.": already_paid
+    - "The dollar amount the plaintiff is asking for does not match the dollar amount I actually owe. (Tip: If you cannot recall all the amounts, or if you are not sure, check this box.)": amount_doesnt_match
     - "I don't recognize this debt. (Tip: If you cannot recall everything that the plaintiff is saying in their complaint, or if you are not sure, check this box.)": do_not_recognize
-    - "The dollar amount the debt collectors are asking of me does not match the dollar amount I actually owe. (Tip: If you cannot recall all the amounts, or if you are not sure, check this box.)": amount_doesnt_match
-    - "I have already paid the debt.": already_paid
     - "This debt is discharged due to my personal bankruptcy.": bankruptcy
     - "This debt is of a Limited Liability Corporation (LLC) registered in my name.": llc_debt
     - "The plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt.": not_orginal_creditor
     - "It has been at least six years since I incurred this debt.": long_time_since_debt
     - "It has been at least six years since my last payment of this debt.": long_time_since_payment
-    - "I don't owe this debt for another reason. (Tip: You will explain the reason on the next screen.)": other_reason
-    - "I do not know if the plaintiff's claims are true.": dont_know
+    - "I don't owe this money for another reason. (Tip: You will explain the reason on the next screen.)": other_reason
 ---
 # "!!omap" makes these terms ordered: 
 # their order here will be their same order when shown to users.
 variable name: defenses_terms
 data: !!omap
+  - dont_owe: "I don’t owe money to the plaintiff."
+  - dont_know: "I do not know if the plaintiff's claims are true."
+  - already_paid: "I have already paid the plaintiff."
   - do_not_recognize: "I don't recognize this debt."
-  - amount_doesnt_match: "The dollar amount the debt collectors are asking of me does not correspond to the dollar amount I actually owe."
-  - already_paid: "I have already paid the debt."
+  - amount_doesnt_match: "The dollar amount the plaintiff is asking for does not match the dollar amount I actually owe."
   - bankruptcy: "This debt is discharged due to personal bankruptcy."
   - llc_debt: "This debt is of a Limited Liability Corporation registered in my name."
-  - not_orginal_creditor: "The Plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt."
+  - not_orginal_creditor: "The plaintiff is not the original lender of the debt, and I don't believe the plaintiff has the right to collect the debt."
   - long_time_since_debt: "It has been at least six years since I incurred this debt."
   - long_time_since_payment: "It has been at least six years since my last payment of this debt."
-  - dont_know: "I do not know if the plaintiff's claims are true."
-  - other_reason: "I don't owe this debt."
+  - other_reason: "I don't owe this money."
 ---
 id: combining individual defenses and the explanation
 code: |
@@ -607,30 +628,30 @@ fields:
 ---
 id: counterclaims intro
 question: |
-  Do you want to make counterclaims against ${ other_parties.short_list(2) }?
+  Counterclaim
 subquestion: |
-  This part of the tool can help you figure out if you have “counterclaims” against the creditor or plaintiff (the person or company that sued you).
+  This part of the tool can help you figure out if you have a “counterclaim” against the plaintiff (the person or company that sued you).
 
-  If you decide to file counterclaims, you are asking the court to award YOU money. When you ask for money in a counterclaim, you are asking for "damages." You can include the counterclaims filing fee, too. In small claims court, the total amount must be $10,000 or less.
+  A counterclaim is a lawsuit the defendant files against the plaintiff in the original case. Many people do not have a counterclaim. 
   
-  It's often helpful to get help from a lawyer if you want to make counterclaims. This is because there are some [laws that only apply to how debt collectors do business.](https://files.consumerfinance.gov/f/documents/102012_cfpb_fair-debt-collections-practices-act-fdcpa_procedures.pdf) And for all kinds of creditors, to be successful you need to have proof that you suffered real damages. In many cases, people do not have counterclaims.
+  If you decide to file a counterclaim, you are asking the court to award YOU money. When you ask for money in a counterclaim, you are asking for "damages." 
   
-  **Filing fee**
+  In a small claims case, you can ask for up to $10,000 in a counterclaim. There is a fee to file a counterclaim, and the amount of the fee can be included in your counterclaim. 
   
-  FYI, there is a court filing fee for counterclaims:
+  You may want to talk to a lawyer if you are thinking about making a counterclaim. This is because there are some [laws that only apply to how debt collectors do business.](https://files.consumerfinance.gov/f/documents/102012_cfpb_fair-debt-collections-practices-act-fdcpa_procedures.pdf) And for all kinds of plaintiffs, you need to have proof that you suffered real damages. In many cases, people do not have counterclaims.
+  
+  **Counterclaim filing fee**
   
   - You would pay $25 if your counterclaims are for $500 or less.
   - You would pay $35 if your counterclaims are between $501 and $10,000.
   - If you have a low income, you can ask the court to waive the fee. You can use our VTCourtForms tool for the fee waiver form.
   
-  <hr>
-fields:
-  - Is ${ other_parties.short_list(2) } **a debt collector** (which is not the original creditor)?: sued_by_collection_agency
-    datatype: yesnoradio
+continue button field: counterclaims_intro
+
 ---
 id: counterclaims debt collector
 question: |
-  Do you want to make counterclaims against the debt collector (${ other_parties.short_list(2) })?
+  Do you want to make a counterclaim against the debt collector (${ other_parties.short_list(2) })?
 subquestion: |
   Below is a list of some counterclaims that might apply to debt collectors because of a law called the [Fair Debt Collection Practices Act (FDCPA).](https://files.consumerfinance.gov/f/documents/102012_cfpb_fair-debt-collections-practices-act-fdcpa_procedures.pdf) These only apply to debt collectors.
 
@@ -657,19 +678,14 @@ fields:
 ---
 id: counterclaims other creditors
 question: |
-  Do you want to make counterclaims against ${ other_parties.short_list(2) }?
+  Do you want to make a counterclaim?
 subquestion: |
   To be successful with a counterclaim, you would need to show proof to the court.
 
   Learn more about counterclaims on [NCLC’s Surviving Debt website.](https://library.nclc.org/book/surviving-debt/common-counterclaims-raise)
 fields:
-  - "Do you believe ${ other_parties.short_list(2) } owes you money?": plaintiff_owes_user_money
+  - "Do you want to file a counterclaim against ${ other_parties.short_list(2) }": plaintiff_owes_user_money
     datatype: yesnoradio
-
-  - note: |
-      Did you know?: A debt collector or creditor is not required to tell you that they plan to file a lawsuit.
-    js show if: |
-      val("plaintiff_owes_user_money") == true
 ---
 id: counterclaims amount
 question: |
