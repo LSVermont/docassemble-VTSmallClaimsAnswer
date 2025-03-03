@@ -53,7 +53,7 @@ setup(name='docassemble.VTSmallClaimsAnswer',
       license='The MIT License',
       url='https://VTLawHelp.org',
       packages=find_namespace_packages(),
-      install_requires=['docassemble.AssemblyLine>=3.2.0', 'docassemble.GithubFeedbackForm>=0.4.1.1', 'docassemble.VTDisclosureOfExemptIncome', 'docassemble.VTFeedback', 'docassemble.VTSharedYMLFile'],
+      install_requires=['docassemble.AssemblyLine>=3.2.0', 'docassemble.GithubFeedbackForm>=0.4.1.1', 'docassemble.VTDisclosureOfExemptIncome', 'docassemble.VTFeeWaiverWithIncludeYMLFile', 'docassemble.VTFeedback', 'docassemble.VTSharedYMLFile'],
       zip_safe=False,
       package_data=find_package_data(where='docassemble/VTSmallClaimsAnswer/', package='docassemble.VTSmallClaimsAnswer'),
      )
