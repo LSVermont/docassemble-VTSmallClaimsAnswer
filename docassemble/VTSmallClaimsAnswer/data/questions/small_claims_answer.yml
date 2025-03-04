@@ -83,9 +83,10 @@ sections:
   - exempt_income: Any exempt income?
   - counterclaims: Any counterclaim?
   - do_fee_waiver: Do a fee waiver?
-  - review_small_claims_answer: Edit your answers
-  - sign: Sign your documents
-  - get_docs: Download your documents
+  - review_small_claims_answer: <i class="fa-solid fa-pencil"></i> <u>Edit your answers</u>
+  - sign: Sign your document
+  - get_docs: Download your document
+progressive: False
 ---
 #################### Interview order #####################
 ---
