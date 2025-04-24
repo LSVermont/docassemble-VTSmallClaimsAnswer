@@ -548,7 +548,7 @@ fields:
     - "The plaintiff is not the original creditor or lender of the money, and I don't believe the plaintiff has the right to collect the money.": not_orginal_creditor
     - "It has been at least six years since I incurred this debt.": long_time_since_debt
     - "It has been at least six years since my last payment of this debt.": long_time_since_payment
-    - "I don't owe this money for another reason.": other_reason
+    - "I don't owe this money **for another reason**.": other_reason
 ---
 # "!!omap" makes these terms ordered: 
 # their order here will be their same order when shown to users.
@@ -678,7 +678,13 @@ fields:
     maxlength: 290
     required: false
   - note: |
-      Examples could be: I have no income. Or, my income is less than $290 per week and that is protected in cases about consumer credit cards or other loans. See the [list of exemptions in Vermont.](https://www.vermontjudiciary.org/media/23)
+      Examples could be:
+      
+      <ul><li>I have no income.</li>
+      <li>My weekly wages before taxes are less than $217.50, so my wages are exempt from collection.</li>
+      <li>The debt is about a credit card or loan and my weekly wages are less than $290, so my wages are exempt from collection.</li></ul>
+      
+      **See the [list of exemptions in Vermont.](https://www.vermontjudiciary.org/media/23)**
 ---
 id: counterclaims intro
 question: |
@@ -713,6 +719,8 @@ subquestion: |
 
   To be successful with a counterclaim, you would need to prove your claim to the court.
 
+  If you make a selection below, you can write more about the situation on the next screen.
+
   Learn more about counterclaims on [NCLC’s Surviving Debt website.](https://library.nclc.org/book/surviving-debt/common-counterclaims-raise)
   
 fields:
@@ -722,7 +730,7 @@ fields:
       - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and I didn't get a letter from them alerting me to my debt before I was sued.": no_notice
       - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and they made statements that were not true or were misleading about the debt.": false_statements
       - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and they harassed me and they violated the Fair Debt Collection Practices Act (FDCPA).": harassment
-      - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and they owe me money for another reason.": plaintiff_owes_me_other_reason
+      - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and they owe me money **for another reason**.": plaintiff_owes_me_other_reason
   - note: |
       Notes about harassment and the FDCPA law: 
       
@@ -1056,6 +1064,14 @@ review:
       % endif
 
   - Edit:
+      - plaintiff_owes_user_money
+      - counterclaims_amount
+    button: |
+      % if defined("plaintiff_owes_user_money") and plaintiff_owes_user_money:
+        **Amount you want to ask the court for in a counterclaim**:
+        ${ currency(counterclaims_amount) }
+      % endif
+  - Edit:
       - counterclaims_amount
     button: |
       % if defined("counterclaims_amount") and counterclaims_amount > 0:
@@ -1065,20 +1081,10 @@ review:
       % if len(counterclaims.true_values()) == 0 and counterclaims_amount == 0:
         **Amount you want to ask the court for in a counterclaim**:
         None. No counterclaim.
-      % endif      
-  - Edit:
-      - counterclaims_amount
-    button: |
-      % if defined("plaintiff_owes_user_money") and plaintiff_owes_user_money:
-        **Amount you want to ask the court for in a counterclaim**:
-        ${ currency(counterclaims_amount) }
-      % else:
-        **Amount you want to ask the court for in a counterclaim**:
-        None. No counterclaim.
       % endif
+
   - Edit: 
       - counterclaims
-      - counterclaims_amount
     button: |
       % if len(counterclaims.true_values()) > 0:
       **About your counterclaim**:
