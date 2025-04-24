@@ -136,7 +136,7 @@ sections:
   - about_you: About you
   - other_party: The other party
   - case_info: Your court case
-  - defenses: Any defenses?
+  - any_defenses: Any defenses?
   - exempt_income: Any exempt income?
   - counterclaims: Any counterclaim?
   - review_small_claims_answer: <i class="fa-solid fa-pencil"></i> <u>Edit your answers</u>
@@ -185,7 +185,7 @@ code: |
   other_parties.gather()
   set_progress(40)
   
-  nav.set_section('defenses')
+  nav.set_section('any_defenses')
   if len(defenses.true_values()) > 0:
     disagrees_additional_explanation
     get_merged_defenses
@@ -217,7 +217,7 @@ code: |
       wants_to_fill_out_fee_waiver = False
   set_progress(70)
   
-  if len(has_exempt_income_state.true_values()) == 0 and len(has_exempt_income_other.true_values()) == 0:
+  if len(has_exempt_income_state.true_values()) == 0 and len(has_exempt_income_other.true_values()) == 0 and not defined("otherwise_exempt"):
     wants_to_fill_out_financial_disclosure
   set_progress(80)  
 
@@ -236,9 +236,8 @@ code: |
   trial_court.address.county
   if len(defenses.true_values()) > 0:
     get_merged_defenses
-  if sued_by_collection_agency:
-    if counterclaims_amount > 0:
-      get_merged_counterclaims
+  if counterclaims_amount > 0:
+    get_merged_counterclaims
   small_claims_answer_preview_question
   set_progress(90)
   nav.set_section("sign")
@@ -566,14 +565,6 @@ data: !!omap
   - long_time_since_payment: "It has been at least six years since my last payment of this debt."
   - other_reason: "I don't owe this money."
 ---
-id: combining individual defenses and the explanation
-code: |
-  merged_defenses_text = ""
-  for item in defenses.true_values():
-    merged_defenses_text += defenses_terms[item] + "\n"
-  merged_defenses_text += disagrees_additional_explanation
-  get_merged_defenses = True
----
 id: disagrees with the complaint
 question: |
   Do you want to add any more details?
@@ -804,20 +795,12 @@ data: !!omap
   - harassment: "The plaintiff is not the original creditor or lender of the money, and they harassed me and they violated the Fair Debt Collection Practices Act (FDCPA)."
   - plaintiff_owes_me_other_reason: "The plaintiff is not the original creditor or lender of the money, and they owe me money."
 ---
-id: combining individual counterclaims and the explanation
-code: |
-  merged_counterclaims_text = ""
-  for item in counterclaims.true_values():
-    merged_counterclaims_text += counterclaims_terms[item] + "\n"
-  merged_counterclaims_text += counterclaims_description
-  get_merged_counterclaims = True
----
 id: want to fill out financial disclosure affidavit
 question: |
   Do you want to fill out a Financial Disclosure Affidavit?
 
 subquestion: |
-  Earlier, you said you don't have "exempt" income from public assistance.
+  Earlier, you said you don't have "exempt" income.
   
   Do you think your "reasonable living expenses" for you and your family members living with you are **more** than your income after taxes? If so, it may be worth your time to show the court why you think you should pay less than you owe.
 fields:
@@ -886,6 +869,25 @@ subquestion: |
 fields:
   - no label: wants_to_fill_out_fee_waiver
     datatype: yesnoradio
+---
+---
+id: combining individual defenses and the explanation
+code: |
+  merged_defenses_text = ""
+  for item in defenses.true_values():
+    merged_defenses_text += defenses_terms[item] + "\n"
+  merged_defenses_text += disagrees_additional_explanation
+  get_merged_defenses = True
+---
+---
+id: combining individual counterclaims and the explanation
+code: |
+  merged_counterclaims_text = ""
+  for item in counterclaims.true_values():
+    merged_counterclaims_text += counterclaims_terms[item] + "\n"
+  merged_counterclaims_text += counterclaims_description
+  get_merged_counterclaims = True
+---
 ---
 id: preview small_claims_answer
 question: |
@@ -1126,13 +1128,15 @@ review:
       % endif
       
       % if otherwise_exempt != '':
-      **Other reason(s) why your income may be exempt**:
+      **Reason(s) why your income may be exempt**:
       ${ otherwise_exempt }
       % endif
   - Edit: wants_to_fill_out_financial_disclosure
     button: |
-      **You want to fill out a Financial Disclosure Affidavit form.** You think your "reasonable living expenses" for you and your family members living with you are more than your income after taxes.:
+      % if defined("wants_to_fill_out_financial_disclosure"):
+        **You want to fill out a Financial Disclosure Affidavit form.** You think your "reasonable living expenses" for you and your family members living with you are more than your income after taxes.:
       ${ word(yesno(wants_to_fill_out_financial_disclosure)) }
+      % endif
 
       
 
@@ -1471,7 +1475,7 @@ code: |
     disclosure_of_exempt_income_attachment.enabled = True
   elif len(has_exempt_income_other.true_values()) > 0:
     disclosure_of_exempt_income_attachment.enabled = True
-  elif wants_to_fill_out_financial_disclosure == True:
+  elif otherwise_exempt != '':
     disclosure_of_exempt_income_attachment.enabled = True
   else:
     disclosure_of_exempt_income_attachment.enabled = False
@@ -1547,7 +1551,7 @@ attachment:
           ${ True }
           % elif len(has_exempt_income_other.true_values()) > 0:
           ${ True }
-          % elif wants_to_fill_out_financial_disclosure == True:
+          % elif otherwise_exempt != '':
           ${ True }
           % else:
           ${ False }
