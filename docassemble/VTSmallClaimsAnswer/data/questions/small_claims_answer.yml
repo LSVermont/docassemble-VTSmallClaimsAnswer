@@ -234,10 +234,6 @@ code: |
   interview_order_small_claims_answer
   nav.set_section("review_small_claims_answer")
   trial_court.address.county
-  if len(defenses.true_values()) > 0:
-    get_merged_defenses
-  if counterclaims_amount > 0:
-    get_merged_counterclaims
   small_claims_answer_preview_question
   set_progress(90)
   nav.set_section("sign")
@@ -981,14 +977,17 @@ review:
       ### Small claims answer
             
   - Edit:
-      - trial_court
+      - user_selected_county
       - docket_number
+      - recompute:
+        - trial_court_index
+        - trial_court
     button: |      
       **About the court case**
       
       **Case is in**: Small Claims Court, 
-      % if defined("trial_court.address.county"):
-      ${ trial_court.address.county } County, Vermont
+      % if defined("user_selected_county"):
+      ${ user_selected_county } County, Vermont
       % endif
 
       **Docket number / case number**: ${ docket_number }
