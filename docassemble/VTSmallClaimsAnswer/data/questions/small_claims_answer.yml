@@ -878,6 +878,7 @@ code: |
     merged_defenses_text += defenses_terms[item] + "\n"
   merged_defenses_text += disagrees_additional_explanation
   get_merged_defenses = True
+reconsider: True
 ---
 ---
 id: combining individual counterclaims and the explanation
@@ -887,6 +888,7 @@ code: |
     merged_counterclaims_text += counterclaims_terms[item] + "\n"
   merged_counterclaims_text += counterclaims_description
   get_merged_counterclaims = True
+reconsider: True
 ---
 ---
 id: preview small_claims_answer
