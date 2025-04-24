@@ -205,13 +205,13 @@ code: |
     else:
       get_merged_counterclaims
       counterclaims_amount
-      wants_to_fill_out_fee_waiver
-      interview_order_VT_fee_waiver
+      if wants_to_fill_out_fee_waiver:
+        interview_order_VT_fee_waiver
   else:
     if plaintiff_owes_user_money:
       counterclaims_amount
-      wants_to_fill_out_fee_waiver
-      interview_order_VT_fee_waiver
+      if wants_to_fill_out_fee_waiver:
+        interview_order_VT_fee_waiver
     else:
       no_counterclaims
       wants_to_fill_out_fee_waiver = False
@@ -590,7 +590,7 @@ fields:
   - "More explanation (optional)": disagrees_additional_explanation
     input type: area
     required: false
-    max: 600
+    maxlength: 600
 ---
 id: agrees with the complaint
 question: |
@@ -772,7 +772,7 @@ fields:
         A counterclaim in small claims court can be between $1 and $10,000.
   - "Describe the reason(s) for your counterclaim against ${ other_parties.short_list(2) }. Be specific.": counterclaims_description
     input type: area
-    max: 800
+    maxlength: 800
   - note: |
       If you do not want to file a counterclaim, tap the Undo button and go back to change your answer.
 ---
@@ -965,12 +965,13 @@ question: |
 subquestion: |  
   ${ review_screen_instructions }
 review:
+  - note: |
+      ### Small claims answer
+            
   - Edit:
       - trial_court
       - docket_number
-    button: |
-      #### Small claims answer
-      
+    button: |      
       **About the court case**
       
       **Case is in**: Small Claims Court, 
@@ -986,6 +987,15 @@ review:
       % for item in other_parties:
         * ${ item }
       % endfor
+  - Edit: 
+      - sued_by_collection_agency
+    button: |
+      **${ other_parties.short_list(2) } is a debt collector**: 
+      % if sued_by_collection_agency == True or sued_by_collection_agency == False:
+      ${ word(yesno(sued_by_collection_agency)) }  
+      % elif sued_by_collection_agency == None:
+      Not sure.
+      % endif
   - Edit: 
       - users.revisit
     button: |
@@ -1044,14 +1054,31 @@ review:
       **More details**:
       ${ single_paragraph(disagrees_additional_explanation) }
       % endif
-  - Edit: 
-      - sued_by_collection_agency
+
+  - Edit:
+      - counterclaims_amount
     button: |
-      **${ other_parties.short_list(2) } is a debt collector**: 
-      ${ word(yesno(sued_by_collection_agency)) }  
-      
+      % if defined("counterclaims_amount") and counterclaims_amount > 0:
+        **Amount you want to ask the court for in a counterclaim**:
+        ${ currency(counterclaims_amount) }
+      % endif
+      % if len(counterclaims.true_values()) == 0 and counterclaims_amount == 0:
+        **Amount you want to ask the court for in a counterclaim**:
+        None. No counterclaim.
+      % endif      
+  - Edit:
+      - counterclaims_amount
+    button: |
+      % if defined("plaintiff_owes_user_money") and plaintiff_owes_user_money:
+        **Amount you want to ask the court for in a counterclaim**:
+        ${ currency(counterclaims_amount) }
+      % else:
+        **Amount you want to ask the court for in a counterclaim**:
+        None. No counterclaim.
+      % endif
   - Edit: 
       - counterclaims
+      - counterclaims_amount
     button: |
       % if len(counterclaims.true_values()) > 0:
       **About your counterclaim**:
@@ -1070,34 +1097,17 @@ review:
       **Details about your counterclaim**:
       % endif
       ${ single_paragraph(counterclaims_description) }
-  - Edit:
-      - counterclaims_amount
-    button: |
-      % if defined("counterclaims_amount") and counterclaims_amount > 0:
-        **Amount you want to ask the court for in a counterclaim**:
-        ${ currency(counterclaims_amount) }
-      % else:
-        **Amount you want to ask the court for in a counterclaim**:
-        None. No counterclaim.
-      % endif
-  - Edit:
-      - plaintiff_owes_user_money
-    button: |
-      % if defined("plaintiff_owes_user_money") and plaintiff_owes_user_money:
-        **Amount you want to ask the court for in a counterclaim**:
-        ${ currency(counterclaims_amount) }
-      % else:
-        **Amount you want to ask the court for in a counterclaim**:
-        None. No counterclaim.
-      % endif
+
       
   ####################### Exempt income review  #######################
 
+  - note: |
+      % if len(has_exempt_income_state.true_values()) > 0 or len(has_exempt_income_other.true_values()) > 0 or otherwise_exempt != '':
+        ### Disclosure of exempt income
+      % endif
   - Edit:
       - otherwise_exempt
-    button: |
-      #### Disclosure of exempt income
-      
+    button: |      
       **You have exempt income that cannot be taken to pay a debt**: 
       % if len(has_exempt_income_state.true_values()) > 0:
       Yes
@@ -1125,20 +1135,14 @@ review:
   
   - note: |
       % if defined("wants_to_fill_out_fee_waiver") and wants_to_fill_out_fee_waiver == True:
-      ###Info for the fee waiver form
+      ###Fee waiver for counterclaim
       % endif
 
   - Edit: household_size
     button: |
       **Number of people in your household**:
       ${ household_size }
-      
-      
-  - note: |
-      % if defined("wants_to_fill_out_fee_waiver") and wants_to_fill_out_fee_waiver == True:
-      ###Income
-      % endif
-      
+            
   - Edit: 
       - public_benefits.revisit
     button: |
@@ -1243,11 +1247,6 @@ review:
       % endif
           
       
-  - note: |
-      % if defined("wants_to_fill_out_fee_waiver") and wants_to_fill_out_fee_waiver == True:
-      ###Expenses 
-      % endif
-      
   - Edit: expenses.revisit
     button: |
       **Expenses**:
@@ -1259,12 +1258,6 @@ review:
       - ${ item.display_name.lower() }
       % endfor
 
- 
-  - note: |
-      % if defined("wants_to_fill_out_fee_waiver") and wants_to_fill_out_fee_waiver == True:
-      ###Assets      
-      % endif
-      
   - Edit: vehicles.revisit
     button: |
       **Vehicles**
@@ -1383,11 +1376,10 @@ columns:
 edit:
   - name.first
   - address.address
-  - mailing_address.address
   - phone_number
   - work_phone_number
   - email
-  - signature
+
 confirm: True
 ---
 ############################# SIGNATURE #############################
