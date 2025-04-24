@@ -139,7 +139,6 @@ sections:
   - defenses: Any defenses?
   - exempt_income: Any exempt income?
   - counterclaims: Any counterclaim?
-  - do_fee_waiver: Do a fee waiver?
   - review_small_claims_answer: <i class="fa-solid fa-pencil"></i> <u>Edit your answers</u>
   - sign: Sign your document
   - get_docs: Download your document
@@ -206,22 +205,21 @@ code: |
     else:
       get_merged_counterclaims
       counterclaims_amount
-      wants_to_fill_out_fee_waiver 
+      wants_to_fill_out_fee_waiver
+      interview_order_VT_fee_waiver
   else:
     if plaintiff_owes_user_money:
       counterclaims_amount
-      wants_to_fill_out_fee_waiver 
+      wants_to_fill_out_fee_waiver
+      interview_order_VT_fee_waiver
     else:
       no_counterclaims
+      wants_to_fill_out_fee_waiver = False
   set_progress(70)
   
   if len(has_exempt_income_state.true_values()) == 0 and len(has_exempt_income_other.true_values()) == 0:
     wants_to_fill_out_financial_disclosure
-  set_progress(80)
-
-  nav.set_section("do_fee_waiver")
-  if wants_to_fill_out_fee_waiver:
-    interview_order_VT_fee_waiver
+  set_progress(80)  
 
   set_progress(92)
   interview_order_small_claims_answer = True
@@ -971,6 +969,8 @@ review:
       - trial_court
       - docket_number
     button: |
+      #### Small claims answer
+      
       **About the court case**
       
       **Case is in**: Small Claims Court, 
@@ -1008,31 +1008,6 @@ review:
       
       ${ item.email }
       % endfor
-
-  - Edit:
-      - otherwise_exempt
-      - recompute:
-          - wants_to_fill_out_financial_disclosure
-    button: |
-      **You have exempt income that cannot be taken to pay a debt**: 
-      % if len(has_exempt_income_state.true_values()) > 0:
-      Yes
-      % elif len(has_exempt_income_other.true_values()) > 0:
-      Yes
-      % elif otherwise_exempt != '':
-      Yes
-      % else:
-      No
-      % endif
-      
-      % if otherwise_exempt != '':
-      **Other reason(s) why your income may be exempt**:
-      ${ otherwise_exempt }
-      % endif
-  - Edit: wants_to_fill_out_financial_disclosure
-    button: |
-      **You want to fill out a Financial Disclosure Affidavit form.** You think your "reasonable living expenses" for you and your family members living with you are more than your income after taxes.:
-      ${ word(yesno(wants_to_fill_out_financial_disclosure)) }
 
   - Edit: agrees_with_complaint
     button: |
@@ -1074,6 +1049,7 @@ review:
     button: |
       **${ other_parties.short_list(2) } is a debt collector**: 
       ${ word(yesno(sued_by_collection_agency)) }  
+      
   - Edit: 
       - counterclaims
     button: |
@@ -1097,29 +1073,58 @@ review:
   - Edit:
       - counterclaims_amount
     button: |
-      **Amount you want to ask the court for in a counterclaim**:
-      ${ currency(counterclaims_amount) }
-
-
-
-  - Edit: 
-    - trial_court_division
-    - user_selected_county
-    - recompute:
-      - trial_court_index
-      - trial_court
-    button: |
-      **Is in this court division**: ${ trial_court.division_abbr }
-      
-      % if trial_court_division == "Civil" or trial_court_division == "Criminal" or trial_court_division == "Family" or trial_court_division == "Probate" or trial_court_division == "Unknown":
-      **Is in this county**: ${( trial_court.address.county )} County
+      % if defined("counterclaims_amount") and counterclaims_amount > 0:
+        **Amount you want to ask the court for in a counterclaim**:
+        ${ currency(counterclaims_amount) }
+      % else:
+        **Amount you want to ask the court for in a counterclaim**:
+        None. No counterclaim.
       % endif
+  - Edit:
+      - plaintiff_owes_user_money
+    button: |
+      % if defined("plaintiff_owes_user_money") and plaintiff_owes_user_money:
+        **Amount you want to ask the court for in a counterclaim**:
+        ${ currency(counterclaims_amount) }
+      % else:
+        **Amount you want to ask the court for in a counterclaim**:
+        None. No counterclaim.
+      % endif
+      
+  ####################### Exempt income review  #######################
 
+  - Edit:
+      - otherwise_exempt
+    button: |
+      #### Disclosure of exempt income
+      
+      **You have exempt income that cannot be taken to pay a debt**: 
+      % if len(has_exempt_income_state.true_values()) > 0:
+      Yes
+      % elif len(has_exempt_income_other.true_values()) > 0:
+      Yes
+      % elif otherwise_exempt != '':
+      Yes
+      % else:
+      No
+      % endif
+      
+      % if otherwise_exempt != '':
+      **Other reason(s) why your income may be exempt**:
+      ${ otherwise_exempt }
+      % endif
+  - Edit: wants_to_fill_out_financial_disclosure
+    button: |
+      **You want to fill out a Financial Disclosure Affidavit form.** You think your "reasonable living expenses" for you and your family members living with you are more than your income after taxes.:
+      ${ word(yesno(wants_to_fill_out_financial_disclosure)) }
 
       
-      
+
+
+####################### Fee waiver review  #######################
+  
   - note: |
-      % if wants_to_fill_out_fee_waiver:
+      % if defined("wants_to_fill_out_fee_waiver") and wants_to_fill_out_fee_waiver == True:
       ###Info for the fee waiver form
       % endif
 
@@ -1130,7 +1135,7 @@ review:
       
       
   - note: |
-      % if wants_to_fill_out_fee_waiver:
+      % if defined("wants_to_fill_out_fee_waiver") and wants_to_fill_out_fee_waiver == True:
       ###Income
       % endif
       
@@ -1239,7 +1244,10 @@ review:
           
       
   - note: |
+      % if defined("wants_to_fill_out_fee_waiver") and wants_to_fill_out_fee_waiver == True:
       ###Expenses 
+      % endif
+      
   - Edit: expenses.revisit
     button: |
       **Expenses**:
@@ -1253,7 +1261,9 @@ review:
 
  
   - note: |
+      % if defined("wants_to_fill_out_fee_waiver") and wants_to_fill_out_fee_waiver == True:
       ###Assets      
+      % endif
       
   - Edit: vehicles.revisit
     button: |
