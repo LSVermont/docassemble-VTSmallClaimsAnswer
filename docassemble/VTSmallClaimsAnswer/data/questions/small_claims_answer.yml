@@ -1088,6 +1088,8 @@ review:
 
   - Edit: 
       - counterclaims
+      - follow up:
+        - counterclaims_amount
     button: |
       % if len(counterclaims.true_values()) > 0:
       **About your counterclaim**:
