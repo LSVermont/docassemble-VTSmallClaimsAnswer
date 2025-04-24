@@ -424,7 +424,7 @@ fields:
   - "Your home or cell phone number": users[0].phone_number
     datatype: al_international_phone
     required: false
-  - "Your work phone number": users[0].work_phone_number
+  - "Your work phone or other number": users[0].work_phone_number
     datatype: al_international_phone
     required: false
   - "Your email address": users[0].email
@@ -527,8 +527,15 @@ subquestion: |
   % if defined("other_parties[1]"):
   **Note**: If you choose any defenses, you are choosing to disagree with what ${ other_parties.short_list(2) } have claimed and you are asking for a court hearing.
   % else:
-  **Note**: If you choose any defenses, you are choosing to disagree with what ${ other_parties.short_list(2) } has claimed and you are asking for a court hearing.
+  Note: If you choose any defenses, you are choosing to disagree with what ${ other_parties.short_list(2) } has claimed and you are asking for a court hearing.
   % endif
+
+  ###Common defenses###
+  
+  Below are some common defenses. **Check any boxes that describe your situation, or check None if you don't have a defense**.
+  
+  If you select a defense, you can write more about the situation on the next screen.
+  
 fields:
 - "Check any boxes that describe your situation, or check None.": defenses
   datatype: checkboxes
@@ -543,7 +550,7 @@ fields:
     - "The plaintiff is not the original creditor or lender of the money, and I don't believe the plaintiff has the right to collect the money.": not_orginal_creditor
     - "It has been at least six years since I incurred this debt.": long_time_since_debt
     - "It has been at least six years since my last payment of this debt.": long_time_since_payment
-    - "I don't owe this money for another reason. (Tip: You will explain the reason on the next screen.)": other_reason
+    - "I don't owe this money for another reason.": other_reason
 ---
 # "!!omap" makes these terms ordered: 
 # their order here will be their same order when shown to users.
@@ -585,7 +592,7 @@ fields:
   - "More explanation (optional)": disagrees_additional_explanation
     input type: area
     required: false
-    max: 800
+    max: 600
 ---
 id: agrees with the complaint
 question: |
@@ -706,7 +713,7 @@ question: |
 subquestion: |
   Below is a list of some counterclaims that might apply to debt collectors because of a law called the [Fair Debt Collection Practices Act (FDCPA).](https://files.consumerfinance.gov/f/documents/102012_cfpb_fair-debt-collections-practices-act-fdcpa_procedures.pdf) These only apply to debt collectors.
 
-  To be successful with a counterclaim, you would need to show proof to the court.
+  To be successful with a counterclaim, you would need to prove your claim to the court.
 
   Learn more about counterclaims on [NCLC’s Surviving Debt website.](https://library.nclc.org/book/surviving-debt/common-counterclaims-raise)
   
@@ -731,7 +738,7 @@ id: counterclaim other creditors
 question: |
   Do you want to make a counterclaim?
 subquestion: |
-  To be successful with a counterclaim, you would need to show proof to the court.
+  To be successful with a counterclaim, you would need to prove your claim to the court.
 
   Learn more about counterclaims on [NCLC’s Surviving Debt website.](https://library.nclc.org/book/surviving-debt/common-counterclaims-raise)
 fields:
@@ -758,11 +765,16 @@ fields:
         Remember, when you ask for money in a counterclaim, you are asking for "damages." You can include the counterclaim filing fee, too. (Fee is $25 if your counterclaim is for $500 or less. Fee is $35 if your counterclaim is between $501 and $10,000.) In small claims court, the total amount must be $10,000 or less.
   - "I want to ask the court for this amount of money in my counterclaim": counterclaims_amount
     datatype: currency
+    min: 0
+    max: 10000
+    validation messages:
+      min: |
+        A counterclaim in small claims court can be between $1 and $10,000.
+      max: |
+        A counterclaim in small claims court can be between $1 and $10,000.
   - "Describe the reason(s) for your counterclaim against ${ other_parties.short_list(2) }. Be specific.": counterclaims_description
     input type: area
     max: 800
-    js show if: |
-      val("counterclaims_amount") > 0
   - note: |
       If you do not want to file a counterclaim, tap the Undo button and go back to change your answer.
 ---
