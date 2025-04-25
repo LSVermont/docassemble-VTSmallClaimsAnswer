@@ -395,24 +395,24 @@ question: |
 fields:
   - code: |
       users[0].address_fields(default_state=AL_DEFAULT_STATE)
-  - I have a mailing address that is different from my street address: users_mailing_address_different
+  - I have a mailing address that is different from my street address: users1_mailing_address_different
     datatype: yesno
   - Mailing address: users[0].mailing_address.address
     address autocomplete: True
-    show if: users_mailing_address_different
+    show if: users1_mailing_address_different
   - Unit: users[0].mailing_address.unit
     required: False
-    show if: users_mailing_address_different
+    show if: users1_mailing_address_different
   - City: users[0].mailing_address.city
-    show if: users_mailing_address_different
+    show if: users1_mailing_address_different
   - State: users[0].mailing_address.state
     code: |
       states_list()
     default: VT
-    show if: users_mailing_address_different
+    show if: users1_mailing_address_different
   - Zip or postal code: users[0].mailing_address.zip
     required: False
-    show if: users_mailing_address_different
+    show if: users1_mailing_address_different
 ---
 id: phone and email
 question: |
@@ -857,15 +857,8 @@ subquestion: |
   <p>Ask for general help with court forms or the court process by contacting the <a href="https://www.vermontjudiciary.org/self-help/ARC">Vermont Judiciary Access and Resource Center.</a> Their services are free and they serve the whole state. They do NOT give legal advice.</p>
 
   ${ end_accordion() }
-  
-  
-  % if len(has_exempt_income_state.true_values()) > 0 or len(has_exempt_income_other.true_values()) > 0:
-    You said you get some public assistance. You **may** be able to get your fees waived.
 
-  % endif
-  % if len(has_exempt_income_state.true_values()) == 0 or len(has_exempt_income_other.true_values()) == 0:
-    **Do you want to answer questions about your income and expenses so you can fill out the fee waiver form now?**
-  % endif
+    **Do you want to answer questions about your income and expenses so you can fill out a fee waiver form now?**
 fields:
   - no label: wants_to_fill_out_fee_waiver
     datatype: yesnoradio
@@ -896,9 +889,9 @@ reconsider: True
 ---
 id: preview small_claims_answer
 question: |
-  Preview your form before you sign it
+  Preview your forms before you sign them
 subquestion: |
-  Here is a preview of the form you will sign on the next page.   
+  Here is a preview of the form(s) you will sign on the next page.   
   
   ${ al_court_bundle.as_pdf(key='preview') }
 
@@ -1437,6 +1430,7 @@ fields:
         not al_form_requires_digital_signature
 continue button field: saw_signature_choice    
 ---
+##############  DOWNLOAD SCREEN  ##############
 id: download small_claims_answer
 event: small_claims_answer_download
 question: |
@@ -1466,6 +1460,7 @@ subquestion: |
 
 progress: 100
 ---
+############## ATTACHMENT CODE  ##############
 attachment:
   variable name: small_claims_answer_attachment.addendum
   docx template file: small_claims_answer_addendum.docx
@@ -1482,7 +1477,7 @@ objects:
   - small_claims_answer_Post_interview_instructions: ALDocument.using(title="NEXT STEPS - Instructions for filing these forms with the court", filename="small_claims_answer_next_steps.docx", enabled=True, has_addendum=False)
   - small_claims_answer_attachment: ALDocument.using(title="Small claims answer", filename="small_claims_answer", enabled=True, has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - disclosure_of_exempt_income_attachment: ALDocument.using(title="Disclosure of exempt income", filename="disclosure_of_exempt_income", has_addendum=False, )
-  - VT_fee_waiver_attachment: ALDocument.using(title="Vermont fee waiver form", filename="VT_fee_waiver.pdf", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - VT_fee_waiver_attachment: ALDocument.using(title="Fee waiver form", filename="VT_fee_waiver.pdf", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 code: |
   if len(has_exempt_income_state.true_values()) > 0:
