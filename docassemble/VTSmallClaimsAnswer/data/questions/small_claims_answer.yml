@@ -136,10 +136,9 @@ sections:
   - about_you: About you
   - other_party: The other party
   - case_info: Your court case
-  - defenses: Any defenses?
+  - any_defenses: Any defenses?
   - exempt_income: Any exempt income?
   - counterclaims: Any counterclaim?
-  - do_fee_waiver: Do a fee waiver?
   - review_small_claims_answer: <i class="fa-solid fa-pencil"></i> <u>Edit your answers</u>
   - sign: Sign your document
   - get_docs: Download your document
@@ -186,7 +185,7 @@ code: |
   other_parties.gather()
   set_progress(40)
   
-  nav.set_section('defenses')
+  nav.set_section('any_defenses')
   if len(defenses.true_values()) > 0:
     disagrees_additional_explanation
     get_merged_defenses
@@ -206,22 +205,21 @@ code: |
     else:
       get_merged_counterclaims
       counterclaims_amount
-      wants_to_fill_out_fee_waiver 
+      if wants_to_fill_out_fee_waiver:
+        interview_order_VT_fee_waiver
   else:
     if plaintiff_owes_user_money:
       counterclaims_amount
-      wants_to_fill_out_fee_waiver 
+      if wants_to_fill_out_fee_waiver:
+        interview_order_VT_fee_waiver
     else:
       no_counterclaims
+      wants_to_fill_out_fee_waiver = False
   set_progress(70)
   
-  if len(has_exempt_income_state.true_values()) == 0 and len(has_exempt_income_other.true_values()) == 0:
+  if len(has_exempt_income_state.true_values()) == 0 and len(has_exempt_income_other.true_values()) == 0 and not defined("otherwise_exempt"):
     wants_to_fill_out_financial_disclosure
-  set_progress(80)
-
-  nav.set_section("do_fee_waiver")
-  if wants_to_fill_out_fee_waiver:
-    interview_order_VT_fee_waiver
+  set_progress(80)  
 
   set_progress(92)
   interview_order_small_claims_answer = True
@@ -238,9 +236,8 @@ code: |
   trial_court.address.county
   if len(defenses.true_values()) > 0:
     get_merged_defenses
-  if sued_by_collection_agency:
-    if counterclaims_amount > 0:
-      get_merged_counterclaims
+  if counterclaims_amount > 0:
+    get_merged_counterclaims
   small_claims_answer_preview_question
   set_progress(90)
   nav.set_section("sign")
@@ -424,7 +421,7 @@ fields:
   - "Your home or cell phone number": users[0].phone_number
     datatype: al_international_phone
     required: false
-  - "Your work phone number": users[0].work_phone_number
+  - "Your work phone or other number": users[0].work_phone_number
     datatype: al_international_phone
     required: false
   - "Your email address": users[0].email
@@ -527,8 +524,15 @@ subquestion: |
   % if defined("other_parties[1]"):
   **Note**: If you choose any defenses, you are choosing to disagree with what ${ other_parties.short_list(2) } have claimed and you are asking for a court hearing.
   % else:
-  **Note**: If you choose any defenses, you are choosing to disagree with what ${ other_parties.short_list(2) } has claimed and you are asking for a court hearing.
+  Note: If you choose any defenses, you are choosing to disagree with what ${ other_parties.short_list(2) } has claimed and you are asking for a court hearing.
   % endif
+
+  ###Common defenses###
+  
+  Below are some common defenses. **Check any boxes that describe your situation, or check None if you don't have a defense**.
+  
+  If you select a defense, you can write more about the situation on the next screen.
+  
 fields:
 - "Check any boxes that describe your situation, or check None.": defenses
   datatype: checkboxes
@@ -543,7 +547,7 @@ fields:
     - "The plaintiff is not the original creditor or lender of the money, and I don't believe the plaintiff has the right to collect the money.": not_orginal_creditor
     - "It has been at least six years since I incurred this debt.": long_time_since_debt
     - "It has been at least six years since my last payment of this debt.": long_time_since_payment
-    - "I don't owe this money for another reason. (Tip: You will explain the reason on the next screen.)": other_reason
+    - "I don't owe this money **for another reason**.": other_reason
 ---
 # "!!omap" makes these terms ordered: 
 # their order here will be their same order when shown to users.
@@ -561,14 +565,6 @@ data: !!omap
   - long_time_since_payment: "It has been at least six years since my last payment of this debt."
   - other_reason: "I don't owe this money."
 ---
-id: combining individual defenses and the explanation
-code: |
-  merged_defenses_text = ""
-  for item in defenses.true_values():
-    merged_defenses_text += defenses_terms[item] + "\n"
-  merged_defenses_text += disagrees_additional_explanation
-  get_merged_defenses = True
----
 id: disagrees with the complaint
 question: |
   Do you want to add any more details?
@@ -585,7 +581,7 @@ fields:
   - "More explanation (optional)": disagrees_additional_explanation
     input type: area
     required: false
-    max: 800
+    maxlength: 600
 ---
 id: agrees with the complaint
 question: |
@@ -673,7 +669,13 @@ fields:
     maxlength: 290
     required: false
   - note: |
-      Examples could be: I have no income. Or, my income is less than $290 per week and that is protected in cases about consumer credit cards or other loans. See the [list of exemptions in Vermont.](https://www.vermontjudiciary.org/media/23)
+      Examples could be:
+      
+      <ul><li>I have no income.</li>
+      <li>My weekly wages before taxes are less than $217.50, so my wages are exempt from collection.</li>
+      <li>The debt is about a credit card or loan and my weekly wages are less than $290, so my wages are exempt from collection.</li></ul>
+      
+      **See the [list of exemptions in Vermont.](https://www.vermontjudiciary.org/media/23)**
 ---
 id: counterclaims intro
 question: |
@@ -706,7 +708,9 @@ question: |
 subquestion: |
   Below is a list of some counterclaims that might apply to debt collectors because of a law called the [Fair Debt Collection Practices Act (FDCPA).](https://files.consumerfinance.gov/f/documents/102012_cfpb_fair-debt-collections-practices-act-fdcpa_procedures.pdf) These only apply to debt collectors.
 
-  To be successful with a counterclaim, you would need to show proof to the court.
+  To be successful with a counterclaim, you would need to prove your claim to the court.
+
+  If you make a selection below, you can write more about the situation on the next screen.
 
   Learn more about counterclaims on [NCLC’s Surviving Debt website.](https://library.nclc.org/book/surviving-debt/common-counterclaims-raise)
   
@@ -717,7 +721,7 @@ fields:
       - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and I didn't get a letter from them alerting me to my debt before I was sued.": no_notice
       - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and they made statements that were not true or were misleading about the debt.": false_statements
       - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and they harassed me and they violated the Fair Debt Collection Practices Act (FDCPA).": harassment
-      - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and they owe me money for another reason.": plaintiff_owes_me_other_reason
+      - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and they owe me money **for another reason**.": plaintiff_owes_me_other_reason
   - note: |
       Notes about harassment and the FDCPA law: 
       
@@ -731,7 +735,7 @@ id: counterclaim other creditors
 question: |
   Do you want to make a counterclaim?
 subquestion: |
-  To be successful with a counterclaim, you would need to show proof to the court.
+  To be successful with a counterclaim, you would need to prove your claim to the court.
 
   Learn more about counterclaims on [NCLC’s Surviving Debt website.](https://library.nclc.org/book/surviving-debt/common-counterclaims-raise)
 fields:
@@ -758,11 +762,16 @@ fields:
         Remember, when you ask for money in a counterclaim, you are asking for "damages." You can include the counterclaim filing fee, too. (Fee is $25 if your counterclaim is for $500 or less. Fee is $35 if your counterclaim is between $501 and $10,000.) In small claims court, the total amount must be $10,000 or less.
   - "I want to ask the court for this amount of money in my counterclaim": counterclaims_amount
     datatype: currency
+    min: 0
+    max: 10000
+    validation messages:
+      min: |
+        A counterclaim in small claims court can be between $1 and $10,000.
+      max: |
+        A counterclaim in small claims court can be between $1 and $10,000.
   - "Describe the reason(s) for your counterclaim against ${ other_parties.short_list(2) }. Be specific.": counterclaims_description
     input type: area
-    max: 800
-    js show if: |
-      val("counterclaims_amount") > 0
+    maxlength: 800
   - note: |
       If you do not want to file a counterclaim, tap the Undo button and go back to change your answer.
 ---
@@ -786,20 +795,12 @@ data: !!omap
   - harassment: "The plaintiff is not the original creditor or lender of the money, and they harassed me and they violated the Fair Debt Collection Practices Act (FDCPA)."
   - plaintiff_owes_me_other_reason: "The plaintiff is not the original creditor or lender of the money, and they owe me money."
 ---
-id: combining individual counterclaims and the explanation
-code: |
-  merged_counterclaims_text = ""
-  for item in counterclaims.true_values():
-    merged_counterclaims_text += counterclaims_terms[item] + "\n"
-  merged_counterclaims_text += counterclaims_description
-  get_merged_counterclaims = True
----
 id: want to fill out financial disclosure affidavit
 question: |
   Do you want to fill out a Financial Disclosure Affidavit?
 
 subquestion: |
-  Earlier, you said you don't have "exempt" income from public assistance.
+  Earlier, you said you don't have "exempt" income.
   
   Do you think your "reasonable living expenses" for you and your family members living with you are **more** than your income after taxes? If so, it may be worth your time to show the court why you think you should pay less than you owe.
 fields:
@@ -868,6 +869,30 @@ subquestion: |
 fields:
   - no label: wants_to_fill_out_fee_waiver
     datatype: yesnoradio
+---
+---
+id: combining individual defenses and the explanation
+code: |
+  merged_defenses_text = ""
+  for item in defenses.true_values():
+    merged_defenses_text += defenses_terms[item] + "\n"
+  merged_defenses_text += disagrees_additional_explanation
+  get_merged_defenses = True
+reconsider: True
+---
+---
+id: combining individual counterclaim selections and the self-typed explanation
+code: |
+  if sued_by_collection_agency:
+    merged_counterclaims_text = ""
+    for item in counterclaims.true_values():
+      merged_counterclaims_text += counterclaims_terms[item] + "\n"
+    merged_counterclaims_text += counterclaims_description
+  if not sued_by_collection_agency:
+    merged_counterclaims_text = counterclaims_description
+  get_merged_counterclaims = True
+reconsider: True
+---
 ---
 id: preview small_claims_answer
 question: |
@@ -955,15 +980,21 @@ question: |
 subquestion: |  
   ${ review_screen_instructions }
 review:
+  - note: |
+      ### Small claims answer
+            
   - Edit:
-      - trial_court
+      - user_selected_county
       - docket_number
-    button: |
+      - recompute:
+        - trial_court_index
+        - trial_court
+    button: |      
       **About the court case**
       
       **Case is in**: Small Claims Court, 
-      % if defined("trial_court.address.county"):
-      ${ trial_court.address.county } County, Vermont
+      % if defined("user_selected_county"):
+      ${ user_selected_county } County, Vermont
       % endif
 
       **Docket number / case number**: ${ docket_number }
@@ -974,6 +1005,15 @@ review:
       % for item in other_parties:
         * ${ item }
       % endfor
+  - Edit: 
+      - sued_by_collection_agency
+    button: |
+      **${ other_parties.short_list(2) } is a debt collector**: 
+      % if sued_by_collection_agency == True or sued_by_collection_agency == False:
+      ${ word(yesno(sued_by_collection_agency)) }  
+      % elif sued_by_collection_agency == None:
+      Not sure.
+      % endif
   - Edit: 
       - users.revisit
     button: |
@@ -997,31 +1037,6 @@ review:
       ${ item.email }
       % endfor
 
-  - Edit:
-      - otherwise_exempt
-      - recompute:
-          - wants_to_fill_out_financial_disclosure
-    button: |
-      **You have exempt income that cannot be taken to pay a debt**: 
-      % if len(has_exempt_income_state.true_values()) > 0:
-      Yes
-      % elif len(has_exempt_income_other.true_values()) > 0:
-      Yes
-      % elif otherwise_exempt != '':
-      Yes
-      % else:
-      No
-      % endif
-      
-      % if otherwise_exempt != '':
-      **Other reason(s) why your income may be exempt**:
-      ${ otherwise_exempt }
-      % endif
-  - Edit: wants_to_fill_out_financial_disclosure
-    button: |
-      **You want to fill out a Financial Disclosure Affidavit form.** You think your "reasonable living expenses" for you and your family members living with you are more than your income after taxes.:
-      ${ word(yesno(wants_to_fill_out_financial_disclosure)) }
-
   - Edit: agrees_with_complaint
     button: |
       **You agree with the complaint**:
@@ -1041,10 +1056,14 @@ review:
   - Edit: 
       - defenses
       - disagrees_additional_explanation
+      - recompute:
+        - merged_defenses_text
     button: |
       **You disagree with the complaint**: 
       % if len(defenses.true_values()) > 0:
         Yes
+
+        **Your defenses**
 
       % for item in defenses.true_values():
       - ${ defenses_terms[item] }
@@ -1054,16 +1073,34 @@ review:
       % endif
             
       % if defined("disagrees_additional_explanation"):
-      **More details**:
+      **More details** (optional):
       ${ single_paragraph(disagrees_additional_explanation) }
       % endif
-  - Edit: 
-      - sued_by_collection_agency
+
+  - Edit:
+      - plaintiff_owes_user_money
+      - counterclaims_amount
     button: |
-      **${ other_parties.short_list(2) } is a debt collector**: 
-      ${ word(yesno(sued_by_collection_agency)) }  
+      % if defined("plaintiff_owes_user_money") and plaintiff_owes_user_money:
+        **Amount you want to ask the court for in a counterclaim**:
+        ${ currency(counterclaims_amount) }
+      % endif
+  - Edit:
+      - counterclaims_amount
+    button: |
+      % if defined("counterclaims_amount") and counterclaims_amount > 0:
+        **Amount you want to ask the court for in a counterclaim**:
+        ${ currency(counterclaims_amount) }
+      % endif
+      % if len(counterclaims.true_values()) == 0 and counterclaims_amount == 0:
+        **Amount you want to ask the court for in a counterclaim**:
+        None. No counterclaim.
+      % endif
+
   - Edit: 
       - counterclaims
+      - follow up:
+        - counterclaims_amount
     button: |
       % if len(counterclaims.true_values()) > 0:
       **About your counterclaim**:
@@ -1082,46 +1119,54 @@ review:
       **Details about your counterclaim**:
       % endif
       ${ single_paragraph(counterclaims_description) }
-  - Edit:
-      - counterclaims_amount
-    button: |
-      **Amount you want to ask the court for in a counterclaim**:
-      ${ currency(counterclaims_amount) }
 
-
-
-  - Edit: 
-    - trial_court_division
-    - user_selected_county
-    - recompute:
-      - trial_court_index
-      - trial_court
-    button: |
-      **Is in this court division**: ${ trial_court.division_abbr }
       
-      % if trial_court_division == "Civil" or trial_court_division == "Criminal" or trial_court_division == "Family" or trial_court_division == "Probate" or trial_court_division == "Unknown":
-      **Is in this county**: ${( trial_court.address.county )} County
+  ####################### Exempt income review  #######################
+
+  - note: |
+      % if len(has_exempt_income_state.true_values()) > 0 or len(has_exempt_income_other.true_values()) > 0 or otherwise_exempt != '':
+        ### Disclosure of exempt income
+      % endif
+  - Edit:
+      - otherwise_exempt
+    button: |      
+      **You have exempt income that cannot be taken to pay a debt**: 
+      % if len(has_exempt_income_state.true_values()) > 0:
+      Yes
+      % elif len(has_exempt_income_other.true_values()) > 0:
+      Yes
+      % elif otherwise_exempt != '':
+      Yes
+      % else:
+      No
+      % endif
+      
+      % if otherwise_exempt != '':
+      **Reason(s) why your income may be exempt**:
+      ${ otherwise_exempt }
+      % endif
+  - Edit: wants_to_fill_out_financial_disclosure
+    button: |
+      % if defined("wants_to_fill_out_financial_disclosure"):
+        **You want to fill out a Financial Disclosure Affidavit form.** You think your "reasonable living expenses" for you and your family members living with you are more than your income after taxes.:
+      ${ word(yesno(wants_to_fill_out_financial_disclosure)) }
       % endif
 
+      
 
-      
-      
+
+####################### Fee waiver review  #######################
+  
   - note: |
-      % if wants_to_fill_out_fee_waiver:
-      ###Info for the fee waiver form
+      % if defined("wants_to_fill_out_fee_waiver") and wants_to_fill_out_fee_waiver == True:
+      ###Fee waiver for counterclaim
       % endif
 
   - Edit: household_size
     button: |
       **Number of people in your household**:
       ${ household_size }
-      
-      
-  - note: |
-      % if wants_to_fill_out_fee_waiver:
-      ###Income
-      % endif
-      
+            
   - Edit: 
       - public_benefits.revisit
     button: |
@@ -1226,8 +1271,6 @@ review:
       % endif
           
       
-  - note: |
-      ###Expenses 
   - Edit: expenses.revisit
     button: |
       **Expenses**:
@@ -1239,10 +1282,6 @@ review:
       - ${ item.display_name.lower() }
       % endfor
 
- 
-  - note: |
-      ###Assets      
-      
   - Edit: vehicles.revisit
     button: |
       **Vehicles**
@@ -1361,11 +1400,10 @@ columns:
 edit:
   - name.first
   - address.address
-  - mailing_address.address
   - phone_number
   - work_phone_number
   - email
-  - signature
+
 confirm: True
 ---
 ############################# SIGNATURE #############################
@@ -1435,7 +1473,7 @@ attachment:
 code: |
   small_claims_answer_attachment.overflow_fields["merged_defenses_text"].overflow_trigger = 400
   small_claims_answer_attachment.overflow_fields["merged_defenses_text"].label = "More about defenses"
-  small_claims_answer_attachment.overflow_fields["merged_counterclaims_text"].overflow_trigger = 400
+  small_claims_answer_attachment.overflow_fields["merged_counterclaims_text"].overflow_trigger = 390
   small_claims_answer_attachment.overflow_fields["merged_counterclaims_text"].label = "More about counterclaims"
   small_claims_answer_attachment.overflow_fields.gathered = True
 ---
@@ -1451,7 +1489,7 @@ code: |
     disclosure_of_exempt_income_attachment.enabled = True
   elif len(has_exempt_income_other.true_values()) > 0:
     disclosure_of_exempt_income_attachment.enabled = True
-  elif wants_to_fill_out_financial_disclosure == True:
+  elif otherwise_exempt != '':
     disclosure_of_exempt_income_attachment.enabled = True
   else:
     disclosure_of_exempt_income_attachment.enabled = False
@@ -1527,7 +1565,7 @@ attachment:
           ${ True }
           % elif len(has_exempt_income_other.true_values()) > 0:
           ${ True }
-          % elif wants_to_fill_out_financial_disclosure == True:
+          % elif otherwise_exempt != '':
           ${ True }
           % else:
           ${ False }
@@ -1537,15 +1575,8 @@ attachment:
           ${ True }
           % endif
       - "counterclaim_description": |
-          % if sued_by_collection_agency:
           % if counterclaims_amount > 0:
           I have a counterclaim for ${ currency(counterclaims_amount)}. ${ small_claims_answer_attachment.safe_value("merged_counterclaims_text") } 
-          % endif
-          % endif
-          % if not sued_by_collection_agency:
-          % if counterclaims_amount > 0:
-          I have a counterclaim for ${ currency(counterclaims_amount)}. ${ counterclaims_description }
-          % endif
           % endif
       - "users1_name_1": ${ users[0] }
       - "signature_date": ${ signature_date }
