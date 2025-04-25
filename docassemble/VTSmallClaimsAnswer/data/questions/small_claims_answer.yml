@@ -1477,7 +1477,7 @@ objects:
   - small_claims_answer_Post_interview_instructions: ALDocument.using(title="NEXT STEPS - Instructions for filing these forms with the court", filename="small_claims_answer_next_steps.docx", enabled=True, has_addendum=False)
   - small_claims_answer_attachment: ALDocument.using(title="Small claims answer", filename="small_claims_answer", enabled=True, has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - disclosure_of_exempt_income_attachment: ALDocument.using(title="Disclosure of exempt income", filename="disclosure_of_exempt_income", has_addendum=False, )
-  - VT_fee_waiver_attachment: ALDocument.using(title="Vermont fee waiver form", filename="VT_fee_waiver.pdf", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - VT_fee_waiver_attachment: ALDocument.using(title="Fee waiver form", filename="VT_fee_waiver.pdf", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 code: |
   if len(has_exempt_income_state.true_values()) > 0:
