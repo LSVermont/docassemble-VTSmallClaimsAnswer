@@ -236,9 +236,8 @@ code: |
   trial_court.address.county
   if len(defenses.true_values()) > 0:
     get_merged_defenses
-  if sued_by_collection_agency:
-    if counterclaims_amount > 0:
-      get_merged_counterclaims
+  if counterclaims_amount > 0:
+    get_merged_counterclaims
   small_claims_answer_preview_question
   set_progress(90)
   nav.set_section("sign")
@@ -882,12 +881,15 @@ code: |
 reconsider: True
 ---
 ---
-id: combining individual counterclaims and the explanation
+id: combining individual counterclaim selections and the self-typed explanation
 code: |
-  merged_counterclaims_text = ""
-  for item in counterclaims.true_values():
-    merged_counterclaims_text += counterclaims_terms[item] + "\n"
-  merged_counterclaims_text += counterclaims_description
+  if sued_by_collection_agency:
+    merged_counterclaims_text = ""
+    for item in counterclaims.true_values():
+      merged_counterclaims_text += counterclaims_terms[item] + "\n"
+    merged_counterclaims_text += counterclaims_description
+  if not sued_by_collection_agency:
+    merged_counterclaims_text = counterclaims_description
   get_merged_counterclaims = True
 reconsider: True
 ---
@@ -1471,7 +1473,7 @@ attachment:
 code: |
   small_claims_answer_attachment.overflow_fields["merged_defenses_text"].overflow_trigger = 400
   small_claims_answer_attachment.overflow_fields["merged_defenses_text"].label = "More about defenses"
-  small_claims_answer_attachment.overflow_fields["merged_counterclaims_text"].overflow_trigger = 400
+  small_claims_answer_attachment.overflow_fields["merged_counterclaims_text"].overflow_trigger = 390
   small_claims_answer_attachment.overflow_fields["merged_counterclaims_text"].label = "More about counterclaims"
   small_claims_answer_attachment.overflow_fields.gathered = True
 ---
@@ -1573,15 +1575,8 @@ attachment:
           ${ True }
           % endif
       - "counterclaim_description": |
-          % if sued_by_collection_agency:
           % if counterclaims_amount > 0:
           I have a counterclaim for ${ currency(counterclaims_amount)}. ${ small_claims_answer_attachment.safe_value("merged_counterclaims_text") } 
-          % endif
-          % endif
-          % if not sued_by_collection_agency:
-          % if counterclaims_amount > 0:
-          I have a counterclaim for ${ currency(counterclaims_amount)}. ${ counterclaims_description }
-          % endif
           % endif
       - "users1_name_1": ${ users[0] }
       - "signature_date": ${ signature_date }
