@@ -217,7 +217,7 @@ code: |
       wants_to_fill_out_fee_waiver = False
   set_progress(70)
   
-  if len(has_exempt_income_state.true_values()) == 0 and len(has_exempt_income_other.true_values()) == 0 and not defined("otherwise_exempt"):
+  if len(has_exempt_income_state.true_values()) == 0 and len(has_exempt_income_other.true_values()) == 0 and otherwise_exempt == "":
     wants_to_fill_out_financial_disclosure
   set_progress(80)  
 
@@ -236,7 +236,7 @@ code: |
   trial_court.address.county
   if len(defenses.true_values()) > 0:
     get_merged_defenses
-  if counterclaims_amount > 0:
+  if defined("counterclaims_amount") and counterclaims_amount > 0:
     get_merged_counterclaims
   small_claims_answer_preview_question
   set_progress(90)
@@ -547,7 +547,8 @@ fields:
     - "The plaintiff is not the original creditor or lender of the money, and I don't believe the plaintiff has the right to collect the money.": not_orginal_creditor
     - "It has been at least six years since I incurred this debt.": long_time_since_debt
     - "It has been at least six years since my last payment of this debt.": long_time_since_payment
-    - "I don't owe this money **for another reason**.": other_reason
+    - "**I don't owe this money for another reason**.": other_reason
+  none of the above: None of the above -- I have no defenses.
 ---
 # "!!omap" makes these terms ordered: 
 # their order here will be their same order when shown to users.
@@ -595,8 +596,15 @@ subquestion: |
   
   **I agree that I owe ${ other_parties.short_list(2) } the full amount claimed in the complaint and the court may enter a judgment against me.**
 fields:
-  - "I agree": agrees_with_complaint
-    datatype: yesno
+  - no label: agrees_with_complaint
+    datatype: checkboxes
+    none of the above: False    
+    minlength: 1
+    choices:
+      - I agree.
+    validation messages:
+      minlength: |
+        Please check the box to move forward.
   - note: |
       Check the box if you agree. If you do **not** agree and want to revisit the list of defenses, tap the Undo button.
   - note: |
@@ -708,12 +716,9 @@ question: |
 subquestion: |
   Below is a list of some counterclaims that might apply to debt collectors because of a law called the [Fair Debt Collection Practices Act (FDCPA).](https://files.consumerfinance.gov/f/documents/cfpb_fair-debt-collection-practices-act-fdcpa-procedures_2022-12.pdf) These only apply to debt collectors.
 
-  To be successful with a counterclaim, you would need to prove your claim to the court.
+  To be successful with a counterclaim, you would need to prove your claim to the court. Learn more about counterclaims on [NCLC’s Surviving Debt website.](https://library.nclc.org/book/surviving-debt/common-counterclaims-raise)
 
   If you make a selection below, you can write more about the situation on the next screen.
-
-  Learn more about counterclaims on [NCLC’s Surviving Debt website.](https://library.nclc.org/book/surviving-debt/common-counterclaims-raise)
-  
 fields:
   - Check any box that describes your situation, or check None: counterclaims
     datatype: checkboxes
@@ -721,15 +726,15 @@ fields:
       - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and I didn't get a letter from them alerting me to my debt before I was sued.": no_notice
       - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and they made statements that were not true or were misleading about the debt.": false_statements
       - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and they harassed me and they violated the Fair Debt Collection Practices Act (FDCPA).": harassment
-      - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and they owe me money **for another reason**.": plaintiff_owes_me_other_reason
+      - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and **they owe me money for another reason**.": plaintiff_owes_me_other_reason
   - note: |
-      Notes about harassment and the FDCPA law: 
-      
-      - You can successfully claim harassment in a case like this if the plaintiff's behavior was **beyond** annoying. For example, they called you at late hours of the night or early morning, they used swear words, or they called you more than two times each day. Those are harassing behaviors.
+      Notes about the FDCPA law:
       
       - The FDCPA applies only to third-party debt collectors, so one element of an FDCPA violation claim is to state that the debt collector is **not** the original creditor. However, this alone does not provide grounds for an FDCPA counterclaim.
 
-      About getting notified: A debt collector or creditor is not required to tell you that they plan to file a lawsuit.
+      - You may successfully claim harassment in a case like this if the plaintiff's behavior was **beyond** annoying. For example, they called you at late hours of the night or early morning, they used swear words, or they called you more than two times each day. Those are harassing behaviors.
+
+      - About getting notified by a debt collector: A debt collector is not required to tell you that they plan to file a lawsuit, but before they sue you, they need to have told you about your debt. (Source: [FTC website](https://www.ftc.gov/legal-library/browse/rules/fair-debt-collection-practices-act-text#809))
 ---
 id: counterclaim other creditors
 question: |
@@ -772,6 +777,8 @@ fields:
   - "Describe the reason(s) for your counterclaim against ${ other_parties.short_list(2) }. Be specific.": counterclaims_description
     input type: area
     maxlength: 800
+    js show if: |
+      val("counterclaims_amount") > 0
   - note: |
       If you do not want to file a counterclaim, tap the Undo button and go back to change your answer.
 ---
@@ -1030,11 +1037,16 @@ review:
       ${ item.email }
       % endfor
 
-  - Edit: agrees_with_complaint
+  - Edit:
+    - agrees_with_complaint
+    - follow up:
+        - payment
     button: |
       **You agree with the complaint**:
-      % if defined("agrees_with_complaint"):
-      ${ word(yesno(agrees_with_complaint)) }
+      % if defined("agrees_with_complaint") and agrees_with_complaint:
+      Yes
+      % else:
+      No
       % endif
   - Edit: payment
     button: |
@@ -1106,12 +1118,17 @@ review:
       % endif
   - Edit: counterclaims_description
     button: |
-      % if sued_by_collection_agency:
+      % if sued_by_collection_agency and counterclaims_amount > 0:
       **More details about your counterclaim**:
-      % elif defined("counterclaims_description"):
-      **Details about your counterclaim**:
-      % endif
+
       ${ single_paragraph(counterclaims_description) }
+      
+      % elif defined("counterclaims_description") and counterclaims_amount > 0:
+      **Details about your counterclaim**:
+
+      ${ single_paragraph(counterclaims_description) }
+      % endif
+      
 
       
   ####################### Exempt income review  #######################
@@ -1490,7 +1507,7 @@ code: |
     disclosure_of_exempt_income_attachment.enabled = False
 ---
 code: |
-  if wants_to_fill_out_fee_waiver:
+  if defined("counterclaims_amount") and counterclaims_amount > 0 and wants_to_fill_out_fee_waiver:
     VT_fee_waiver_attachment.enabled = True
   else:
     VT_fee_waiver_attachment.enabled = False
