@@ -689,7 +689,7 @@ subquestion: |
   
   In a small claims case, you can ask for up to $10,000 in a counterclaim. There is a fee to file a counterclaim, and the amount of the fee can be included in your counterclaim. 
   
-  You may want to talk to a lawyer if you are thinking about making a counterclaim. This is because there are some [laws that only apply to how debt collectors do business.](https://files.consumerfinance.gov/f/documents/102012_cfpb_fair-debt-collections-practices-act-fdcpa_procedures.pdf) And for all kinds of plaintiffs, you need to have proof that you suffered real damages.
+  You may want to talk to a lawyer if you are thinking about making a counterclaim. This is because there are some [laws that only apply to how debt collectors do business.](https://files.consumerfinance.gov/f/documents/cfpb_fair-debt-collection-practices-act-fdcpa-procedures_2022-12.pdf) And for all kinds of plaintiffs, you need to have proof that you suffered real damages.
   
   **Counterclaim filing fee**
   
@@ -706,7 +706,7 @@ id: counterclaim debt collector
 question: |
   Do you want to make a counterclaim against the debt collector (${ other_parties.short_list(2) })?
 subquestion: |
-  Below is a list of some counterclaims that might apply to debt collectors because of a law called the [Fair Debt Collection Practices Act (FDCPA).](https://files.consumerfinance.gov/f/documents/102012_cfpb_fair-debt-collections-practices-act-fdcpa_procedures.pdf) These only apply to debt collectors.
+  Below is a list of some counterclaims that might apply to debt collectors because of a law called the [Fair Debt Collection Practices Act (FDCPA).](https://files.consumerfinance.gov/f/documents/cfpb_fair-debt-collection-practices-act-fdcpa-procedures_2022-12.pdf) These only apply to debt collectors.
 
   To be successful with a counterclaim, you would need to prove your claim to the court.
 
@@ -1497,7 +1497,7 @@ code: |
 ---
 # Bundles group the ALDocuments into separate downloads, such as for court and for the user
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[small_claims_answer_Post_interview_instructions, small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment], filename="small_claims_answer", title="All forms to download for your records", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[small_claims_answer_Post_interview_instructions, small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment], filename="small_claims_answer", title="All forms to download", enabled=True)
   - al_court_bundle: ALDocumentBundle.using(elements=[small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment],  filename="small_claims_answer", title="All forms to deliver to court", enabled=True)
 ---
 # Each attachment defines a key in an ALDocument. We use `i` as the placeholder here so the same template is 
