@@ -552,7 +552,7 @@ fields:
     - "The plaintiff is not the original creditor or lender of the money, and I do not believe the plaintiff has the right to collect the money.": not_orginal_creditor
     - "It has been at least six years since I incurred this debt.": long_time_since_debt
     - "It has been at least six years since my last payment of this debt.": long_time_since_payment
-    - "**I do not owe this money for another reason**.": other_reason
+    - "**I do not owe this money for another reason**. (Tip: You can explain on the next screen.)": other_reason
   none of the above: None of the above -- I have no defenses.
 ---
 # "!!omap" makes these terms ordered: 
