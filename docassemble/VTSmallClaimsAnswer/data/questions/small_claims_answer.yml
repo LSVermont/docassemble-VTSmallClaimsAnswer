@@ -731,7 +731,7 @@ fields:
       - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and I didn't get a letter from them alerting me to my debt before I was sued.": no_notice
       - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and they made statements that were not true or were misleading about the debt.": false_statements
       - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and they harassed me and they violated the Fair Debt Collection Practices Act (FDCPA).": harassment
-      - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and **they owe me money for another reason**.": plaintiff_owes_me_other_reason
+      - "${ other_parties.short_list(2) } **owes me money for another reason**. (Tip: You can explain on the next screen.": plaintiff_owes_me_other_reason
   - note: |
       Notes about the FDCPA law:
       
@@ -805,7 +805,7 @@ data: !!omap
   - no_notice: "The plaintiff is not the original creditor or lender of the money, and I didn't get a letter from them alerting me to my debt before I was sued."
   - false_statements: "The plaintiff is not the original creditor or lender of the money, and they made statements that were not true or were misleading about the debt."
   - harassment: "The plaintiff is not the original creditor or lender of the money, and they harassed me and they violated the Fair Debt Collection Practices Act (FDCPA)."
-  - plaintiff_owes_me_other_reason: "The plaintiff is not the original creditor or lender of the money, and they owe me money."
+  - plaintiff_owes_me_other_reason: "The plaintiff owes me money."
 ---
 id: want to fill out financial disclosure affidavit
 question: |
