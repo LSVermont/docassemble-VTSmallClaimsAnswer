@@ -220,7 +220,7 @@ code: |
       wants_to_fill_out_fee_waiver_now = False
   
   set_progress(80)  
-  if len(has_exempt_income_state.true_values()) == 0 and len(has_exempt_income_other.true_values()) == 0 and otherwise_exempt == "":
+  if len(has_exempt_income_state.true_values()) == 0 and len(has_exempt_income_other.true_values()) == 0:
     if wants_to_fill_out_financial_disclosure:
       if wants_to_fill_out_financial_disclosure_when == "Now, with this tool":
         interview_order_financial_disclosure
@@ -817,9 +817,7 @@ id: want to fill out financial disclosure affidavit
 question: |
   Do you want to fill out a Financial Disclosure Affidavit?
 
-subquestion: |
-  Earlier, you said you don't have "exempt" income.
-  
+subquestion: |  
   Do you think your "reasonable living expenses" for you and your family members living with you are **more** than your income after taxes? If so, it may be worth your time to **show the court why you think you should pay less than you owe.**
 fields:
   - note: |
