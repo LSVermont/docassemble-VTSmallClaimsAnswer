@@ -1,3 +1,4 @@
+
 ---
 include:
   - docassemble.VTFinancialDisclosure:VT_financial_disclosure_to_include.yml
@@ -14,7 +15,7 @@ metadata:
   short title: >-
     Small claims answer
   description: |-
-    Small Claims Answer form for Vermont. Based on Vermont Judiciary paper form 100-00126 (2/2025).
+    Small Claims Answer form for Vermont. Based on Vermont Judiciary paper form 100-00126 (7/2025).
   can_I_use_this_form: |
     If you have been sued in small claims court, you can use this tool to respond.
   before_you_start: |
@@ -280,7 +281,7 @@ subquestion: |
   - Certificate of Service
   - Disclosure of Exempt Income (VTCourtForms will tell you if you need this)
   - Financial Disclosure Affidavit (VTCourtForms will tell you if you need this)
-  - Court fee waiver form (if you want to make a "counterclaim")
+  - Court fee waiver form (if you want to make a "counterclaim" and you have a low income)
   
   <i class="fas fa-clock fa-2x"></i> It may take you 45 minutes to complete this. 
   
@@ -666,6 +667,8 @@ fields:
       - "the Department of Vermont Health Access (DVHA)": DVHA
   - note: |
       Examples of DCF benefits include 3SquaresVT (food), Reach Up, General Assistance, Emergency Housing, Energy Assistance, Fuel Assistance and other programs as seen on this web page: [https://dcf.vermont.gov/benefits](https://dcf.vermont.gov/benefits).
+
+      Examples of DVHA benefits include Medicaid and Dr. Dynasaur.
   - note: |
       I have income from these exempt sources:
   - no label: has_exempt_income_other
@@ -700,7 +703,7 @@ subquestion: |
   
   If you decide to file a counterclaim, you are asking the court to award YOU money. When you ask for money in a counterclaim, you are asking for "damages." 
   
-  In a small claims case, you can ask for up to $10,000 in a counterclaim. There is a fee to file a counterclaim, and the amount of the fee can be included in your counterclaim. 
+  In a small claims case, you can ask for up to $10,000 in a counterclaim. There is a fee to file a counterclaim. As part of your counterclaim, you can ask to be reimbursed for your court filing fee. If you get public assistance or have a very low income, you can ask to waive the filing fee.
   
   You may want to talk to a lawyer if you are thinking about making a counterclaim. This is because there are some [laws that only apply to how debt collectors do business.](https://files.consumerfinance.gov/f/documents/cfpb_fair-debt-collection-practices-act-fdcpa-procedures_2022-12.pdf) And for all kinds of plaintiffs, you need to have proof that you suffered real damages.
   
@@ -769,7 +772,7 @@ subquestion: |
   
 fields:
   - note: |
-        Remember, when you ask for money in a counterclaim, you are asking for "damages." You can include the counterclaim filing fee, too. (Fee is $25 if your counterclaim is for $500 or less. Fee is $35 if your counterclaim is between $501 and $10,000.) In small claims court, the total amount must be $10,000 or less.
+        Remember, when you ask for money in a counterclaim, you are asking for "damages." In small claims court, the total amount must be $10,000 or less. As part of your counterclaim against the defendant, you can ask to be reimbursed for your court filing fee. (Fee is $25 if your counterclaim is for $500 or less. Fee is $35 if your counterclaim is between $501 and $10,000.)
   - "I want to ask the court for this amount of money in my counterclaim": counterclaims_amount
     datatype: currency
     min: 0
