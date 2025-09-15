@@ -497,18 +497,22 @@ fields:
       ${ collapse_template(which_county_to_choose) }
       ${ collapse_template(in_which_county) }
 ---
-id: is plaintiff a debt collector
+id: is plaintiff a third-party debt collector
 question: |
-  Is ${ other_parties.short_list(2) } a debt collector?
+  % if len(other_parties) > 1:
+  Are any of the plaintiffs a third-party debt collector?
+  % else:
+  Is ${ other_parties[0] } a third-party debt collector?
+  % endif
 subquestion: |
   We ask this question because it may affect what you might ask for in a counterclaim.
   
-  A debt collector generally is a person or a company that regularly collects debts owed to others, usually when those debts are past-due.
+  A third-party debt collector generally is a person or a company that regularly collects debts owed to others, usually when those debts are past-due. They are **not** the [original creditor.](https://library.nclc.org/book/fair-debt-collection/133-original-creditors)
 
-  Debt collectors include collection agencies or lawyers who collect debts as part of their business. There are also companies that buy past-due debts from creditors or other businesses and then try to collect them. These debt collectors are also called debt collection agencies, debt collection companies or debt buyers.
+  Third-party debt collectors include collection agencies or lawyers who collect debts as part of their business. There are also companies that buy past-due debts from creditors or other businesses and then try to collect them. These third-party debt collectors are also called debt collection agencies, debt collection companies or debt buyers.
   
 fields:
-  - Is ${ other_parties.short_list(2) } a **debt collector**?: sued_by_collection_agency
+  - Are they a **third-party debt collector**?: sued_by_collection_agency
     input type: radio
     choices:
       - Yes: True
@@ -720,9 +724,13 @@ continue button field: counterclaims_intro
 ---
 id: counterclaim debt collector
 question: |
-  Do you want to make a counterclaim against the debt collector (${ other_parties.short_list(2) })?
+  % if len(other_parties) > 1:
+  Do you want to make a counterclaim against the third-party debt collectors?
+  % else:
+  Do you want to make a counterclaim against the third-party debt collector ${ other_parties[0] }?
+  % endif
 subquestion: |
-  Below is a list of some counterclaims that might apply to debt collectors because of a law called the [Fair Debt Collection Practices Act (FDCPA).](https://files.consumerfinance.gov/f/documents/cfpb_fair-debt-collection-practices-act-fdcpa-procedures_2022-12.pdf) These only apply to debt collectors.
+  Below is a list of some counterclaims that might apply to third-party debt collectors because of a law called the [Fair Debt Collection Practices Act (FDCPA).](https://files.consumerfinance.gov/f/documents/cfpb_fair-debt-collection-practices-act-fdcpa-procedures_2022-12.pdf) These only apply to third-party debt collectors.
 
   To be successful with a counterclaim, you would need to prove your claim to the court. Learn more about counterclaims on [NCLC’s Surviving Debt website.](https://library.nclc.org/book/surviving-debt/common-counterclaims-raise)
 
@@ -731,10 +739,10 @@ fields:
   - Check any box that describes your situation, or check None: counterclaims
     datatype: checkboxes
     choices:
-      - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and I didn't get a letter from them alerting me to my debt before I was sued.": no_notice
-      - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and they made statements that were not true or were misleading about the debt.": false_statements
-      - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and they harassed me and they violated the Fair Debt Collection Practices Act (FDCPA).": harassment
-      - "${ other_parties.short_list(2) } **owes me money for another reason**. (Tip: You can explain on the next screen.": plaintiff_owes_me_other_reason
+      - "The plaintiffs are not the original creditor or lender of the money, and I didn't get a letter from them alerting me to my debt before I was sued.": no_notice
+      - "The plaintiffs are not the original creditor or lender of the money, and they made statements that were not true or were misleading about the debt.": false_statements
+      - "The plaintiffs are not the original creditor or lender of the money, and they harassed me and they violated the Fair Debt Collection Practices Act (FDCPA).": harassment
+      - "The plaintiffs **owe me money for another reason**. (Tip: You can explain on the next screen.": plaintiff_owes_me_other_reason
   - note: |
       Notes about the FDCPA law:
       
@@ -775,20 +783,15 @@ fields:
         Remember, when you ask for money in a counterclaim, you are asking for "damages." In small claims court, the total amount must be $10,000 or less. As part of your counterclaim against the defendant, you can ask to be reimbursed for your court filing fee. (Fee is $25 if your counterclaim is for $500 or less. Fee is $35 if your counterclaim is between $501 and $10,000.)
   - "I want to ask the court for this amount of money in my counterclaim": counterclaims_amount
     datatype: currency
-    min: 0
-    max: 10000
-    validation messages:
-      min: |
-        A counterclaim in small claims court can be between $1 and $10,000.
-      max: |
-        A counterclaim in small claims court can be between $1 and $10,000.
   - "Describe the reason(s) for your counterclaim against ${ other_parties.short_list(2) }. Be specific.": counterclaims_description
     input type: area
     maxlength: 800
-    js show if: |
-      val("counterclaims_amount") > 0
   - note: |
       If you do not want to file a counterclaim, tap the Undo button and go back to change your answer.
+validation code: |
+  if counterclaims_amount > 10035:
+    validation_error(word("A counterclaim in small claims court can be between $1 and $10,000. You can also include your filing fee."), field="counterclaims_amount")
+
 ---
 id: if no counterclaim
 question: |
@@ -1006,22 +1009,7 @@ review:
       % endif
 
       **Docket number / case number**: ${ docket_number }
-  - Edit: other_parties.revisit
-    button: |
-      **About the other party / plaintiff(s)**
 
-      % for item in other_parties:
-        * ${ item }
-      % endfor
-  - Edit: 
-      - sued_by_collection_agency
-    button: |
-      **${ other_parties.short_list(2) } is a debt collector**: 
-      % if sued_by_collection_agency == True or sued_by_collection_agency == False:
-      ${ word(yesno(sued_by_collection_agency)) }  
-      % elif sued_by_collection_agency == None:
-      Not sure.
-      % endif
   - Edit: 
       - users.revisit
     button: |
@@ -1044,6 +1032,23 @@ review:
       
       ${ item.email }
       % endfor
+  - Edit: other_parties.revisit
+    button: |
+      **About the other party / plaintiff(s)**
+
+      % for item in other_parties:
+        * ${ item }
+      % endfor
+  - Edit: 
+      - sued_by_collection_agency
+    button: |
+      **The plaintiff is a third-party debt collector**: 
+      % if sued_by_collection_agency == True or sued_by_collection_agency == False:
+      ${ word(yesno(sued_by_collection_agency)) }  
+      % elif sued_by_collection_agency == None:
+      Not sure.
+      % endif
+
 
   - Edit:
     - agrees_with_complaint
@@ -1092,12 +1097,11 @@ review:
 
   - Edit:
       - plaintiff_owes_user_money
-      - counterclaims_amount
+      - follow up:
+        - counterclaims_amount
     button: |
-      % if defined("plaintiff_owes_user_money") and plaintiff_owes_user_money:
-        **Amount you want to ask the court for in a counterclaim**:
-        ${ currency(counterclaims_amount) }
-      % endif
+      **You want to file a counterclaim**: ${ word(yesno(plaintiff_owes_user_money)) }
+      
   - Edit:
       - counterclaims_amount
     button: |
@@ -1105,11 +1109,6 @@ review:
         **Amount you want to ask the court for in a counterclaim**:
         ${ currency(counterclaims_amount) }
       % endif
-      % if len(counterclaims.true_values()) == 0 and counterclaims_amount == 0:
-        **Amount you want to ask the court for in a counterclaim**:
-        None. No counterclaim.
-      % endif
-
   - Edit: 
       - counterclaims
       - follow up:
