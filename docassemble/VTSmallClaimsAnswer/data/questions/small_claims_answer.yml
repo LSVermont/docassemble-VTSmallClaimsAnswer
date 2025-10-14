@@ -1642,7 +1642,7 @@ confirm: True
 ---
 continue button field: users.revisit
 question: |
-  Edit info about you
+  Edit information about you
 subquestion: |
   ${ users.table }
 
@@ -1663,51 +1663,47 @@ columns:
       row_item.work_phone_number if defined("row_item.work_phone_number") else ""
   - Email: |
       row_item.email if defined("row_item.email") else ""
-  - Signature: |
-      row_item.signature if defined("row_item.signature") else ""
 edit:
   - name.first
   - address.address
   - phone_number
-  - work_phone_number
-  - email
 
 confirm: True
 ---
-continue button field: users.revisit
-question: |
-  Edit information about you
-subquestion: |
-  ${ users.table }
-
-  ${ users.add_action() }
----
-table: users.table
-rows: users
-columns:
-  - Name: |
-      row_item.name.full() if defined("row_item.name.first") else ""
-  - Birthdate: |
-      row_item.birthdate if defined("row_item.birthdate") else ""
-  - Address: |
-      row_item.address.block() if defined("row_item.address.address") else ""
-  - Mailing address: |
-      row_item.mailing_address.block() if defined("row_item.mailing_address.address") else ""
-  - Home or cell number: |
-      row_item.phone_number if defined("row_item.phone_number") else ""
-  - Work or other phone: |
-      row_item.work_phone_number if defined("row_item.wprk_phone_number") else ""
-  - Email: |
-      row_item.email if defined("row_item.email") else ""
-edit:
-  - name.first
-  - address.address
-  - phone_number
-  - work_phone_number
-  - mailing_address.address
-  - email
-  - birthdate
-confirm: True
+#continue button field: users.revisit
+#question: |
+#  Edit information about you
+#subquestion: |
+#  ${ users.table }
+#
+#  ${ users.add_action() }
+#---
+#table: users.table
+#rows: users
+#columns:
+#  - Name: |
+#      row_item.name.full() if defined("row_item.name.first") else ""
+#  - Birthdate: |
+#      row_item.birthdate if defined("row_item.birthdate") else ""
+#  - Address: |
+#      row_item.address.block() if defined("row_item.address.address") else ""
+#  - Mailing address: |
+#      row_item.mailing_address.block() if defined("row_item.mailing_address.address") else ""
+#  - Home or cell number: |
+#      row_item.phone_number if defined("row_item.phone_number") else ""
+#  - Work or other phone: |
+#      row_item.work_phone_number if defined("row_item.wprk_phone_number") else ""
+#  - Email: |
+#      row_item.email if defined("row_item.email") else ""
+#edit:
+#  - name.first
+#  - address.address
+#  - phone_number
+#  - work_phone_number
+#  - mailing_address.address
+#  - email
+#  - birthdate
+#confirm: True
 ---
 continue button field: household_others.revisit
 question: |
@@ -1968,9 +1964,18 @@ attachment:
           I have a counterclaim for ${ currency(counterclaims_amount)}. ${ small_claims_answer_attachment.safe_value("merged_counterclaims_text") } 
           % endif
       - "users1_name_1": ${ users[0] }
-      - "users1_mailing_address_address": ${ users[0].mailing_address.address }
-      - "users1_mailing_address_unit": ${ users[0].mailing_address.unit }
-      - "users1_mailing_address_city_state_zip": ${ users[0].mailing_address.line_two() }
+      - "users1_mailing_address_address": |
+          % if users1_mailing_address_different:
+          ${ users[0].mailing_address.line_one() }
+          % else:
+          ${ users[0].address.line_one() }
+          % endif
+      - "users1_mailing_address_city_state_zip": |
+          % if users1_mailing_address_different:
+          ${ users[0].mailing_address.line_two() }
+          % else:
+          ${ users[0].address.line_two() }
+          % endif
       - "signature_date": ${ signature_date }
       - "users1_signature": ${ users[0].signature_if_final(i) }
 
