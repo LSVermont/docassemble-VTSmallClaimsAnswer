@@ -500,7 +500,7 @@ fields:
 id: is plaintiff a third-party debt collector
 question: |
   % if len(other_parties) > 1:
-  Are any of the plaintiffs a third-party debt collector?
+  Are plaintiffs a third-party debt collector?
   % else:
   Is ${ other_parties[0] } a third-party debt collector?
   % endif
@@ -512,7 +512,7 @@ subquestion: |
   Third-party debt collectors include collection agencies or lawyers who collect debts as part of their business. There are also companies that buy past-due debts from creditors or other businesses and then try to collect them. These third-party debt collectors are also called debt collection agencies, debt collection companies or debt buyers.
   
 fields:
-  - Are they a **third-party debt collector**?: sued_by_collection_agency
+  - Are any of the plaintiffs a **third-party debt collector**?: sued_by_collection_agency
     input type: radio
     choices:
       - Yes: True
@@ -524,7 +524,7 @@ question: |
   Any reasons why you believe you do **not** owe this money?
 subquestion: |
   % if defined("other_parties[1]"):
-  In this small claims case, plaintiffs (${ other_parties.short_list(2) }) have started the case by filing a "complaint" against you.
+  In this small claims case, the plaintiffs (${ other_parties.short_list(2) }) have started the case by filing a "complaint" against you.
   % else:
   In this small claims case, a plaintiff (${ other_parties.short_list(2) }) has started the case by filing a "complaint" against you.
   % endif
@@ -1167,9 +1167,17 @@ review:
       % else:
       No
       % endif
+
+      % for item in has_exempt_income_state.true_values():
+      * ${ item }
+      % endfor
+      % for item in has_exempt_income_other.true_values():
+      * ${ item }
+      % endfor
+      
       
       % if otherwise_exempt != '':
-      **Reason(s) why your income may be exempt**:
+      **Other reason(s) why your income may be exempt**:
       ${ otherwise_exempt }
       % endif     
 
