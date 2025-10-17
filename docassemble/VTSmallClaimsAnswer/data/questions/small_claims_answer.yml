@@ -923,6 +923,28 @@ code: |
   get_merged_counterclaims = True
 reconsider: True
 ---
+code: |
+  if len(has_exempt_income_state.true_values()) > 0:
+    disclosure_of_exempt_income_attachment.enabled = True
+  elif len(has_exempt_income_other.true_values()) > 0:
+    disclosure_of_exempt_income_attachment.enabled = True
+  elif otherwise_exempt != '':
+    disclosure_of_exempt_income_attachment.enabled = True
+  else:
+    disclosure_of_exempt_income_attachment.enabled = False
+---
+code: |
+  if defined("counterclaims_amount") and counterclaims_amount > 0 and wants_to_fill_out_fee_waiver_now:
+    VT_fee_waiver_attachment.enabled = True
+  else:
+    VT_fee_waiver_attachment.enabled = False
+---
+code: |
+  if wants_to_fill_out_financial_disclosure:
+    financial_disclosure_attachment.enabled = True
+  else:
+    financial_disclosure_attachment.enabled = False
+---
 ---
 id: preview small_claims_answer
 question: |
@@ -931,10 +953,11 @@ subquestion: |
   Here is a preview of the form(s) you will sign on the next page.   
   
 
-  % if wants_to_file_counterclaim and wants_to_fill_out_fee_waiver_now:
-  ${ al_court_bundle.as_pdf(key='preview').extract_pages(first=1, last=5) }
+  % if financial_disclosure_attachment.enabled == True:
+  ${ al_preview_bundle.as_pdf(key='preview') }
   % else:
-  ${ al_court_bundle.as_pdf(key='preview').extract_pages(first=1, last=3) }
+  ${ al_court_bundle.as_pdf(key='preview') }
+  
   % endif
 
   Click the image to open it in a new tab. Click the "Edit answers" button
@@ -998,6 +1021,8 @@ code: |
   [user.address.address for user in users.complete_elements()]
   addresses_to_search = [user.address for user in users.complete_elements()]
 ---
+############################ REVIEW SCREEN #############################
+---
 id: small claims answer review screen
 event: review_small_claims_answer
 question: |
@@ -1022,7 +1047,12 @@ review:
       ${ user_selected_county } County, Vermont
       % endif
 
-      **Docket number / case number**: ${ docket_number }
+      **Docket number / case number**:
+      % if docket_number !='':
+      ${ docket_number }
+      % else:
+      Unknown
+      % endif
 
   - Edit: 
       - users.revisit
@@ -1059,7 +1089,7 @@ review:
       **The plaintiff is a third-party debt collector**: 
       % if sued_by_collection_agency == True or sued_by_collection_agency == False:
       ${ word(yesno(sued_by_collection_agency)) }  
-      % elif sued_by_collection_agency == None:
+      % else:
       Not sure.
       % endif
 
@@ -1118,10 +1148,15 @@ review:
 
   - Edit:
       - wants_to_file_counterclaim
+      - wants_to_fill_out_fee_waiver_now
       - follow up:
         - counterclaims_amount
     button: |
       **You want to file a counterclaim**: ${ word(yesno(wants_to_file_counterclaim)) }
+
+      **You want to fill out a fee waiver form for your counterclaim**:   
+      ${ word(yesno(wants_to_fill_out_fee_waiver_now)) }  
+
       
   - Edit:
       - counterclaims_amount
@@ -1132,6 +1167,7 @@ review:
       % endif
   - Edit: 
       - counterclaims
+      - wants_to_fill_out_fee_waiver_now
       - follow up:
         - counterclaims_amount
     button: |
@@ -1141,9 +1177,13 @@ review:
       % for item in counterclaims.true_values():
       - ${ counterclaims_terms[item] }
       % endfor
+      
+      **You want to fill out a fee waiver form for your counterclaim**:   
+      ${ word(yesno(wants_to_fill_out_fee_waiver_now)) }  
       % else:
       **You have a counterclaim against ${ other_parties.short_list(2) }**: No
       % endif
+
   - Edit: counterclaims_description
     button: |
       % if wants_to_file_counterclaim and sued_by_collection_agency and counterclaims_amount > 0:
@@ -1163,7 +1203,7 @@ review:
 
   - note: |
       % if len(has_exempt_income_state.true_values()) > 0 or len(has_exempt_income_other.true_values()) > 0 or otherwise_exempt != '':
-        ### Disclosure of Exempt Income
+        ### Disclosure of Exempt Income form
       % endif
   - Edit:
       - otherwise_exempt
@@ -1195,14 +1235,8 @@ review:
 
 ####################### Fee waiver review  #######################
       
-  - Edit: 
-    - wants_to_fill_out_fee_waiver_now
-    button: |
-      **You want to fill out a fee waiver form for your counterclaim**:   
-      ${ word(yesno(wants_to_fill_out_fee_waiver_now)) }  
-
   - note: |
-      % if wants_to_fill_out_fee_waiver_now and defined("household_size"):
+      % if defined("wants_to_fill_out_fee_waiver_now") and defined("household_size"):
       ###Fee waiver for counterclaim
       % endif
       
@@ -1389,8 +1423,9 @@ review:
 
 ####################### Financial disclosure review  #######################
   - note: |
-      ###Financial Disclosure Form
-  - Edit: wants_to_fill_out_financial_disclosure
+      ###Financial Disclosure Affidavit form
+  - Edit: 
+    - wants_to_fill_out_financial_disclosure
     button: |
       % if defined("wants_to_fill_out_financial_disclosure") and wants_to_fill_out_financial_disclosure:
         **You want to fill out a Financial Disclosure Affidavit form:** Yes
@@ -1404,7 +1439,7 @@ review:
 #      You will fill it out later on your own.
 #      % endif
 #      
-####Financial Disclosure Form
+####Financial Disclosure Affidavit form
 #      
 #      ###Income 
 #  - Edit: 
@@ -1608,30 +1643,11 @@ review:
 #      % endif      
       
 
-      
-  - note: |
-      ###Your court case 
-  - Edit: trial_court_division
-    button: |
-      **Court where you file this form:**
-      % if defined("trial_court_division"):
-      ${ trial_court_division } Division
-      % endif      
-      % if defined("trial_court.address.county"):
-      in ${ trial_court.address.county } County
-      % endif
-  - Edit: docket_number
-    button: |
-      **Case number**:
-      % if docket_number !='':
-      ${ docket_number }
-      % else:
-      Unknown
-      % endif
+
 
   - Edit: signature_date
     button: |
-      **Date of signature**:
+      **Date of your signature on the answer form**:
       ${ signature_date }
 
      
@@ -1875,32 +1891,12 @@ objects:
   - financial_disclosure_attachment: ALDocument.using(title="Financial Disclosure form", filename="VT_financial_disclosure.pdf", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - VT_fee_waiver_attachment: ALDocument.using(title="Fee waiver form", filename="VT_fee_waiver.pdf", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
-code: |
-  if len(has_exempt_income_state.true_values()) > 0:
-    disclosure_of_exempt_income_attachment.enabled = True
-  elif len(has_exempt_income_other.true_values()) > 0:
-    disclosure_of_exempt_income_attachment.enabled = True
-  elif otherwise_exempt != '':
-    disclosure_of_exempt_income_attachment.enabled = True
-  else:
-    disclosure_of_exempt_income_attachment.enabled = False
----
-code: |
-  if defined("counterclaims_amount") and counterclaims_amount > 0 and wants_to_fill_out_fee_waiver_now:
-    VT_fee_waiver_attachment.enabled = True
-  else:
-    VT_fee_waiver_attachment.enabled = False
----
-code: |
-  if wants_to_fill_out_financial_disclosure:
-    financial_disclosure_attachment.enabled = True
-  else:
-    financial_disclosure_attachment.enabled = False
----
+
 # Bundles group the ALDocuments into separate downloads, such as for court and for the user
 objects:
+  - al_preview_bundle: ALDocumentBundle.using(elements=[small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment], filename="small_claims_answer", title="Preview", enabled=True)
   - al_user_bundle: ALDocumentBundle.using(elements=[small_claims_answer_Post_interview_instructions, small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment, financial_disclosure_attachment], filename="small_claims_answer", title="All forms to download", enabled=True)
-  - al_court_bundle: ALDocumentBundle.using(elements=[small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment, financial_disclosure_attachment],  filename="small_claims_answer", title="All forms to deliver to court", enabled=True)
+  - al_court_bundle: ALDocumentBundle.using(elements=[financial_disclosure_attachment, small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment],  filename="small_claims_answer", title="All forms to deliver to court", enabled=True)
 ---
 # Each attachment defines a key in an ALDocument. We use `i` as the placeholder here so the same template is 
 # used for "preview" and "final" keys, and logic in the template checks the value of 
