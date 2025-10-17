@@ -281,7 +281,6 @@ subquestion: |
   - Small Claims Answer
   - Certificate of Service
   - Disclosure of Exempt Income (VTCourtForms will tell you if you need this)
-  - Financial Disclosure Affidavit (VTCourtForms will tell you if you need this)
   - Court fee waiver form (if you want to make a "counterclaim" and you have a low income)
   
   <i class="fas fa-clock fa-2x"></i> It may take you 45 minutes to complete this. 
@@ -293,6 +292,7 @@ subquestion: |
   Tap Next to continue.
   
 continue button field: al_intro_screen
+#- Financial Disclosure Affidavit (VTCourtForms will tell you if you need this)
 ---
 id: screening have you been sued
 question: |
@@ -833,7 +833,7 @@ fields:
   - no label: wants_to_fill_out_financial_disclosure
     datatype: yesnoradio
   - note: |
-      On the final download screen you will be able to download this form to fill out on your own.
+      <i class="fas fa-circle-info fa"></i>  On the final download screen you will be able to download this form to fill out on your own.
     js show if: |
       val("wants_to_fill_out_financial_disclosure") == true
   - note: |
@@ -930,7 +930,12 @@ question: |
 subquestion: |
   Here is a preview of the form(s) you will sign on the next page.   
   
-  ${ al_court_bundle.as_pdf(key='preview') }
+
+  % if wants_to_file_counterclaim and wants_to_fill_out_fee_waiver_now:
+  ${ al_court_bundle.as_pdf(key='preview').extract_pages(first=1, last=5) }
+  % else:
+  ${ al_court_bundle.as_pdf(key='preview').extract_pages(first=1, last=3) }
+  % endif
 
   Click the image to open it in a new tab. Click the "Edit answers" button
   to edit your answers.
@@ -1894,8 +1899,8 @@ code: |
 ---
 # Bundles group the ALDocuments into separate downloads, such as for court and for the user
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[small_claims_answer_Post_interview_instructions, small_claims_answer_attachment, disclosure_of_exempt_income_attachment, financial_disclosure_attachment, VT_fee_waiver_attachment], filename="small_claims_answer", title="All forms to download", enabled=True)
-  - al_court_bundle: ALDocumentBundle.using(elements=[small_claims_answer_attachment, disclosure_of_exempt_income_attachment, financial_disclosure_attachment, VT_fee_waiver_attachment],  filename="small_claims_answer", title="All forms to deliver to court", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[small_claims_answer_Post_interview_instructions, small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment, financial_disclosure_attachment], filename="small_claims_answer", title="All forms to download", enabled=True)
+  - al_court_bundle: ALDocumentBundle.using(elements=[small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment, financial_disclosure_attachment],  filename="small_claims_answer", title="All forms to deliver to court", enabled=True)
 ---
 # Each attachment defines a key in an ALDocument. We use `i` as the placeholder here so the same template is 
 # used for "preview" and "final" keys, and logic in the template checks the value of 
