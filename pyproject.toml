@@ -16,6 +16,7 @@ dependencies = [
     "docassemble.VTFeeWaiverWithIncludeYMLFile @ git+https://github.com/VTskier/docassemble-VTFeeWaiverWithIncludeYMLFile.git@main",
     "docassemble.VTFeedback @ git+https://github.com/VTskier/docassemble-VTFeedback.git@main",
     "docassemble.VTSharedYMLFile @ git+https://github.com/LSVermont/docassemble-VTSharedYMLFile.git@main",
+    "docassemble.VTSmallClaimsCertificateOfService @ git+https://github.com/LSVermont/docassemble-VTSmallClaimsCertificateOfService.git@main",
 ]
 
 [[project.authors]]

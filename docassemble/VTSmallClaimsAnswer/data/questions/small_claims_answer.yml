@@ -1,6 +1,7 @@
 
 ---
 include:
+  - docassemble.VTSmallClaimsCertificateOfService:small_claims_certificate_of_service.yml
   - docassemble.VTFinancialDisclosure:VT_financial_disclosure_to_include.yml
   - docassemble.VTDisclosureOfExemptIncome:disclosure_of_exempt_income_to_include.yml
   - docassemble.VTFeeWaiverWithIncludeYMLFile:VT_fee_waiver_to_include.yml
@@ -152,6 +153,7 @@ id: interview_order_small_claims_answer
 code: |
   user_role = "defendant"
   user_ask_role = "defendant"
+  user_has_attorney = False
   
   nav.set_section('intro')
   if was_sued == False:
@@ -223,8 +225,8 @@ code: |
   
   set_progress(80)  
   wants_to_fill_out_financial_disclosure
-  
 
+  interview_order_VT_SC_COS
 
   set_progress(92)
   interview_order_small_claims_answer = True
@@ -282,6 +284,7 @@ subquestion: |
   - Certificate of Service
   - Disclosure of Exempt Income (VTCourtForms will tell you if you need this)
   - Court fee waiver form (if you want to make a "counterclaim" and you have a low income)
+  - Financial Disclosure Affidavit (VTCourtForms will tell you if you need this)
   
   <i class="fas fa-clock fa-2x"></i> It may take you 45 minutes to complete this. 
   
@@ -292,7 +295,6 @@ subquestion: |
   Tap Next to continue.
   
 continue button field: al_intro_screen
-#- Financial Disclosure Affidavit (VTCourtForms will tell you if you need this)
 ---
 id: screening have you been sued
 question: |
@@ -838,7 +840,8 @@ fields:
       val("wants_to_fill_out_financial_disclosure") == true
   - note: |
       ${ after_last_question_we_will_generate_your_forms }
-    
+
+# TOBY HERE ARE SOME QUESTIONS TO INCLUDE WHEN YOU GET FINANCIAL DISCLOSURE WORKING, AND YOU CAN GET RID OF THE NOTE: ON THE FINAL DOWNLOAD SCREEN.....
 #  - note: |
 #      Do you want to do that now with this tool? Or later on your own?
 #    js show if: |
@@ -1427,12 +1430,13 @@ review:
   - Edit: 
     - wants_to_fill_out_financial_disclosure
     button: |
-      % if defined("wants_to_fill_out_financial_disclosure") and wants_to_fill_out_financial_disclosure:
+      % if wants_to_fill_out_financial_disclosure:
         **You want to fill out a Financial Disclosure Affidavit form:** Yes
       % else:
         **You want to fill out a Financial Disclosure Affidavit form:** No
       % endif
-#
+
+# TOBY EVERY USER CAN CHOOSE TO DO THE FINANCIAL DISCLOSURE FORM OR NOT. YOU CAN USE THIS REVIEW CODE WHEN YOU GET THE FINANCIAL DISCLOSURE FORM QUESTIONS WORKING
 #      % if wants_to_fill_out_financial_disclosure_when == "Now, with this tool":
 #      You are filling it out now with this tool.
 #      % else:
@@ -1894,8 +1898,8 @@ objects:
 
 # Bundles group the ALDocuments into separate downloads, such as for court and for the user
 objects:
-  - al_preview_bundle: ALDocumentBundle.using(elements=[small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment], filename="small_claims_answer", title="Preview", enabled=True)
-  - al_user_bundle: ALDocumentBundle.using(elements=[small_claims_answer_Post_interview_instructions, small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment, financial_disclosure_attachment], filename="small_claims_answer", title="All forms to download", enabled=True)
+  - al_preview_bundle: ALDocumentBundle.using(elements=[small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment, VT_small_claims_certificate_of_service_attachment], filename="small_claims_answer", title="Preview", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[small_claims_answer_Post_interview_instructions, small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment, financial_disclosure_attachment, VT_small_claims_certificate_of_service_attachment], filename="small_claims_answer", title="All forms to download", enabled=True)
   - al_court_bundle: ALDocumentBundle.using(elements=[financial_disclosure_attachment, small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment],  filename="small_claims_answer", title="All forms to deliver to court", enabled=True)
 ---
 # Each attachment defines a key in an ALDocument. We use `i` as the placeholder here so the same template is 
