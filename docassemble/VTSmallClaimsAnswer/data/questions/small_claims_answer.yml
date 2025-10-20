@@ -1,3 +1,4 @@
+
 ---
 include:
   - docassemble.VTFinancialDisclosure:VT_financial_disclosure_to_include.yml
@@ -14,7 +15,7 @@ metadata:
   short title: >-
     Small claims answer
   description: |-
-    Small Claims Answer form for Vermont. Based on Vermont Judiciary paper form 100-00126 (2/2025).
+    Small Claims Answer form for Vermont. Based on Vermont Judiciary paper form 100-00126 (7/2025).
   can_I_use_this_form: |
     If you have been sued in small claims court, you can use this tool to respond.
   before_you_start: |
@@ -219,7 +220,7 @@ code: |
       wants_to_fill_out_fee_waiver_now = False
   
   set_progress(80)  
-  if len(has_exempt_income_state.true_values()) == 0 and len(has_exempt_income_other.true_values()) == 0 and otherwise_exempt == "":
+  if len(has_exempt_income_state.true_values()) == 0 and len(has_exempt_income_other.true_values()) == 0:
     if wants_to_fill_out_financial_disclosure:
       if wants_to_fill_out_financial_disclosure_when == "Now, with this tool":
         interview_order_financial_disclosure
@@ -280,7 +281,7 @@ subquestion: |
   - Certificate of Service
   - Disclosure of Exempt Income (VTCourtForms will tell you if you need this)
   - Financial Disclosure Affidavit (VTCourtForms will tell you if you need this)
-  - Court fee waiver form (if you want to make a "counterclaim")
+  - Court fee waiver form (if you want to make a "counterclaim" and you have a low income)
   
   <i class="fas fa-clock fa-2x"></i> It may take you 45 minutes to complete this. 
   
@@ -496,18 +497,22 @@ fields:
       ${ collapse_template(which_county_to_choose) }
       ${ collapse_template(in_which_county) }
 ---
-id: is plaintiff a debt collector
+id: is plaintiff a third-party debt collector
 question: |
-  Is ${ other_parties.short_list(2) } a debt collector?
+  % if len(other_parties) > 1:
+  Are any of the plaintiffs a third-party debt collector?
+  % else:
+  Is ${ other_parties[0] } a third-party debt collector?
+  % endif
 subquestion: |
   We ask this question because it may affect what you might ask for in a counterclaim.
   
-  A debt collector generally is a person or a company that regularly collects debts owed to others, usually when those debts are past-due.
+  A third-party debt collector generally is a person or a company that regularly collects debts owed to others, usually when those debts are past-due. They are **not** the [original creditor.](https://library.nclc.org/book/fair-debt-collection/133-original-creditors)
 
-  Debt collectors include collection agencies or lawyers who collect debts as part of their business. There are also companies that buy past-due debts from creditors or other businesses and then try to collect them. These debt collectors are also called debt collection agencies, debt collection companies or debt buyers.
+  Third-party debt collectors include collection agencies or lawyers who collect debts as part of their business. There are also companies that buy past-due debts from creditors or other businesses and then try to collect them. These third-party debt collectors are also called debt collection agencies, debt collection companies or debt buyers.
   
 fields:
-  - Is ${ other_parties.short_list(2) } a **debt collector**?: sued_by_collection_agency
+  - Are they a **third-party debt collector**?: sued_by_collection_agency
     input type: radio
     choices:
       - Yes: True
@@ -666,6 +671,8 @@ fields:
       - "the Department of Vermont Health Access (DVHA)": DVHA
   - note: |
       Examples of DCF benefits include 3SquaresVT (food), Reach Up, General Assistance, Emergency Housing, Energy Assistance, Fuel Assistance and other programs as seen on this web page: [https://dcf.vermont.gov/benefits](https://dcf.vermont.gov/benefits).
+
+      Examples of DVHA benefits include Medicaid and Dr. Dynasaur.
   - note: |
       I have income from these exempt sources:
   - no label: has_exempt_income_other
@@ -700,7 +707,7 @@ subquestion: |
   
   If you decide to file a counterclaim, you are asking the court to award YOU money. When you ask for money in a counterclaim, you are asking for "damages." 
   
-  In a small claims case, you can ask for up to $10,000 in a counterclaim. There is a fee to file a counterclaim, and the amount of the fee can be included in your counterclaim. 
+  In a small claims case, you can ask for up to $10,000 in a counterclaim. There is a fee to file a counterclaim. As part of your counterclaim, you can ask to be reimbursed for your court filing fee. If you get public assistance or have a very low income, you can ask to waive the filing fee.
   
   You may want to talk to a lawyer if you are thinking about making a counterclaim. This is because there are some [laws that only apply to how debt collectors do business.](https://files.consumerfinance.gov/f/documents/cfpb_fair-debt-collection-practices-act-fdcpa-procedures_2022-12.pdf) And for all kinds of plaintiffs, you need to have proof that you suffered real damages.
   
@@ -717,9 +724,13 @@ continue button field: counterclaims_intro
 ---
 id: counterclaim debt collector
 question: |
-  Do you want to make a counterclaim against the debt collector (${ other_parties.short_list(2) })?
+  % if len(other_parties) > 1:
+  Do you want to make a counterclaim against the third-party debt collectors?
+  % else:
+  Do you want to make a counterclaim against the third-party debt collector ${ other_parties[0] }?
+  % endif
 subquestion: |
-  Below is a list of some counterclaims that might apply to debt collectors because of a law called the [Fair Debt Collection Practices Act (FDCPA).](https://files.consumerfinance.gov/f/documents/cfpb_fair-debt-collection-practices-act-fdcpa-procedures_2022-12.pdf) These only apply to debt collectors.
+  Below is a list of some counterclaims that might apply to third-party debt collectors because of a law called the [Fair Debt Collection Practices Act (FDCPA).](https://files.consumerfinance.gov/f/documents/cfpb_fair-debt-collection-practices-act-fdcpa-procedures_2022-12.pdf) These only apply to third-party debt collectors.
 
   To be successful with a counterclaim, you would need to prove your claim to the court. Learn more about counterclaims on [NCLC’s Surviving Debt website.](https://library.nclc.org/book/surviving-debt/common-counterclaims-raise)
 
@@ -728,10 +739,10 @@ fields:
   - Check any box that describes your situation, or check None: counterclaims
     datatype: checkboxes
     choices:
-      - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and I didn't get a letter from them alerting me to my debt before I was sued.": no_notice
-      - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and they made statements that were not true or were misleading about the debt.": false_statements
-      - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and they harassed me and they violated the Fair Debt Collection Practices Act (FDCPA).": harassment
-      - "${ other_parties.short_list(2) } **owes me money for another reason**. (Tip: You can explain on the next screen.": plaintiff_owes_me_other_reason
+      - "The plaintiffs are not the original creditor or lender of the money, and I didn't get a letter from them alerting me to my debt before I was sued.": no_notice
+      - "The plaintiffs are not the original creditor or lender of the money, and they made statements that were not true or were misleading about the debt.": false_statements
+      - "The plaintiffs are not the original creditor or lender of the money, and they harassed me and they violated the Fair Debt Collection Practices Act (FDCPA).": harassment
+      - "The plaintiffs **owe me money for another reason**. (Tip: You can explain on the next screen.": plaintiff_owes_me_other_reason
   - note: |
       Notes about the FDCPA law:
       
@@ -769,23 +780,18 @@ subquestion: |
   
 fields:
   - note: |
-        Remember, when you ask for money in a counterclaim, you are asking for "damages." You can include the counterclaim filing fee, too. (Fee is $25 if your counterclaim is for $500 or less. Fee is $35 if your counterclaim is between $501 and $10,000.) In small claims court, the total amount must be $10,000 or less.
+        Remember, when you ask for money in a counterclaim, you are asking for "damages." In small claims court, the total amount must be $10,000 or less. As part of your counterclaim against the defendant, you can ask to be reimbursed for your court filing fee. (Fee is $25 if your counterclaim is for $500 or less. Fee is $35 if your counterclaim is between $501 and $10,000.)
   - "I want to ask the court for this amount of money in my counterclaim": counterclaims_amount
     datatype: currency
-    min: 0
-    max: 10000
-    validation messages:
-      min: |
-        A counterclaim in small claims court can be between $1 and $10,000.
-      max: |
-        A counterclaim in small claims court can be between $1 and $10,000.
   - "Describe the reason(s) for your counterclaim against ${ other_parties.short_list(2) }. Be specific.": counterclaims_description
     input type: area
     maxlength: 800
-    js show if: |
-      val("counterclaims_amount") > 0
   - note: |
       If you do not want to file a counterclaim, tap the Undo button and go back to change your answer.
+validation code: |
+  if counterclaims_amount > 10035:
+    validation_error(word("A counterclaim in small claims court can be between $1 and $10,000. You can also include your filing fee."), field="counterclaims_amount")
+
 ---
 id: if no counterclaim
 question: |
@@ -811,9 +817,7 @@ id: want to fill out financial disclosure affidavit
 question: |
   Do you want to fill out a Financial Disclosure Affidavit?
 
-subquestion: |
-  Earlier, you said you don't have "exempt" income.
-  
+subquestion: |  
   Do you think your "reasonable living expenses" for you and your family members living with you are **more** than your income after taxes? If so, it may be worth your time to **show the court why you think you should pay less than you owe.**
 fields:
   - note: |
@@ -1003,22 +1007,7 @@ review:
       % endif
 
       **Docket number / case number**: ${ docket_number }
-  - Edit: other_parties.revisit
-    button: |
-      **About the other party / plaintiff(s)**
 
-      % for item in other_parties:
-        * ${ item }
-      % endfor
-  - Edit: 
-      - sued_by_collection_agency
-    button: |
-      **${ other_parties.short_list(2) } is a debt collector**: 
-      % if sued_by_collection_agency == True or sued_by_collection_agency == False:
-      ${ word(yesno(sued_by_collection_agency)) }  
-      % elif sued_by_collection_agency == None:
-      Not sure.
-      % endif
   - Edit: 
       - users.revisit
     button: |
@@ -1041,6 +1030,23 @@ review:
       
       ${ item.email }
       % endfor
+  - Edit: other_parties.revisit
+    button: |
+      **About the other party / plaintiff(s)**
+
+      % for item in other_parties:
+        * ${ item }
+      % endfor
+  - Edit: 
+      - sued_by_collection_agency
+    button: |
+      **The plaintiff is a third-party debt collector**: 
+      % if sued_by_collection_agency == True or sued_by_collection_agency == False:
+      ${ word(yesno(sued_by_collection_agency)) }  
+      % elif sued_by_collection_agency == None:
+      Not sure.
+      % endif
+
 
   - Edit:
     - agrees_with_complaint
@@ -1089,12 +1095,11 @@ review:
 
   - Edit:
       - plaintiff_owes_user_money
-      - counterclaims_amount
+      - follow up:
+        - counterclaims_amount
     button: |
-      % if defined("plaintiff_owes_user_money") and plaintiff_owes_user_money:
-        **Amount you want to ask the court for in a counterclaim**:
-        ${ currency(counterclaims_amount) }
-      % endif
+      **You want to file a counterclaim**: ${ word(yesno(plaintiff_owes_user_money)) }
+      
   - Edit:
       - counterclaims_amount
     button: |
@@ -1102,11 +1107,6 @@ review:
         **Amount you want to ask the court for in a counterclaim**:
         ${ currency(counterclaims_amount) }
       % endif
-      % if len(counterclaims.true_values()) == 0 and counterclaims_amount == 0:
-        **Amount you want to ask the court for in a counterclaim**:
-        None. No counterclaim.
-      % endif
-
   - Edit: 
       - counterclaims
       - follow up:
