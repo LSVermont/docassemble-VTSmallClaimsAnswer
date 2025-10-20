@@ -1,5 +1,6 @@
 ---
 include:
+  - docassemble.VTFinancialDisclosure:VT_financial_disclosure_to_include.yml
   - docassemble.VTDisclosureOfExemptIncome:disclosure_of_exempt_income_to_include.yml
   - docassemble.VTFeeWaiverWithIncludeYMLFile:VT_fee_waiver_to_include.yml
   - docassemble.AssemblyLine:assembly_line.yml
@@ -134,8 +135,8 @@ continue button field: VT_fee_waiver_preview_question
 sections:
   - intro: Is this tool right for you?
   - about_you: About you
-  - other_party: The other party
   - case_info: Your court case
+  - other_party: The other party
   - any_defenses: Any defenses?
   - exempt_income: Any exempt income?
   - counterclaims: Any counterclaim?
@@ -199,27 +200,29 @@ code: |
   
   nav.set_section("counterclaims")
   counterclaims_intro
+  set_progress(70)
   if sued_by_collection_agency:
     if len(counterclaims.true_values()) == 0:
       no_counterclaims
     else:
       get_merged_counterclaims
       counterclaims_amount
-      if wants_to_fill_out_fee_waiver:
+      if wants_to_fill_out_fee_waiver_now:
         interview_order_VT_fee_waiver
   else:
     if plaintiff_owes_user_money:
       counterclaims_amount
-      if wants_to_fill_out_fee_waiver:
+      if wants_to_fill_out_fee_waiver_now:
         interview_order_VT_fee_waiver
     else:
       no_counterclaims
-      wants_to_fill_out_fee_waiver = False
-  set_progress(70)
+      wants_to_fill_out_fee_waiver_now = False
   
-  if len(has_exempt_income_state.true_values()) == 0 and len(has_exempt_income_other.true_values()) == 0 and otherwise_exempt == "":
-    wants_to_fill_out_financial_disclosure
   set_progress(80)  
+  if len(has_exempt_income_state.true_values()) == 0 and len(has_exempt_income_other.true_values()) == 0 and otherwise_exempt == "":
+    if wants_to_fill_out_financial_disclosure:
+      if wants_to_fill_out_financial_disclosure_when == "Now, with this tool":
+        interview_order_financial_disclosure
 
   set_progress(92)
   interview_order_small_claims_answer = True
@@ -257,10 +260,12 @@ code: |
   nav.set_section("get_docs")
   small_claims_answer_download
 ---
-id: stop_testing_here
-question: |
-  **Stop testing here**
-continue button field: stop_testing_here
+############# Code due to fee waiver and financial disclosure forms ##########
+code: |
+  if defined("household_size"):
+    household_others.target_number = household_size - 1
+  elif defined("household_others.target_number"):
+    household_size = household_others.target_number + 1
 ---
 id: basic questions intro screen
 question: |
@@ -541,13 +546,13 @@ fields:
     - "I do not know if the plaintiff's claims are true.": dont_know
     - "I have already paid the plaintiff.": already_paid
     - "The dollar amount the plaintiff is asking for does not match the dollar amount I actually owe. (Tip: If you cannot recall all the amounts, or if you are not sure, check this box.)": amount_doesnt_match
-    - "I don't recognize this debt. (Tip: If you cannot recall everything that the plaintiff is saying in their complaint, or if you are not sure, check this box.)": do_not_recognize
+    - "I do not recognize this debt. (Tip: If you cannot recall everything that the plaintiff is saying in their complaint, or if you are not sure, check this box.)": do_not_recognize
     - "This debt is discharged due to my personal bankruptcy.": bankruptcy
     - "This debt is of a Limited Liability Corporation (LLC) registered in my name.": llc_debt
-    - "The plaintiff is not the original creditor or lender of the money, and I don't believe the plaintiff has the right to collect the money.": not_orginal_creditor
+    - "The plaintiff is not the original creditor or lender of the money, and I do not believe the plaintiff has the right to collect the money.": not_orginal_creditor
     - "It has been at least six years since I incurred this debt.": long_time_since_debt
     - "It has been at least six years since my last payment of this debt.": long_time_since_payment
-    - "**I don't owe this money for another reason**.": other_reason
+    - "**I do not owe this money for another reason**. (Tip: You can explain on the next screen.)": other_reason
   none of the above: None of the above -- I have no defenses.
 ---
 # "!!omap" makes these terms ordered: 
@@ -557,14 +562,14 @@ data: !!omap
   - dont_owe: "I don’t owe money to the plaintiff."
   - dont_know: "I do not know if the plaintiff's claims are true."
   - already_paid: "I have already paid the plaintiff."
-  - do_not_recognize: "I don't recognize this debt."
+  - do_not_recognize: "I do not recognize this debt."
   - amount_doesnt_match: "The dollar amount the plaintiff is asking for does not match the dollar amount I actually owe."
   - bankruptcy: "This debt is discharged due to personal bankruptcy."
   - llc_debt: "This debt is of a Limited Liability Corporation registered in my name."
-  - not_orginal_creditor: "The plaintiff is not the original creditor or lender of the money, and I don't believe the plaintiff has the right to collect the money."
+  - not_orginal_creditor: "The plaintiff is not the original creditor or lender of the money, and I do not believe the plaintiff has the right to collect the money."
   - long_time_since_debt: "It has been at least six years since I incurred this debt."
   - long_time_since_payment: "It has been at least six years since my last payment of this debt."
-  - other_reason: "I don't owe this money."
+  - other_reason: "I do not owe this money."
 ---
 id: disagrees with the complaint
 question: |
@@ -726,7 +731,7 @@ fields:
       - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and I didn't get a letter from them alerting me to my debt before I was sued.": no_notice
       - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and they made statements that were not true or were misleading about the debt.": false_statements
       - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and they harassed me and they violated the Fair Debt Collection Practices Act (FDCPA).": harassment
-      - "${ other_parties.short_list(2) } is not the original creditor or lender of the money, and **they owe me money for another reason**.": plaintiff_owes_me_other_reason
+      - "${ other_parties.short_list(2) } **owes me money for another reason**. (Tip: You can explain on the next screen.": plaintiff_owes_me_other_reason
   - note: |
       Notes about the FDCPA law:
       
@@ -800,7 +805,7 @@ data: !!omap
   - no_notice: "The plaintiff is not the original creditor or lender of the money, and I didn't get a letter from them alerting me to my debt before I was sued."
   - false_statements: "The plaintiff is not the original creditor or lender of the money, and they made statements that were not true or were misleading about the debt."
   - harassment: "The plaintiff is not the original creditor or lender of the money, and they harassed me and they violated the Fair Debt Collection Practices Act (FDCPA)."
-  - plaintiff_owes_me_other_reason: "The plaintiff is not the original creditor or lender of the money, and they owe me money."
+  - plaintiff_owes_me_other_reason: "The plaintiff owes me money."
 ---
 id: want to fill out financial disclosure affidavit
 question: |
@@ -809,7 +814,7 @@ question: |
 subquestion: |
   Earlier, you said you don't have "exempt" income.
   
-  Do you think your "reasonable living expenses" for you and your family members living with you are **more** than your income after taxes? If so, it may be worth your time to show the court why you think you should pay less than you owe.
+  Do you think your "reasonable living expenses" for you and your family members living with you are **more** than your income after taxes? If so, it may be worth your time to **show the court why you think you should pay less than you owe.**
 fields:
   - note: |
       Do you want to answer questions about your expenses and income and submit a Financial Disclosure Affidavit form?
@@ -819,7 +824,7 @@ fields:
       Do you want to do that now with this tool? Or later on your own?
     js show if: |
       val("wants_to_fill_out_financial_disclosure") == true
-  - no label: wants_to_do_financial_disclosure_now
+  - no label: wants_to_fill_out_financial_disclosure_when
     input type: radio
     label above field: True
     choices:
@@ -828,7 +833,7 @@ fields:
     js show if: |
       val("wants_to_fill_out_financial_disclosure") == true
   - note: |
-      If you said "now", consider making an account to save your work. This is because there are quite a few questions to answer on the Financial Disclosure Affidavit form. You might want to start it and come back to finish it.
+      If you say "now", consider making an account to save your work. This is because there are quite a few questions to answer on the Financial Disclosure Affidavit form. You might want to start it and come back to finish it.
     js show if: |
       val("wants_to_fill_out_financial_disclosure") == true
 ---
@@ -867,7 +872,7 @@ subquestion: |
 
     **Do you want to answer questions about your income and expenses so you can fill out a fee waiver form now?**
 fields:
-  - no label: wants_to_fill_out_fee_waiver
+  - no label: wants_to_fill_out_fee_waiver_now
     datatype: yesnoradio
 ---
 ---
@@ -1158,8 +1163,12 @@ review:
   - Edit: wants_to_fill_out_financial_disclosure
     button: |
       % if defined("wants_to_fill_out_financial_disclosure"):
-        **You want to fill out a Financial Disclosure Affidavit form.** You think your "reasonable living expenses" for you and your family members living with you are more than your income after taxes.:
-      ${ word(yesno(wants_to_fill_out_financial_disclosure)) }
+        **You want to fill out a Financial Disclosure Affidavit form now.** You think your "reasonable living expenses" for you and your family members living with you are more than your income after taxes.:
+      % if wants_to_fill_out_financial_disclosure_when == "Now, with this tool":
+      Yes
+      % else:
+      No
+      % endif
       % endif
 
       
@@ -1168,7 +1177,7 @@ review:
 ####################### Fee waiver review  #######################
   
   - note: |
-      % if defined("wants_to_fill_out_fee_waiver") and wants_to_fill_out_fee_waiver == True:
+      % if defined("wants_to_fill_out_fee_waiver_now") and wants_to_fill_out_fee_waiver_now == True:
       ###Fee waiver for counterclaim
       % endif
 
@@ -1358,6 +1367,240 @@ review:
       **Date of signature for these forms**:
       ${ signature_date }
 
+####################### Financial disclosure review  #######################
+
+  - note: |
+      ###Financial Disclosure Form
+      
+      ###Income 
+  - Edit: 
+      - public_benefits.revisit
+    button: |
+      **Your public assistance**
+      
+      % if public_benefits.number_gathered() > 0:
+      % for benefit in public_benefits:
+      % if benefit.source == "other":
+      * ${ benefit.display_name }
+      % else:
+      * ${ benefit.source }
+      % endif
+      % endfor
+      
+      % else:
+      - None
+      % endif
+  - Edit: 
+      - employed
+    button: |
+      **You are employed**
+      
+      - ${ word(yesno(employed)) }
+
+  - Edit: 
+      - review_jobs
+    button: |
+      **Your jobs**
+
+      % if jobs.number_gathered() == 0:
+      - None
+      % else:
+      Edit all details about your 
+      % if jobs.number_gathered() == 1:
+      job. Or add or delete a job.:
+      
+      % endif
+      % if jobs.number_gathered() > 1:
+      jobs. Or add or delete a job.
+      
+      % endif
+      % for item in jobs:
+      - ${ item.source }
+      % endfor
+      % endif
+
+  - Edit: 
+      - jobs[0].source
+      - jobs[0].is_self_employed
+
+    button: |
+      % if jobs[0].is_self_employed:
+      **Edit your employer name and address:** Self employed
+      % else:
+      **Edit your employer name and address:** ${ jobs[0].employer.name.first }
+      % endif
+      
+  - Edit: 
+      - jobs[1].source
+      - jobs[1].is_self_employed
+
+    button: |
+      % if jobs[1].is_self_employed:
+      **Edit employer name and address:** Self employed
+      % else:
+      **Edit employer name and address:** ${ jobs[1].employer.name.first }
+      % endif
+
+  - Edit: 
+      - jobs[2].source
+      - jobs[2].is_self_employed 
+
+    button: |
+      % if jobs[2].is_self_employed:
+      **Edit employer name and address:** Self employed
+      % else:
+      **Edit employer name and address:** ${ jobs[2].employer.name.first }
+      % endif
+
+  - Edit: 
+      - jobs[3].source
+      - jobs[3].is_self_employed
+
+    button: |
+      % if jobs[3].is_self_employed:
+      **Edit employer name and address:** Self employed
+      % else:
+      **Edit employer name and address:** ${ jobs[3].employer.name.first }
+      % endif
+      
+  - Edit: 
+      - household_others.revisit
+      - recompute:
+        - household_size
+      - follow up:
+        - users1_income_very_different_30_days_amount
+    button: |
+      **Other household members**
+      
+      Edit, add or delete information about other household members and their income (if any)
+      
+      % for member in household_others:
+      * ${ member.name }
+      % endfor
+
+  - Edit: 
+      - users1_income_very_different_30_days
+      - follow up:
+        - users1_income_very_different_30_days_amount
+        - household_income_very_different_30_days_amount
+        - users1_income_very_different_30_days_why
+    button: |
+      **Your income has been significantly different than usual in the last 30 days**: ${ word(yesno(users1_income_very_different_30_days)) }
+
+  - Edit: 
+      - users1_income_very_different_30_days_amount
+      - household_income_very_different_30_days_amount
+      - users1_income_very_different_30_days_why
+    button: |
+      % if users1_income_very_different_30_days:
+      **Details on different income**
+
+      Why the income has been very different:
+      ${ single_paragraph(users1_income_very_different_30_days_why) }
+
+      Your current income during last 30 days:
+      ${ currency(users1_income_very_different_30_days_amount) }
+
+      Other household members current income during last 30 days:
+      ${ currency(household_income_very_different_30_days_amount) }
+      % endif      
+
+
+  - note: |
+      ###Expenses 
+  - Edit: expenses.revisit
+    button: |
+      **Expenses**:
+
+      % if expenses.number_gathered() == 0:
+      - None
+      % endif
+      % for item in expenses:
+      - ${ item.display_name.lower() }
+      % endfor
+
+
+  - note: |
+      ###Assets      
+      
+  - Edit: vehicles.revisit
+    button: |
+      **Vehicles**
+      
+      % for item in vehicles:
+      * ${ item.make } ${ item.model } ${ item.year }          
+      % endfor
+      % if vehicles.number_gathered() == 0:
+      - None
+      % endif
+  - Edit: 
+      - real_estate.revisit
+    button: |
+      **Real estate**
+
+      % for item in real_estate.complete_elements():
+      % if item.source == "primary residence":
+      * primary residence
+      % else:
+      * ${ item.display_name.lower() }
+      % endif
+      % endfor
+      % if real_estate.number_gathered() == 0:
+      - None
+      % endif
+
+  - Edit: bank_assets.revisit
+    button: |
+      **Bank accounts and cash**
+      
+      % for item in bank_assets:
+      - ${ item.display_name.lower() }
+      % endfor
+      % if bank_assets.number_gathered() == 0:
+      - None
+      % endif   
+      
+  - Edit: other_assets.revisit
+    button: |
+      **Other assets**
+
+      % for item in other_assets.complete_elements():
+        - ${ item.display_name.lower() }
+      % endfor
+
+      % if other_assets.number_gathered() == 0:
+      - None
+      % endif      
+      
+
+      
+  - note: |
+      ###Your court case 
+  - Edit: trial_court_division
+    button: |
+      **Court where you file this form:**
+      % if defined("trial_court_division"):
+      ${ trial_court_division } Division
+      % endif      
+      % if defined("trial_court.address.county"):
+      in ${ trial_court.address.county } County
+      % endif
+  - Edit: docket_number
+    button: |
+      **Case number**:
+      % if docket_number !='':
+      ${ docket_number }
+      % else:
+      Unknown
+      % endif
+
+  - Edit: signature_date
+    button: |
+      **Date of signature**:
+      ${ signature_date }
+
+     
+
   - note: |
       **Select Resume, below, when you are done. It will take a moment to generate your form again.**
 ---
@@ -1416,6 +1659,110 @@ edit:
 
 confirm: True
 ---
+continue button field: users.revisit
+question: |
+  Edit information about you
+subquestion: |
+  ${ users.table }
+
+  ${ users.add_action() }
+---
+table: users.table
+rows: users
+columns:
+  - Name: |
+      row_item.name.full() if defined("row_item.name.first") else ""
+  - Birthdate: |
+      row_item.birthdate if defined("row_item.birthdate") else ""
+  - Address: |
+      row_item.address.block() if defined("row_item.address.address") else ""
+  - Mailing address: |
+      row_item.mailing_address.block() if defined("row_item.mailing_address.address") else ""
+  - Home or cell number: |
+      row_item.phone_number if defined("row_item.phone_number") else ""
+  - Work or other phone: |
+      row_item.work_phone_number if defined("row_item.wprk_phone_number") else ""
+  - Email: |
+      row_item.email if defined("row_item.email") else ""
+edit:
+  - name.first
+  - address.address
+  - phone_number
+  - work_phone_number
+  - mailing_address.address
+  - email
+  - birthdate
+confirm: True
+---
+continue button field: household_others.revisit
+question: |
+  Edit, add or delete info about other household members
+subquestion: |
+  ${ household_others.table }
+
+  ${ household_others.add_action() }
+---
+table: household_others.table
+rows: household_others
+columns:
+  - Name: |
+      row_item.name.full() if defined("row_item.name.first") else ""
+  - Gets income: |
+      "Yes" if row_item.income.total(times_per_year=12) > 0 else "No"
+edit:
+  - name.first
+  - revisit
+  - income.revisit
+confirm: True
+---
+continue button field: household_others[i].income.revisit
+question: |
+  Edit info about the income of ${ household_others[i].name }
+subquestion: |
+  ${ household_others[i].income.table }
+
+  ${ household_others[i].income.add_action() }
+
+---
+generic object: ALPeopleList
+id: household_others income table
+table: household_others[i].income.table
+rows: household_others[i].income
+columns:
+  - Income per month: |
+      currency(row_item.total(times_per_year=12))
+  - Source: |
+      row_item.source if defined("row_item.source") else ""
+  - Employer name (if applicable): |
+      row_item.employer_name if defined("row_item.employer_name") else ""
+  - Employer address: |
+      row_item.employer_address_on_one_line if defined("row_item.employer_address_on_one_line") else ""
+edit:
+  - value
+  - employer_name
+  - employer_address
+confirm: True  
+---
+continue button field: expenses.revisit
+question: |
+  Edit expenses
+subquestion: |
+  ${ expenses_table }
+
+  ${ expenses.add_action() }
+---
+table: expenses_table
+rows: expenses
+columns:
+  - Type: |
+      row_item.display_name.lower()
+  - Amount per month: |
+      currency(row_item.total(times_per_year=12))
+edit:
+  - source
+  - value
+---
+
 ############################# SIGNATURE #############################
 ---
 id: User signature
@@ -1494,6 +1841,7 @@ objects:
   - small_claims_answer_Post_interview_instructions: ALDocument.using(title="NEXT STEPS - Instructions for filing these forms with the court", filename="small_claims_answer_next_steps.docx", enabled=True, has_addendum=False)
   - small_claims_answer_attachment: ALDocument.using(title="Small claims answer", filename="small_claims_answer", enabled=True, has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - disclosure_of_exempt_income_attachment: ALDocument.using(title="Disclosure of exempt income", filename="disclosure_of_exempt_income", has_addendum=False, )
+  - VT_financial_disclosure_attachment: ALDocument.using(title="Financial Disclosure form", filename="VT_financial_disclosure.pdf", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - VT_fee_waiver_attachment: ALDocument.using(title="Fee waiver form", filename="VT_fee_waiver.pdf", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 code: |
@@ -1507,15 +1855,24 @@ code: |
     disclosure_of_exempt_income_attachment.enabled = False
 ---
 code: |
-  if defined("counterclaims_amount") and counterclaims_amount > 0 and wants_to_fill_out_fee_waiver:
+  if defined("counterclaims_amount") and counterclaims_amount > 0 and wants_to_fill_out_fee_waiver_now:
     VT_fee_waiver_attachment.enabled = True
   else:
     VT_fee_waiver_attachment.enabled = False
 ---
+code: |
+  if wants_to_fill_out_financial_disclosure:
+    if wants_to_fill_out_financial_disclosure_when == "Now, with this tool":
+      VT_financial_disclosure_attachment.enabled = True
+    else:
+      VT_financial_disclosure_attachment.enabled = False
+  else:
+    VT_financial_disclosure_attachment.enabled = False
+---
 # Bundles group the ALDocuments into separate downloads, such as for court and for the user
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[small_claims_answer_Post_interview_instructions, small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment], filename="small_claims_answer", title="All forms to download", enabled=True)
-  - al_court_bundle: ALDocumentBundle.using(elements=[small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment],  filename="small_claims_answer", title="All forms to deliver to court", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[small_claims_answer_Post_interview_instructions, small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_financial_disclosure_attachment, VT_fee_waiver_attachment], filename="small_claims_answer", title="All forms to download", enabled=True)
+  - al_court_bundle: ALDocumentBundle.using(elements=[small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_financial_disclosure_attachment, VT_fee_waiver_attachment],  filename="small_claims_answer", title="All forms to deliver to court", enabled=True)
 ---
 # Each attachment defines a key in an ALDocument. We use `i` as the placeholder here so the same template is 
 # used for "preview" and "final" keys, and logic in the template checks the value of 
