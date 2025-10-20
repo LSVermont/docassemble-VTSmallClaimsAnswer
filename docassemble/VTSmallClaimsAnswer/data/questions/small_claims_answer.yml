@@ -1910,7 +1910,6 @@ attachment:
       - "docket_number": ${ docket_number }
       - "other_parties1_name": ${ other_parties.short_list(2) }
       - "users1_name": ${ users[0] }
-      - "users1_address_on_one_line": ${ users[0].address.on_one_line() }
       - "users1_phone_number": ${ users[0].phone_number }
       - "users1_work_phone_number": ${ users[0].work_phone_number }
       - "users1_email": ${ users[0].email }
@@ -1919,6 +1918,7 @@ attachment:
           ${ True }
           % endif
       - "agrees_to_pay_in_full": ${ payment["agrees_to_pay_in_full"] }
+      - "agrees_to_pay_full_amount_deadline": ${ today().plus(days=30) }
       - "agrees_to_pay_installments": ${ payment["agrees_to_pay_installments"] }
       - "agrees_to_pay_installments_amount": ${ currency(agrees_to_pay_installments_amount) }
       - "agrees_to_pay_installments_period": ${ agrees_to_pay_installments_period.lower() }
@@ -1948,6 +1948,9 @@ attachment:
           I have a counterclaim for ${ currency(counterclaims_amount)}. ${ small_claims_answer_attachment.safe_value("merged_counterclaims_text") } 
           % endif
       - "users1_name_1": ${ users[0] }
+      - "users1_mailing_address_address": ${ users[0].mailing_address.address }
+      - "users1_mailing_address_unit": ${ users[0].mailing_address.unit }
+      - "users1_mailing_address_city_state_zip": ${ users[0].mailing_address.line_two() }
       - "signature_date": ${ signature_date }
       - "users1_signature": ${ users[0].signature_if_final(i) }
 
