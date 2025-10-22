@@ -224,7 +224,8 @@ code: |
       wants_to_fill_out_fee_waiver_now = False
   
   set_progress(80)  
-  wants_to_fill_out_financial_disclosure
+  if wants_to_fill_out_financial_disclosure:
+    interview_order_financial_disclosure
 
   interview_order_VT_SC_COS
 
