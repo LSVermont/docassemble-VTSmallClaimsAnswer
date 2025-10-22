@@ -1171,7 +1171,8 @@ review:
       % endif
   - Edit: 
       - counterclaims
-      - wants_to_fill_out_fee_waiver_now
+      - recompute:
+        - interview_order_small_claims_answer
       - follow up:
         - counterclaims_amount
     button: |
@@ -1430,226 +1431,228 @@ review:
       ###Financial Disclosure Affidavit form
   - Edit: 
     - wants_to_fill_out_financial_disclosure
+    - recompute:
+      - interview_order_small_claims_answer
     button: |
       % if wants_to_fill_out_financial_disclosure:
         **You want to fill out a Financial Disclosure Affidavit form:** Yes
+
+      % if showifdef('wants_to_fill_out_financial_disclosure_when') == "Now, with this tool":
+      You are filling it out now with this tool.
+      % else:
+      You will fill it out later on your own.
+      % endif
+      
       % else:
         **You want to fill out a Financial Disclosure Affidavit form:** No
       % endif
 
-# TOBY EVERY USER CAN CHOOSE TO DO THE FINANCIAL DISCLOSURE FORM OR NOT. YOU CAN USE THIS REVIEW CODE WHEN YOU GET THE FINANCIAL DISCLOSURE FORM QUESTIONS WORKING
-#      % if wants_to_fill_out_financial_disclosure_when == "Now, with this tool":
-#      You are filling it out now with this tool.
-#      % else:
-#      You will fill it out later on your own.
-#      % endif
-#      
-####Financial Disclosure Affidavit form
-#      
-#      ###Income 
-#  - Edit: 
-#      - public_benefits.revisit
-#    button: |
-#      **Your public assistance**
-#      
-#      % if public_benefits.number_gathered() > 0:
-#      % for benefit in public_benefits:
-#      % if benefit.source == "other":
-#      * ${ benefit.display_name }
-#      % else:
-#      * ${ benefit.source }
-#      % endif
-#      % endfor
-#      
-#      % else:
-#      - None
-#      % endif
-#  - Edit: 
-#      - employed
-#    button: |
-#      **You are employed**
-#      
-#      - ${ word(yesno(employed)) }
-#
-#  - Edit: 
-#      - review_jobs
-#    button: |
-#      **Your jobs**
-#
-#      % if jobs.number_gathered() == 0:
-#      - None
-#      % else:
-#      Edit all details about your 
-#      % if jobs.number_gathered() == 1:
-#      job. Or add or delete a job.:
-#      
-#      % endif
-#      % if jobs.number_gathered() > 1:
-#      jobs. Or add or delete a job.
-#      
-#      % endif
-#      % for item in jobs:
-#      - ${ item.source }
-#      % endfor
-#      % endif
-#
-#  - Edit: 
-#      - jobs[0].source
-#      - jobs[0].is_self_employed
-#
-#    button: |
-#      % if jobs[0].is_self_employed:
-#      **Edit your employer name and address:** Self employed
-#      % else:
-#      **Edit your employer name and address:** ${ jobs[0].employer.name.first }
-#      % endif
-#      
-#  - Edit: 
-#      - jobs[1].source
-#      - jobs[1].is_self_employed
-#
-#    button: |
-#      % if jobs[1].is_self_employed:
-#      **Edit employer name and address:** Self employed
-#      % else:
-#      **Edit employer name and address:** ${ jobs[1].employer.name.first }
-#      % endif
-#
-#  - Edit: 
-#      - jobs[2].source
-#      - jobs[2].is_self_employed 
-#
-#    button: |
-#      % if jobs[2].is_self_employed:
-#      **Edit employer name and address:** Self employed
-#      % else:
-#      **Edit employer name and address:** ${ jobs[2].employer.name.first }
-#      % endif
-#
-#  - Edit: 
-#      - jobs[3].source
-#      - jobs[3].is_self_employed
-#
-#    button: |
-#      % if jobs[3].is_self_employed:
-#      **Edit employer name and address:** Self employed
-#      % else:
-#      **Edit employer name and address:** ${ jobs[3].employer.name.first }
-#      % endif
-#      
-#  - Edit: 
-#      - household_others.revisit
-#      - recompute:
-#        - household_size
-#      - follow up:
-#        - users1_income_very_different_30_days_amount
-#    button: |
-#      **Other household members**
-#      
-#      Edit, add or delete information about other household members and their income (if any)
-#      
-#      % for member in household_others:
-#      * ${ member.name }
-#      % endfor
-#
-#  - Edit: 
-#      - users1_income_very_different_30_days
-#      - follow up:
-#        - users1_income_very_different_30_days_amount
-#        - household_income_very_different_30_days_amount
-#        - users1_income_very_different_30_days_why
-#    button: |
-#      **Your income has been significantly different than usual in the last 30 days**: ${ word(yesno(users1_income_very_different_30_days)) }
-#
-#  - Edit: 
-#      - users1_income_very_different_30_days_amount
-#      - household_income_very_different_30_days_amount
-#      - users1_income_very_different_30_days_why
-#    button: |
-#      % if users1_income_very_different_30_days:
-#      **Details on different income**
-#
-#      Why the income has been very different:
-#      ${ single_paragraph(users1_income_very_different_30_days_why) }
-#
-#      Your current income during last 30 days:
-#      ${ currency(users1_income_very_different_30_days_amount) }
-#
-#      Other household members current income during last 30 days:
-#      ${ currency(household_income_very_different_30_days_amount) }
-#      % endif      
-#
-#
-#  - Edit: expenses.revisit
-#    button: |
-#      ###Expenses 
-#      
-#      **Expenses**:
-#
-#      % if expenses.number_gathered() == 0:
-#      - None
-#      % endif
-#      % for item in expenses:
-#      - ${ item.display_name.lower() }
-#      % endfor
-#
-#
-#  - note: |
-#      % if other_assets.number_gathered() > 0 or bank_assets.number_gathered() > 0 or real_estate.number_gathered() > 0 or vehicles.number_gathered() > 0:
-#      ###Assets 
-#      % endif
-#  - Edit: vehicles.revisit
-#    button: |
-#      **Vehicles**
-#      
-#      % for item in vehicles:
-#      * ${ item.make } ${ item.model } ${ item.year }          
-#      % endfor
-#      % if vehicles.number_gathered() == 0:
-#      - None
-#      % endif
-#  - Edit: 
-#      - real_estate.revisit
-#    button: |
-#      **Real estate**
-#
-#      % for item in real_estate.complete_elements():
-#      % if item.source == "primary residence":
-#      * primary residence
-#      % else:
-#      * ${ item.display_name.lower() }
-#      % endif
-#      % endfor
-#      % if real_estate.number_gathered() == 0:
-#      - None
-#      % endif
-#
-#  - Edit: bank_assets.revisit
-#    button: |
-#      **Bank accounts and cash**
-#      
-#      % for item in bank_assets:
-#      - ${ item.display_name.lower() }
-#      % endfor
-#      % if bank_assets.number_gathered() == 0:
-#      - None
-#      % endif   
-#      
-#  - Edit: other_assets.revisit
-#    button: |
-#      **Other assets**
-#
-#      % for item in other_assets.complete_elements():
-#        - ${ item.display_name.lower() }
-#      % endfor
-#
-#      % if other_assets.number_gathered() == 0:
-#      - None
-#      % endif      
+
+
       
+####Financial Disclosure Affidavit form
+      
+      ###Income 
+  - Edit: 
+      - public_benefits.revisit
+    button: |
+      **Your public assistance**
+      
+      % if public_benefits.number_gathered() > 0:
+      % for benefit in public_benefits:
+      % if benefit.source == "other":
+      * ${ benefit.display_name }
+      % else:
+      * ${ benefit.source }
+      % endif
+      % endfor
+      
+      % else:
+      - None
+      % endif
+  - Edit: 
+      - employed
+    button: |
+      **You are employed**
+      
+      - ${ word(yesno(employed)) }
+
+  - Edit: 
+      - review_jobs
+    button: |
+      **Your jobs**
+
+      % if jobs.number_gathered() == 0:
+      - None
+      % else:
+      Edit all details about your 
+      % if jobs.number_gathered() == 1:
+      job. Or add or delete a job.:
+      
+      % endif
+      % if jobs.number_gathered() > 1:
+      jobs. Or add or delete a job.
+      
+      % endif
+      % for item in jobs:
+      - ${ item.source }
+      % endfor
+      % endif
+
+  - Edit: 
+      - jobs[0].source
+      - jobs[0].is_self_employed
+
+    button: |
+      % if jobs[0].is_self_employed:
+      **Edit your employer name and address:** Self employed
+      % else:
+      **Edit your employer name and address:** ${ jobs[0].employer.name.first }
+      % endif
+      
+  - Edit: 
+      - jobs[1].source
+      - jobs[1].is_self_employed
+
+    button: |
+      % if jobs[1].is_self_employed:
+      **Edit employer name and address:** Self employed
+      % else:
+      **Edit employer name and address:** ${ jobs[1].employer.name.first }
+      % endif
+
+  - Edit: 
+      - jobs[2].source
+      - jobs[2].is_self_employed 
+
+    button: |
+      % if jobs[2].is_self_employed:
+      **Edit employer name and address:** Self employed
+      % else:
+      **Edit employer name and address:** ${ jobs[2].employer.name.first }
+      % endif
+
+  - Edit: 
+      - jobs[3].source
+      - jobs[3].is_self_employed
+
+    button: |
+      % if jobs[3].is_self_employed:
+      **Edit employer name and address:** Self employed
+      % else:
+      **Edit employer name and address:** ${ jobs[3].employer.name.first }
+      % endif
+      
+  - Edit: 
+      - household_others.revisit
+      - recompute:
+        - household_size
+      - follow up:
+        - users1_income_very_different_30_days_amount
+    button: |
+      **Other household members**
+      
+      Edit, add or delete information about other household members and their income (if any)
+      
+      % for member in household_others:
+      * ${ member.name }
+      % endfor
+
+  - Edit: 
+      - users1_income_very_different_30_days
+      - follow up:
+        - users1_income_very_different_30_days_amount
+        - household_income_very_different_30_days_amount
+        - users1_income_very_different_30_days_why
+    button: |
+      **Your income has been significantly different than usual in the last 30 days**: ${ word(yesno(users1_income_very_different_30_days)) }
+
+  - Edit: 
+      - users1_income_very_different_30_days_amount
+      - household_income_very_different_30_days_amount
+      - users1_income_very_different_30_days_why
+    button: |
+      % if users1_income_very_different_30_days:
+      **Details on different income**
+
+      Why the income has been very different:
+      ${ single_paragraph(users1_income_very_different_30_days_why) }
+
+      Your current income during last 30 days:
+      ${ currency(users1_income_very_different_30_days_amount) }
+
+      Other household members current income during last 30 days:
+      ${ currency(household_income_very_different_30_days_amount) }
+      % endif      
 
 
+  - Edit: expenses.revisit
+    button: |
+      ###Expenses 
+      
+      **Expenses**:
 
+      % if expenses.number_gathered() == 0:
+      - None
+      % endif
+      % for item in expenses:
+      - ${ item.display_name.lower() }
+      % endfor
+
+
+  - note: |
+      % if other_assets.number_gathered() > 0 or bank_assets.number_gathered() > 0 or real_estate.number_gathered() > 0 or vehicles.number_gathered() > 0:
+      ###Assets 
+      % endif
+  - Edit: vehicles.revisit
+    button: |
+      **Vehicles**
+      
+      % for item in vehicles:
+      * ${ item.make } ${ item.model } ${ item.year }          
+      % endfor
+      % if vehicles.number_gathered() == 0:
+      - None
+      % endif
+  - Edit: 
+      - real_estate.revisit
+    button: |
+      **Real estate**
+
+      % for item in real_estate.complete_elements():
+      % if item.source == "primary residence":
+      * primary residence
+      % else:
+      * ${ item.display_name.lower() }
+      % endif
+      % endfor
+      % if real_estate.number_gathered() == 0:
+      - None
+      % endif
+
+  - Edit: bank_assets.revisit
+    button: |
+      **Bank accounts and cash**
+      
+      % for item in bank_assets:
+      - ${ item.display_name.lower() }
+      % endfor
+      % if bank_assets.number_gathered() == 0:
+      - None
+      % endif   
+      
+  - Edit: other_assets.revisit
+    button: |
+      **Other assets**
+
+      % for item in other_assets.complete_elements():
+        - ${ item.display_name.lower() }
+      % endfor
+
+      % if other_assets.number_gathered() == 0:
+      - None
+      % endif      
+      
   - Edit: signature_date
     button: |
       **Date of your signature on the answer form**:
