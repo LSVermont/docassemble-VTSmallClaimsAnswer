@@ -221,10 +221,11 @@ code: |
         fee_waiver_done
     else:
       no_counterclaims
-      wants_to_fill_out_fee_waiver_now = False
   
   set_progress(80)  
-  wants_to_fill_out_financial_disclosure
+  if wants_to_fill_out_financial_disclosure:
+    interview_order_financial_disclosure
+    other_documents
 
   interview_order_VT_SC_COS
 
@@ -580,6 +581,18 @@ data: !!omap
   - other_reason: "I do not owe this money."
 ---
 id: disagrees with the complaint
+depends on:
+ - defenses['dont_owe']
+ - defenses['dont_know']
+ - defenses['already_paid']
+ - defenses['amount_doesnt_match']
+ - defenses['do_not_recognize']
+ - defenses['bankruptcy']
+ - defenses['llc_debt']
+ - defenses['not_orginal_creditor']
+ - defenses['long_time_since_debt']
+ - defenses['long_time_since_payment']
+ - defenses['other_reason']
 question: |
   Do you want to add any more details?
 subquestion: |
@@ -597,6 +610,18 @@ fields:
     required: false
     maxlength: 600
 ---
+depends on:
+ - defenses['dont_owe']
+ - defenses['dont_know']
+ - defenses['already_paid']
+ - defenses['amount_doesnt_match']
+ - defenses['do_not_recognize']
+ - defenses['bankruptcy']
+ - defenses['llc_debt']
+ - defenses['not_orginal_creditor']
+ - defenses['long_time_since_debt']
+ - defenses['long_time_since_payment']
+ - defenses['other_reason']
 id: agrees with the complaint
 question: |
   You agree with the complaint?
@@ -608,32 +633,18 @@ subquestion: |
   **When you agree with the complaint**: When you agree, the court may make a judgment saying that you owe the debt. Depending on your financial situation, you may have to pay the money back. You can ask the court for installment payments, but it is not certain that they will allow it.
   
   **I agree that I owe ${ other_parties.short_list(2) } the full amount claimed in the complaint and the court may enter a judgment against me.**
+
+  
 fields:
-  - no label: agrees_with_complaint
-    datatype: checkboxes
-    none of the above: False    
-    minlength: 1
-    choices:
-      - I agree.
-    validation messages:
-      minlength: |
-        Please check the box to move forward.
-  - note: |
-      Check the box if you agree. If you do **not** agree and want to revisit the list of defenses, tap the Undo button.
   - note: |
       If the court finds you need to pay the debt and enters a judgment against you, what do you plan to do?
       
-    show if: agrees_with_complaint  
   - "Check one of the following.": payment
-    datatype: checkboxes
+    datatype: radio
     choices:    
       - "I agree to pay the amount in full within 30 days. (If unpaid after 30 days, interest on the unpaid amount will accrue at 12% per year).": agrees_to_pay_in_full
       - "I cannot pay the full amount at one time. I'd like to ask the court for installment payments.": agrees_to_pay_installments
       - "I want to pay in a different way": agrees_to_pay_other
-    show if: agrees_with_complaint
-    none of the above: false
-    minlength: 1
-    maxlength: 1
   - "I can pay this amount": agrees_to_pay_installments_amount
     datatype: currency
     min: 0
@@ -937,7 +948,7 @@ code: |
     disclosure_of_exempt_income_attachment.enabled = False
 ---
 code: |
-  if defined("counterclaims_amount") and counterclaims_amount > 0 and wants_to_fill_out_fee_waiver_now:
+  if defined("counterclaims_amount") and counterclaims_amount > 0 and showifdef('wants_to_fill_out_fee_waiver_now'):
     VT_fee_waiver_attachment.enabled = True
   else:
     VT_fee_waiver_attachment.enabled = False
@@ -948,6 +959,11 @@ code: |
   else:
     financial_disclosure_attachment.enabled = False
 ---
+depends on: wants_to_fill_out_financial_disclosure
+code: |
+  other_documents = wants_to_fill_out_financial_disclosure
+  if wants_to_fill_out_financial_disclosure:
+    other_documents_describe = "Financial Disclosure Affidavit"
 ---
 id: preview small_claims_answer
 question: |
@@ -1088,6 +1104,10 @@ review:
       % endfor
   - Edit: 
       - sued_by_collection_agency
+      - invalidate:
+        - wants_to_fill_out_fee_waiver_now
+      - recompute:
+        - interview_order_small_claims_answer
     button: |
       **The plaintiff is a third-party debt collector**: 
       % if sued_by_collection_agency == True or sued_by_collection_agency == False:
@@ -1126,8 +1146,12 @@ review:
 
   - Edit: 
       - defenses
+      - invalidate:
+        - disagrees_additional_explanation
+        - get_merged_defenses
+        - agreeing_with_complaint_and_payments
       - recompute:
-        - merged_defenses_text
+        - interview_order_small_claims_answer
     button: |
       % if len(defenses.true_values()) > 0:
         **You do not agree with the complaint.**
@@ -1151,16 +1175,28 @@ review:
 
   - Edit:
       - wants_to_file_counterclaim
-      - wants_to_fill_out_fee_waiver_now
+      - invalidate:
+         - counterclaims_amount
+         - counterclaims_description
+      - recompute:
+        - interview_order_small_claims_answer
+    button: |
+      **You want to file a counterclaim**: ${ word(yesno(wants_to_file_counterclaim)) }     
+  - Edit: 
+      - counterclaims
       - follow up:
         - counterclaims_amount
     button: |
-      **You want to file a counterclaim**: ${ word(yesno(wants_to_file_counterclaim)) }
-
-      **You want to fill out a fee waiver form for your counterclaim**:   
-      ${ word(yesno(wants_to_fill_out_fee_waiver_now)) }  
-
+      % if len(counterclaims.true_values()) > 0:
+      **About your counterclaim**:
       
+      % for item in counterclaims.true_values():
+      - ${ counterclaims_terms[item] }
+      % endfor
+      
+      % else:
+      **You have a counterclaim against ${ other_parties.short_list(2) }**: No
+      % endif 
   - Edit:
       - counterclaims_amount
     button: |
@@ -1168,27 +1204,7 @@ review:
         **Amount you want to ask the court for in a counterclaim**:
         ${ currency(counterclaims_amount) }
       % endif
-  - Edit: 
-      - counterclaims
-      - wants_to_fill_out_fee_waiver_now
-      - follow up:
-        - counterclaims_amount
-    button: |
-      % if wants_to_file_counterclaim and len(counterclaims.true_values()) > 0:
-      **About your counterclaim**:
-      
-      % for item in counterclaims.true_values():
-      - ${ counterclaims_terms[item] }
-      % endfor
-      
-      **You want to fill out a fee waiver form for your counterclaim**:   
-      ${ word(yesno(wants_to_fill_out_fee_waiver_now)) }  
-      % else:
-      **You have a counterclaim against ${ other_parties.short_list(2) }**: No
-      % endif
 
-  - Edit: counterclaims_description
-    button: |
       % if wants_to_file_counterclaim and sued_by_collection_agency and counterclaims_amount > 0:
       **More details about your counterclaim**:
 
@@ -1198,8 +1214,16 @@ review:
       **Details about your counterclaim**:
 
       ${ single_paragraph(counterclaims_description) }
-      % endif
-      
+      % endif      
+  - Edit:
+      - wants_to_fill_out_fee_waiver_now
+      - recompute:
+        - interview_order_small_claims_answer
+    button: |
+      **You want to fill out a fee waiver form for your counterclaim**:   
+      ${ word(yesno(wants_to_fill_out_fee_waiver_now)) }  
+
+
 
       
   ####################### Exempt income review  #######################
@@ -1243,13 +1267,22 @@ review:
       ###Fee waiver for counterclaim
       % endif
       
+  - Edit:
+      - wants_to_fill_out_fee_waiver_now
+      - recompute:
+        - interview_order_small_claims_answer
+    button: |
+      **You want to fill out a fee waiver form for your counterclaim**:   
+      ${ word(yesno(wants_to_fill_out_fee_waiver_now)) }  
   - Edit: household_size
+    show if: wants_to_fill_out_fee_waiver_now
     button: |
       **Number of people in your household**:
       ${ household_size }
             
   - Edit: 
       - public_benefits.revisit
+    show if: wants_to_fill_out_fee_waiver_now
     button: |
       **Public assistance**
       
@@ -1267,6 +1300,7 @@ review:
       % endif
   - Edit: 
       - employed
+    show if: wants_to_fill_out_fee_waiver_now
     button: |
       **Employed**
       
@@ -1274,6 +1308,7 @@ review:
 
   - Edit: 
       - review_jobs
+    show if: wants_to_fill_out_fee_waiver_now
     button: |
       **Jobs**
 
@@ -1298,6 +1333,7 @@ review:
       - jobs[0].source
       - jobs[0].is_self_employed
 
+    show if: wants_to_fill_out_fee_waiver_now
     button: |
       % if jobs[0].is_self_employed:
       - Edit employer name and address: Self employed
@@ -1309,6 +1345,7 @@ review:
       - jobs[1].source
       - jobs[1].is_self_employed
 
+    show if: wants_to_fill_out_fee_waiver_now
     button: |
       % if jobs[1].is_self_employed:
       - Edit employer name and address: Self employed
@@ -1320,6 +1357,7 @@ review:
       - jobs[2].source
       - jobs[2].is_self_employed 
 
+    show if: wants_to_fill_out_fee_waiver_now
     button: |
       % if jobs[2].is_self_employed:
       - Edit employer name and address: Self employed
@@ -1331,6 +1369,7 @@ review:
       - jobs[3].source
       - jobs[3].is_self_employed
 
+    show if: wants_to_fill_out_fee_waiver_now
     button: |
       % if jobs[3].is_self_employed:
       - Edit employer name and address: Self employed
@@ -1340,6 +1379,7 @@ review:
       
   - Edit: 
       - other_incomes.revisit
+    show if: wants_to_fill_out_fee_waiver_now
     button: |
       **Other incomes**
 
@@ -1353,6 +1393,7 @@ review:
           
       
   - Edit: expenses.revisit
+    show if: wants_to_fill_out_fee_waiver_now
     button: |
       **Expenses**:
 
@@ -1364,6 +1405,7 @@ review:
       % endfor
 
   - Edit: vehicles.revisit
+    show if: wants_to_fill_out_fee_waiver_now
     button: |
       **Vehicles**
       
@@ -1375,6 +1417,7 @@ review:
       % endif
   - Edit: 
       - real_estate.revisit
+    show if: wants_to_fill_out_fee_waiver_now
     button: |
       **Real estate**
 
@@ -1390,6 +1433,7 @@ review:
       % endif
 
   - Edit: bank_assets.revisit
+    show if: wants_to_fill_out_fee_waiver_now
     button: |
       **Bank accounts and cash**
       
@@ -1401,6 +1445,7 @@ review:
       % endif   
       
   - Edit: other_assets.revisit
+    show if: wants_to_fill_out_fee_waiver_now
     button: |
       **Other assets**
 
@@ -1413,6 +1458,7 @@ review:
       % endif      
       
   - Edit: other_reasons_why_cannot_afford
+    show if: wants_to_fill_out_fee_waiver_now
     button: |
       **Other reason(s) you cannot afford the fees (optional question)**:
       
@@ -1429,226 +1475,236 @@ review:
       ###Financial Disclosure Affidavit form
   - Edit: 
     - wants_to_fill_out_financial_disclosure
+    - recompute:
+      - interview_order_small_claims_answer
     button: |
       % if wants_to_fill_out_financial_disclosure:
         **You want to fill out a Financial Disclosure Affidavit form:** Yes
+
+      % if showifdef('wants_to_fill_out_financial_disclosure_when') == "Now, with this tool":
+      You are filling it out now with this tool.
+      % else:
+      You will fill it out later on your own.
+      % endif
+      
       % else:
         **You want to fill out a Financial Disclosure Affidavit form:** No
       % endif
 
-# TOBY EVERY USER CAN CHOOSE TO DO THE FINANCIAL DISCLOSURE FORM OR NOT. YOU CAN USE THIS REVIEW CODE WHEN YOU GET THE FINANCIAL DISCLOSURE FORM QUESTIONS WORKING
-#      % if wants_to_fill_out_financial_disclosure_when == "Now, with this tool":
-#      You are filling it out now with this tool.
-#      % else:
-#      You will fill it out later on your own.
-#      % endif
-#      
-####Financial Disclosure Affidavit form
-#      
-#      ###Income 
-#  - Edit: 
-#      - public_benefits.revisit
-#    button: |
-#      **Your public assistance**
-#      
-#      % if public_benefits.number_gathered() > 0:
-#      % for benefit in public_benefits:
-#      % if benefit.source == "other":
-#      * ${ benefit.display_name }
-#      % else:
-#      * ${ benefit.source }
-#      % endif
-#      % endfor
-#      
-#      % else:
-#      - None
-#      % endif
-#  - Edit: 
-#      - employed
-#    button: |
-#      **You are employed**
-#      
-#      - ${ word(yesno(employed)) }
-#
-#  - Edit: 
-#      - review_jobs
-#    button: |
-#      **Your jobs**
-#
-#      % if jobs.number_gathered() == 0:
-#      - None
-#      % else:
-#      Edit all details about your 
-#      % if jobs.number_gathered() == 1:
-#      job. Or add or delete a job.:
-#      
-#      % endif
-#      % if jobs.number_gathered() > 1:
-#      jobs. Or add or delete a job.
-#      
-#      % endif
-#      % for item in jobs:
-#      - ${ item.source }
-#      % endfor
-#      % endif
-#
-#  - Edit: 
-#      - jobs[0].source
-#      - jobs[0].is_self_employed
-#
-#    button: |
-#      % if jobs[0].is_self_employed:
-#      **Edit your employer name and address:** Self employed
-#      % else:
-#      **Edit your employer name and address:** ${ jobs[0].employer.name.first }
-#      % endif
-#      
-#  - Edit: 
-#      - jobs[1].source
-#      - jobs[1].is_self_employed
-#
-#    button: |
-#      % if jobs[1].is_self_employed:
-#      **Edit employer name and address:** Self employed
-#      % else:
-#      **Edit employer name and address:** ${ jobs[1].employer.name.first }
-#      % endif
-#
-#  - Edit: 
-#      - jobs[2].source
-#      - jobs[2].is_self_employed 
-#
-#    button: |
-#      % if jobs[2].is_self_employed:
-#      **Edit employer name and address:** Self employed
-#      % else:
-#      **Edit employer name and address:** ${ jobs[2].employer.name.first }
-#      % endif
-#
-#  - Edit: 
-#      - jobs[3].source
-#      - jobs[3].is_self_employed
-#
-#    button: |
-#      % if jobs[3].is_self_employed:
-#      **Edit employer name and address:** Self employed
-#      % else:
-#      **Edit employer name and address:** ${ jobs[3].employer.name.first }
-#      % endif
-#      
-#  - Edit: 
-#      - household_others.revisit
-#      - recompute:
-#        - household_size
-#      - follow up:
-#        - users1_income_very_different_30_days_amount
-#    button: |
-#      **Other household members**
-#      
-#      Edit, add or delete information about other household members and their income (if any)
-#      
-#      % for member in household_others:
-#      * ${ member.name }
-#      % endfor
-#
-#  - Edit: 
-#      - users1_income_very_different_30_days
-#      - follow up:
-#        - users1_income_very_different_30_days_amount
-#        - household_income_very_different_30_days_amount
-#        - users1_income_very_different_30_days_why
-#    button: |
-#      **Your income has been significantly different than usual in the last 30 days**: ${ word(yesno(users1_income_very_different_30_days)) }
-#
-#  - Edit: 
-#      - users1_income_very_different_30_days_amount
-#      - household_income_very_different_30_days_amount
-#      - users1_income_very_different_30_days_why
-#    button: |
-#      % if users1_income_very_different_30_days:
-#      **Details on different income**
-#
-#      Why the income has been very different:
-#      ${ single_paragraph(users1_income_very_different_30_days_why) }
-#
-#      Your current income during last 30 days:
-#      ${ currency(users1_income_very_different_30_days_amount) }
-#
-#      Other household members current income during last 30 days:
-#      ${ currency(household_income_very_different_30_days_amount) }
-#      % endif      
-#
-#
-#  - Edit: expenses.revisit
-#    button: |
-#      ###Expenses 
-#      
-#      **Expenses**:
-#
-#      % if expenses.number_gathered() == 0:
-#      - None
-#      % endif
-#      % for item in expenses:
-#      - ${ item.display_name.lower() }
-#      % endfor
-#
-#
-#  - note: |
-#      % if other_assets.number_gathered() > 0 or bank_assets.number_gathered() > 0 or real_estate.number_gathered() > 0 or vehicles.number_gathered() > 0:
-#      ###Assets 
-#      % endif
-#  - Edit: vehicles.revisit
-#    button: |
-#      **Vehicles**
-#      
-#      % for item in vehicles:
-#      * ${ item.make } ${ item.model } ${ item.year }          
-#      % endfor
-#      % if vehicles.number_gathered() == 0:
-#      - None
-#      % endif
-#  - Edit: 
-#      - real_estate.revisit
-#    button: |
-#      **Real estate**
-#
-#      % for item in real_estate.complete_elements():
-#      % if item.source == "primary residence":
-#      * primary residence
-#      % else:
-#      * ${ item.display_name.lower() }
-#      % endif
-#      % endfor
-#      % if real_estate.number_gathered() == 0:
-#      - None
-#      % endif
-#
-#  - Edit: bank_assets.revisit
-#    button: |
-#      **Bank accounts and cash**
-#      
-#      % for item in bank_assets:
-#      - ${ item.display_name.lower() }
-#      % endfor
-#      % if bank_assets.number_gathered() == 0:
-#      - None
-#      % endif   
-#      
-#  - Edit: other_assets.revisit
-#    button: |
-#      **Other assets**
-#
-#      % for item in other_assets.complete_elements():
-#        - ${ item.display_name.lower() }
-#      % endfor
-#
-#      % if other_assets.number_gathered() == 0:
-#      - None
-#      % endif      
+
+
       
+####Financial Disclosure Affidavit form
+      
+      ###Income 
+  - Edit: 
+      - public_benefits.revisit
+    show if: wants_to_fill_out_financial_disclosure
+    button: |
+      **Your public assistance**
+      
+      % if public_benefits.number_gathered() > 0:
+      % for benefit in public_benefits:
+      % if benefit.source == "other":
+      * ${ benefit.display_name }
+      % else:
+      * ${ benefit.source }
+      % endif
+      % endfor
+      
+      % else:
+      - None
+      % endif
+  - Edit: 
+      - employed
+      - invalidate:
+        - jobs
+      - recompute:
+        - jobs_regather
+    show if: wants_to_fill_out_financial_disclosure
+    button: |
+      **You are employed**
+      
+      - ${ word(yesno(employed)) }
+
+  - Edit: 
+      - review_jobs
+    show if: wants_to_fill_out_financial_disclosure
+    button: |
+      **Your jobs**
+
+      % if jobs.number_gathered() == 0:
+      - None
+      % else:
+      Edit all details about your 
+      % if jobs.number_gathered() == 1:
+      job. Or add or delete a job.:
+      
+      % endif
+      % if jobs.number_gathered() > 1:
+      jobs. Or add or delete a job.
+      
+      % endif
+      % for item in jobs:
+      - ${ item.source }
+      % endfor
+      % endif
+
+  - Edit: 
+      - jobs[0].source
+      - jobs[0].is_self_employed
+    show if: wants_to_fill_out_financial_disclosure
+    button: |
+      % if jobs[0].is_self_employed:
+      **Edit your employer name and address:** Self employed
+      % else:
+      **Edit your employer name and address:** ${ jobs[0].employer.name.first }
+      % endif
+      
+  - Edit: 
+      - jobs[1].source
+      - jobs[1].is_self_employed
+    show if: wants_to_fill_out_financial_disclosure
+    button: |
+      % if jobs[1].is_self_employed:
+      **Edit employer name and address:** Self employed
+      % else:
+      **Edit employer name and address:** ${ jobs[1].employer.name.first }
+      % endif
+
+  - Edit: 
+      - jobs[2].source
+      - jobs[2].is_self_employed 
+    show if: wants_to_fill_out_financial_disclosure
+    button: |
+      % if jobs[2].is_self_employed:
+      **Edit employer name and address:** Self employed
+      % else:
+      **Edit employer name and address:** ${ jobs[2].employer.name.first }
+      % endif
+
+  - Edit: 
+      - jobs[3].source
+      - jobs[3].is_self_employed
+    show if: wants_to_fill_out_financial_disclosure
+    button: |
+      % if jobs[3].is_self_employed:
+      **Edit employer name and address:** Self employed
+      % else:
+      **Edit employer name and address:** ${ jobs[3].employer.name.first }
+      % endif
+      
+  - Edit: 
+      - household_others.revisit
+      - recompute:
+        - household_size
+      - follow up:
+        - users1_income_very_different_30_days_amount
+    show if: wants_to_fill_out_financial_disclosure
+    button: |
+      **Other household members**
+      
+      Edit, add or delete information about other household members and their income (if any)
+      
+      % for member in household_others:
+      * ${ member.name }
+      % endfor
+
+  - Edit: 
+      - users1_income_very_different_30_days
+    show if: wants_to_fill_out_financial_disclosure
+    button: |
+      **Your income has been significantly different than usual in the last 30 days**: ${ word(yesno(users1_income_very_different_30_days)) }
+
+      % if users1_income_very_different_30_days:
+      **Details on different income**
+
+      Why the income has been very different:
+      ${ single_paragraph(users1_income_very_different_30_days_why) }
+
+      Your current income during last 30 days:
+      ${ currency(users1_income_very_different_30_days_amount) }
+
+      Other household members current income during last 30 days:
+      ${ currency(household_income_very_different_30_days_amount) }
+      % endif      
 
 
+  - Edit: expenses.revisit
+    show if: wants_to_fill_out_financial_disclosure
+    button: |
+      ###Expenses 
+      
+      **Expenses**:
 
+      % if expenses.number_gathered() == 0:
+      - None
+      % endif
+      % for item in expenses:
+      - ${ item.display_name.lower() }
+      % endfor
+
+
+  - note: |
+      % if other_assets.number_gathered() > 0 or bank_assets.number_gathered() > 0 or real_estate.number_gathered() > 0 or vehicles.number_gathered() > 0:
+      ###Assets 
+      % endif
+    show if: wants_to_fill_out_financial_disclosure
+  - Edit: vehicles.revisit
+    show if: wants_to_fill_out_financial_disclosure
+    button: |
+      **Vehicles**
+      
+      % for item in vehicles:
+      * ${ item.make } ${ item.model } ${ item.year }          
+      % endfor
+      % if vehicles.number_gathered() == 0:
+      - None
+      % endif
+  - Edit: 
+      - real_estate.revisit
+    show if: wants_to_fill_out_financial_disclosure
+    button: |
+      **Real estate**
+
+      % for item in real_estate.complete_elements():
+      % if item.source == "primary residence":
+      * primary residence
+      % else:
+      * ${ item.display_name.lower() }
+      % endif
+      % endfor
+      % if real_estate.number_gathered() == 0:
+      - None
+      % endif
+
+  - Edit: bank_assets.revisit
+    show if: wants_to_fill_out_financial_disclosure
+    button: |
+      **Bank accounts and cash**
+      
+      % for item in bank_assets:
+      - ${ item.display_name.lower() }
+      % endfor
+      % if bank_assets.number_gathered() == 0:
+      - None
+      % endif   
+      
+  - Edit: other_assets.revisit
+    show if: wants_to_fill_out_financial_disclosure
+    button: |
+      **Other assets**
+
+      % for item in other_assets.complete_elements():
+        - ${ item.display_name.lower() }
+      % endfor
+
+      % if other_assets.number_gathered() == 0:
+      - None
+      % endif      
+
+  - note: |
+      ### Signature ###
   - Edit: signature_date
     button: |
       **Date of your signature on the answer form**:
@@ -1659,7 +1715,9 @@ review:
   - note: |
       **Select Resume, below, when you are done. It will take a moment to generate your form again.**
 ---
-
+code: |
+  jobs.gather()
+  jobs_regather = True
 
 ---
 continue button field: other_parties.revisit
@@ -1942,19 +2000,19 @@ attachment:
       - "users1_work_phone_number": ${ users[0].work_phone_number }
       - "users1_email": ${ users[0].email }
       - "agrees_with_complaint": |
-          % if agrees_with_complaint:
+          % if defenses.all_false():
           ${ True }
           % endif
-      - "agrees_to_pay_in_full": ${ payment["agrees_to_pay_in_full"] }
+      - "agrees_to_pay_in_full": ${ payment == "agrees_to_pay_in_full" }
       - "agrees_to_pay_full_amount_deadline": |
-          % if agrees_to_pay_in_full:
+          % if payment == "agrees_to_pay_in_full":
           ${ format_date(today().plus(days=30), format='M/d/yyyy') }
           % endif
-      - "agrees_to_pay_installments": ${ payment["agrees_to_pay_installments"] }
+      - "agrees_to_pay_installments": ${ payment == "agrees_to_pay_installments" }
       - "agrees_to_pay_installments_amount": ${ currency(agrees_to_pay_installments_amount) }
       - "agrees_to_pay_installments_period": ${ agrees_to_pay_installments_period.lower() }
       - "agrees_to_pay_installments_start_date": ${ agrees_to_pay_installments_start_date.format() }
-      - "agrees_to_pay_other": ${ payment["agrees_to_pay_other"] }
+      - "agrees_to_pay_other": ${ payment== "agrees_to_pay_other" }
       - "agrees_to_pay_other_description": ${ agrees_to_pay_other_description }
       - "disagrees_with_complaint": |
           % if len(defenses.true_values()) > 0:
