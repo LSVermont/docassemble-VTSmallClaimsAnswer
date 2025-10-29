@@ -10,11 +10,11 @@ version = "1.0"
 description = "Small claims answer"
 readme = "README.md"
 dependencies = [
-    "docassemble.AssemblyLine @ git+https://github.com/suffolklitlab/docassemble-AssemblyLine.git@main",
-    "docassemble.GithubFeedbackForm>=0.5.6",
+    "docassemble.AssemblyLine @ git+https://github.com/SuffolkLITLab/docassemble-AssemblyLine.git@main",
+    "docassemble.GithubFeedbackForm @ git+https://github.com/SuffolkLITLab/docassemble-GithubFeedbackForm.git@main",
     "docassemble.VTDisclosureOfExemptIncome @ git+https://github.com/LSVermont/docassemble-VTDisclosureOfExemptIncome.git@main",
-    "docassemble.VTFeeWaiverWithIncludeYMLFile @ git+https://github.com/LSVermont/docassemble-VTFeeWaiverWithIncludeYMLFile.git@main",
-    "docassemble.VTFeedback @ git+https://github.com/LSVermont/docassemble-VTFeedback.git@main",
+    "docassemble.VTFeeWaiverWithIncludeYMLFile @ git+https://github.com/VTskier/docassemble-VTFeeWaiverWithIncludeYMLFile.git@main",
+    "docassemble.VTFeedback @ git+https://github.com/VTskier/docassemble-VTFeedback.git@main",
     "docassemble.VTSharedYMLFile @ git+https://github.com/LSVermont/docassemble-VTSharedYMLFile.git@main",
     "docassemble.VTSmallClaimsCertificateOfService @ git+https://github.com/LSVermont/docassemble-VTSmallClaimsCertificateOfService.git@main",
 ]

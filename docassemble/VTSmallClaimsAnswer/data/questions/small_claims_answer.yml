@@ -221,7 +221,7 @@ code: |
     interview_order_financial_disclosure
     other_documents
 
-  if (sued_by_collection_agency and len(counterclaims.true_values()) != 0) or (not sued_by_collection_agency and wants_to_fill_out_fee_waiver_now):
+  if (sued_by_collection_agency and len(counterclaims.true_values()) != 0 and wants_to_fill_out_fee_waiver_now) or (not sued_by_collection_agency and wants_to_fill_out_fee_waiver_now):
     interview_order_VT_fee_waiver
     fee_waiver_done
 
@@ -1265,13 +1265,7 @@ review:
 
       ${ single_paragraph(counterclaims_description) }
       % endif      
-  - Edit:
-      - wants_to_fill_out_fee_waiver_now
-      - recompute:
-        - interview_order_small_claims_answer
-    button: |
-      **You want to fill out a fee waiver form for your counterclaim**:   
-      ${ word(yesno(wants_to_fill_out_fee_waiver_now)) }  
+
 
 
 
@@ -1529,7 +1523,7 @@ review:
       - interview_order_small_claims_answer
     button: |
       % if wants_to_fill_out_financial_disclosure:
-        **You want to fill out a Financial Disclosure Affidavit form:** Yes
+        **You want to fill out a Financial Disclosure Affidavit form:** Yes.
       % if showifdef('wants_to_fill_out_financial_disclosure_when'):
       You are filling it out now with this tool.
       % else:
@@ -2006,7 +2000,7 @@ objects:
 objects:
   - al_preview_bundle: ALDocumentBundle.using(elements=[small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment, VT_small_claims_certificate_of_service_attachment,financial_disclosure_attachment], filename="small_claims_answer", title="Preview", enabled=True)
   - al_user_bundle: ALDocumentBundle.using(elements=[small_claims_answer_Post_interview_instructions, small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment, financial_disclosure_attachment, VT_small_claims_certificate_of_service_attachment], filename="small_claims_answer", title="All forms to download", enabled=True)
-  - al_court_bundle: ALDocumentBundle.using(elements=[financial_disclosure_attachment, small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment],  filename="small_claims_answer", title="All forms to deliver to court", enabled=True)
+  - al_court_bundle: ALDocumentBundle.using(elements=[small_claims_answer_attachment, disclosure_of_exempt_income_attachment, financial_disclosure_attachment, VT_fee_waiver_attachment],  filename="small_claims_answer", title="All forms to deliver to court", enabled=True)
 ---
 # Each attachment defines a key in an ALDocument. We use `i` as the placeholder here so the same template is 
 # used for "preview" and "final" keys, and logic in the template checks the value of 
