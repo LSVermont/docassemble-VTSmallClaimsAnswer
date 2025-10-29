@@ -210,22 +210,20 @@ code: |
     else:
       get_merged_counterclaims
       counterclaims_amount
-      if wants_to_fill_out_fee_waiver_now:
-        interview_order_VT_fee_waiver
-        fee_waiver_done
   else:
     if wants_to_file_counterclaim:
       counterclaims_amount
-      if wants_to_fill_out_fee_waiver_now:
-        interview_order_VT_fee_waiver
-        fee_waiver_done
     else:
       no_counterclaims
   
   set_progress(80)  
-  if wants_to_fill_out_financial_disclosure:
+  if wants_to_fill_out_financial_disclosure and wants_to_fill_out_financial_disclosure_when:
     interview_order_financial_disclosure
     other_documents
+
+  if (sued_by_collection_agency and len(counterclaims.true_values()) != 0) or (not sued_by_collection_agency and wants_to_fill_out_fee_waiver_now):
+    interview_order_VT_fee_waiver
+    fee_waiver_done
 
   interview_order_VT_SC_COS
 
@@ -846,29 +844,84 @@ fields:
   - no label: wants_to_fill_out_financial_disclosure
     datatype: yesnoradio
   - note: |
-      <i class="fas fa-circle-info fa"></i>  On the final download screen you will be able to download this form to fill out on your own.
+      ${ after_last_question_we_will_generate_your_forms }
+  - note: |
+      Do you want to do that now with this tool? Or later on your own?
+    js show if: |
+      val("wants_to_fill_out_financial_disclosure") == true
+  - no label: wants_to_fill_out_financial_disclosure_when
+    input type: radio
+    label above field: True
+    choices:
+      - Now, with this tool: True
+      - Later, on my own: False
     js show if: |
       val("wants_to_fill_out_financial_disclosure") == true
   - note: |
-      ${ after_last_question_we_will_generate_your_forms }
+      If you say "now", consider making an account to save your work. This is because there are quite a few questions to answer on the Financial Disclosure Affidavit form. You might want to start it and come back to finish it.
+    js show if: |
+      val("wants_to_fill_out_financial_disclosure") == true
+---
+# Job info to make sure to use the right complete block and review table are use, depending on whether the financial disclosure is being completed
+code: |
+  if len(public_benefits) == 0:
+    jobs[i].source
+    jobs[i].wages_added
+    jobs[i].to_add.gather()
+  if jobs[i].is_self_employed:
+    jobs[i].times_per_year
+    # for fee waiver form we are not collecting items to subtract from wages
+    # x.to_subtract.gather()
+  else:
+    if not jobs[i].is_self_employed:
+      jobs[i].employer.name.first    
+  jobs[i].complete = True
+---
+if: wants_to_fill_out_financial_disclosure and wants_to_fill_out_financial_disclosure_when
+code: |
+  jobs[i].source
+  jobs[i].wages_added
+  jobs[i].to_add.gather()
+  if jobs[i].is_self_employed:
+    jobs[i].times_per_year
+    # for fee waiver form we are not collecting items to subtract from wages
+    # jobs[i].to_subtract.gather()
+  else:
+    if not jobs[i].is_self_employed:
+      jobs[i].employer.name.first    
+  jobs[i].complete = True
+---
 
-# TOBY HERE ARE SOME QUESTIONS TO INCLUDE WHEN YOU GET FINANCIAL DISCLOSURE WORKING, AND YOU CAN GET RID OF THE NOTE: ON THE FINAL DOWNLOAD SCREEN.....
-#  - note: |
-#      Do you want to do that now with this tool? Or later on your own?
-#    js show if: |
-#      val("wants_to_fill_out_financial_disclosure") == true
-#  - no label: wants_to_fill_out_financial_disclosure_when
-#    input type: radio
-#    label above field: True
-#    choices:
-#    - Now, with this tool
-#    - Later, on my own
-#    js show if: |
-#      val("wants_to_fill_out_financial_disclosure") == true
-#  - note: |
-#      If you say "now", consider making an account to save your work. This is because there are quite a few questions to answer on the Financial Disclosure Affidavit form. You might want to start it and come back to finish it.
-#    js show if: |
-#      val("wants_to_fill_out_financial_disclosure") == true
+table: jobs_table
+rows: jobs
+columns:
+  - Job: |
+      row_item.source
+  - Employer: |
+      row_item.employer.name.first if defined("row_item.employer.name.first") else "Self"
+  - Monthly gross income: |
+      currency(row_item.gross_total(times_per_year=12)) if len(public_benefits) == 0 else "Not needed"
+
+edit:
+  - revisit
+
+confirm: True
+---
+if: wants_to_fill_out_financial_disclosure and wants_to_fill_out_financial_disclosure_when
+table: jobs_table
+rows: jobs
+columns:
+  - Job: |
+      row_item.source
+  - Employer: |
+      row_item.employer.name.first if defined("row_item.employer.name.first") else "Self"
+  - Monthly gross income: |
+      currency(row_item.gross_total(times_per_year=12)) if defined("row_item.gross_total") else "$0"
+edit:
+  - revisit
+
+confirm: True
+---
 ---
 id: want to fill out fee waiver
 question: |
@@ -954,15 +1007,17 @@ code: |
     VT_fee_waiver_attachment.enabled = False
 ---
 code: |
-  if wants_to_fill_out_financial_disclosure:
+  if wants_to_fill_out_financial_disclosure and wants_to_fill_out_financial_disclosure_when:
     financial_disclosure_attachment.enabled = True
   else:
     financial_disclosure_attachment.enabled = False
 ---
-depends on: wants_to_fill_out_financial_disclosure
+depends on: 
+  - wants_to_fill_out_financial_disclosure
+  - wants_to_fill_out_financial_disclosure_when
 code: |
-  other_documents = wants_to_fill_out_financial_disclosure
-  if wants_to_fill_out_financial_disclosure:
+  if wants_to_fill_out_financial_disclosure and wants_to_fill_out_financial_disclosure_when:
+    other_documents = True
     other_documents_describe = "Financial Disclosure Affidavit"
 ---
 id: preview small_claims_answer
@@ -1475,13 +1530,11 @@ review:
     button: |
       % if wants_to_fill_out_financial_disclosure:
         **You want to fill out a Financial Disclosure Affidavit form:** Yes
-
-      % if showifdef('wants_to_fill_out_financial_disclosure_when') == "Now, with this tool":
+      % if showifdef('wants_to_fill_out_financial_disclosure_when'):
       You are filling it out now with this tool.
       % else:
       You will fill it out later on your own.
-      % endif
-      
+      % endif      
       % else:
         **You want to fill out a Financial Disclosure Affidavit form:** No
       % endif
@@ -1494,7 +1547,7 @@ review:
       ###Income 
   - Edit: 
       - public_benefits.revisit
-    show if: wants_to_fill_out_financial_disclosure
+    show if: wants_to_fill_out_financial_disclosure_when
     button: |
       **Your public assistance**
       
@@ -1516,7 +1569,7 @@ review:
         - jobs
       - recompute:
         - jobs_regather
-    show if: wants_to_fill_out_financial_disclosure
+    show if: wants_to_fill_out_financial_disclosure_when
     button: |
       **You are employed**
       
@@ -1524,7 +1577,7 @@ review:
 
   - Edit: 
       - review_jobs
-    show if: wants_to_fill_out_financial_disclosure
+    show if: wants_to_fill_out_financial_disclosure_when
     button: |
       **Your jobs**
 
@@ -1548,7 +1601,7 @@ review:
   - Edit: 
       - jobs[0].source
       - jobs[0].is_self_employed
-    show if: wants_to_fill_out_financial_disclosure
+    show if: wants_to_fill_out_financial_disclosure_when
     button: |
       % if jobs[0].is_self_employed:
       **Edit your employer name and address:** Self employed
@@ -1559,7 +1612,7 @@ review:
   - Edit: 
       - jobs[1].source
       - jobs[1].is_self_employed
-    show if: wants_to_fill_out_financial_disclosure
+    show if: wants_to_fill_out_financial_disclosure_when
     button: |
       % if jobs[1].is_self_employed:
       **Edit employer name and address:** Self employed
@@ -1570,7 +1623,7 @@ review:
   - Edit: 
       - jobs[2].source
       - jobs[2].is_self_employed 
-    show if: wants_to_fill_out_financial_disclosure
+    show if: wants_to_fill_out_financial_disclosure_when
     button: |
       % if jobs[2].is_self_employed:
       **Edit employer name and address:** Self employed
@@ -1581,7 +1634,7 @@ review:
   - Edit: 
       - jobs[3].source
       - jobs[3].is_self_employed
-    show if: wants_to_fill_out_financial_disclosure
+    show if: wants_to_fill_out_financial_disclosure_when
     button: |
       % if jobs[3].is_self_employed:
       **Edit employer name and address:** Self employed
@@ -1595,7 +1648,7 @@ review:
         - household_size
       - follow up:
         - users1_income_very_different_30_days_amount
-    show if: wants_to_fill_out_financial_disclosure
+    show if: wants_to_fill_out_financial_disclosure_when
     button: |
       **Other household members**
       
@@ -1607,7 +1660,7 @@ review:
 
   - Edit: 
       - users1_income_very_different_30_days
-    show if: wants_to_fill_out_financial_disclosure
+    show if: wants_to_fill_out_financial_disclosure_when
     button: |
       **Your income has been significantly different than usual in the last 30 days**: ${ word(yesno(users1_income_very_different_30_days)) }
 
@@ -1626,7 +1679,7 @@ review:
 
 
   - Edit: expenses.revisit
-    show if: wants_to_fill_out_financial_disclosure
+    show if: wants_to_fill_out_financial_disclosure_when
     button: |
       ###Expenses 
       
@@ -1644,9 +1697,9 @@ review:
       % if other_assets.number_gathered() > 0 or bank_assets.number_gathered() > 0 or real_estate.number_gathered() > 0 or vehicles.number_gathered() > 0:
       ###Assets 
       % endif
-    show if: wants_to_fill_out_financial_disclosure
+    show if: wants_to_fill_out_financial_disclosure_when
   - Edit: vehicles.revisit
-    show if: wants_to_fill_out_financial_disclosure
+    show if: wants_to_fill_out_financial_disclosure_when
     button: |
       **Vehicles**
       
@@ -1658,7 +1711,7 @@ review:
       % endif
   - Edit: 
       - real_estate.revisit
-    show if: wants_to_fill_out_financial_disclosure
+    show if: wants_to_fill_out_financial_disclosure_when
     button: |
       **Real estate**
 
@@ -1674,7 +1727,7 @@ review:
       % endif
 
   - Edit: bank_assets.revisit
-    show if: wants_to_fill_out_financial_disclosure
+    show if: wants_to_fill_out_financial_disclosure_when
     button: |
       **Bank accounts and cash**
       
@@ -1686,7 +1739,7 @@ review:
       % endif   
       
   - Edit: other_assets.revisit
-    show if: wants_to_fill_out_financial_disclosure
+    show if: wants_to_fill_out_financial_disclosure_when
     button: |
       **Other assets**
 
