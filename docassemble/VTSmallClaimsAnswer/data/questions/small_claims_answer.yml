@@ -1172,6 +1172,7 @@ review:
       - invalidate:
          - counterclaims_amount
          - counterclaims_description
+         - wants_to_fill_out_fee_waiver_now
       - recompute:
         - interview_order_small_claims_answer
     button: |
