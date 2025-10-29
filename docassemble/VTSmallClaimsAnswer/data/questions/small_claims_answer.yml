@@ -1239,6 +1239,8 @@ review:
     button: |
       % if len(counterclaims.true_values()) > 0:
       **About your counterclaim**:
+
+      - ${ currency(counterclaims_amount) }
       
       % for item in counterclaims.true_values():
       - ${ counterclaims_terms[item] }
@@ -1687,14 +1689,11 @@ review:
       % endfor
 
 
-  - note: |
-      % if other_assets.number_gathered() > 0 or bank_assets.number_gathered() > 0 or real_estate.number_gathered() > 0 or vehicles.number_gathered() > 0:
-      ###Assets 
-      % endif
-    show if: wants_to_fill_out_financial_disclosure_when
   - Edit: vehicles.revisit
     show if: wants_to_fill_out_financial_disclosure_when
     button: |
+      ###Assets 
+      
       **Vehicles**
       
       % for item in vehicles:
