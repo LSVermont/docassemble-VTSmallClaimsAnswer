@@ -971,14 +971,8 @@ question: |
 subquestion: |
   Here is a preview of the form(s) you will sign on the next page.   
   
-
-  % if financial_disclosure_attachment.enabled == True:
-  ${ al_preview_bundle.as_pdf(key='preview') }
-  % else:
   ${ al_court_bundle.as_pdf(key='preview') }
   
-  % endif
-
   Click the image to open it in a new tab. Click the "Edit answers" button
   to edit your answers.
 
@@ -1956,7 +1950,7 @@ objects:
 
 # Bundles group the ALDocuments into separate downloads, such as for court and for the user
 objects:
-  - al_preview_bundle: ALDocumentBundle.using(elements=[small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment, VT_small_claims_certificate_of_service_attachment], filename="small_claims_answer", title="Preview", enabled=True)
+  - al_preview_bundle: ALDocumentBundle.using(elements=[small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment, VT_small_claims_certificate_of_service_attachment,financial_disclosure_attachment], filename="small_claims_answer", title="Preview", enabled=True)
   - al_user_bundle: ALDocumentBundle.using(elements=[small_claims_answer_Post_interview_instructions, small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment, financial_disclosure_attachment, VT_small_claims_certificate_of_service_attachment], filename="small_claims_answer", title="All forms to download", enabled=True)
   - al_court_bundle: ALDocumentBundle.using(elements=[financial_disclosure_attachment, small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment],  filename="small_claims_answer", title="All forms to deliver to court", enabled=True)
 ---
