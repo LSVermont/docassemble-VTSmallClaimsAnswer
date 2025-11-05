@@ -687,9 +687,9 @@ fields:
       - "the Vermont Department for Children and Families (DCF)": DCF
       - "the Department of Vermont Health Access (DVHA)": DVHA
   - note: |
-      Examples of DCF benefits include 3SquaresVT (food), Reach Up, General Assistance, Emergency Housing, Energy Assistance, Fuel Assistance and other programs as seen on this web page: [https://dcf.vermont.gov/benefits](https://dcf.vermont.gov/benefits).
+      - Examples of DCF benefits include 3SquaresVT (food), Reach Up, General Assistance, Emergency Housing, Energy Assistance, Fuel Assistance and other programs as seen on this web page: [https://dcf.vermont.gov/benefits](https://dcf.vermont.gov/benefits).
 
-      Examples of DVHA benefits include Medicaid and Dr. Dynasaur.
+      - Examples of DVHA benefits include Medicaid and Dr. Dynasaur.
   - note: |
       I have income from these exempt sources:
   - no label: has_exempt_income_other
@@ -843,8 +843,6 @@ fields:
       Do you want to answer questions about your expenses and income and submit a Financial Disclosure Affidavit form?
   - no label: wants_to_fill_out_financial_disclosure
     datatype: yesnoradio
-  - note: |
-      ${ after_last_question_we_will_generate_your_forms }
   - note: |
       Do you want to do that now with this tool? Or later on your own?
     js show if: |
@@ -1997,8 +1995,7 @@ objects:
 
 # Bundles group the ALDocuments into separate downloads, such as for court and for the user
 objects:
-  - al_preview_bundle: ALDocumentBundle.using(elements=[small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment, VT_small_claims_certificate_of_service_attachment,financial_disclosure_attachment], filename="small_claims_answer", title="Preview", enabled=True)
-  - al_user_bundle: ALDocumentBundle.using(elements=[small_claims_answer_Post_interview_instructions, small_claims_answer_attachment, disclosure_of_exempt_income_attachment, VT_fee_waiver_attachment, financial_disclosure_attachment, VT_small_claims_certificate_of_service_attachment], filename="small_claims_answer", title="All forms to download", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[small_claims_answer_Post_interview_instructions, small_claims_answer_attachment, disclosure_of_exempt_income_attachment, financial_disclosure_attachment, VT_fee_waiver_attachment, VT_small_claims_certificate_of_service_attachment], filename="small_claims_answer", title="All forms to download", enabled=True)
   - al_court_bundle: ALDocumentBundle.using(elements=[small_claims_answer_attachment, disclosure_of_exempt_income_attachment, financial_disclosure_attachment, VT_fee_waiver_attachment],  filename="small_claims_answer", title="All forms to deliver to court", enabled=True)
 ---
 # Each attachment defines a key in an ALDocument. We use `i` as the placeholder here so the same template is 
