@@ -133,8 +133,24 @@ subquestion: |
   Remember to come back to this screen to continue.
 continue button field: VT_fee_waiver_preview_question
 ---
+code: |
+  enable_al_nav_sections = True
 ---
-sections:
+code: |
+  reconsider("al_nav_sections")
+  reconsider_nav_once = True
+---
+code: |
+  reconsider("al_nav_sections")
+  reconsider_nav_twice = True
+---
+code: |
+  reconsider("al_nav_sections")
+  reconsider_nav_thrice = True
+---
+reconsider: True
+variable name: al_nav_sections
+data:
   - intro: Is this tool right for you?
   - about_you: About you
   - case_info: Your court case
@@ -142,10 +158,11 @@ sections:
   - any_defenses: Any defenses?
   - exempt_income: Any exempt income?
   - counterclaims: Any counterclaim?
+  - financial: Financial info
+    hidden: ${ not showifdef("wants_to_fill_out_financial_disclosure_when")  }
   - review_small_claims_answer: <i class="fa-solid fa-pencil"></i> <u>Edit your answers</u>
   - sign: Sign your document
   - get_docs: Download your document
-progressive: False
 ---
 #################### Interview order #####################
 ---
@@ -154,8 +171,9 @@ code: |
   user_role = "defendant"
   user_ask_role = "defendant"
   user_has_attorney = False
-  
+
   nav.set_section('intro')
+
   if was_sued == False:
     wrong_interview_kickout
   else:
@@ -218,11 +236,15 @@ code: |
   
   set_progress(80)  
   if wants_to_fill_out_financial_disclosure and wants_to_fill_out_financial_disclosure_when:
+    nav.set_section("financial")
+
     interview_order_financial_disclosure
     other_documents
 
   if wants_to_file_counterclaim:
     if (sued_by_collection_agency and len(counterclaims.true_values()) != 0 and wants_to_fill_out_fee_waiver_now) or (not sued_by_collection_agency and wants_to_fill_out_fee_waiver_now):
+      nav.set_section("financial")
+      reconsider_nav_twice
       interview_order_VT_fee_waiver
       fee_waiver_done
   
@@ -246,6 +268,7 @@ code: |
   if defined("counterclaims_amount") and counterclaims_amount > 0:
     get_merged_counterclaims
   small_claims_answer_preview_question
+  reconsider_nav_thrice
   set_progress(90)
   nav.set_section("sign")
   signature_date
@@ -286,7 +309,7 @@ subquestion: |
   - Court fee waiver form (if you want to make a "counterclaim" and you have a low income)
   - Financial Disclosure Affidavit (VTCourtForms will tell you if you need this)
   
-  <i class="fas fa-clock fa-2x"></i> It may take you 45 minutes to complete this. 
+  <i class="fas fa-clock fa-2x"></i> It may take you 20 minutes to complete this. It will take longer if you choose to fill out financial forms, too.
   
   <i class="fas fa-circle-info fa-2x"></i> It is free to use this program. This site is not a lawyer. Visit our [VTLawHelp.org website](https://vtlawhelp.org) for legal information.
   
