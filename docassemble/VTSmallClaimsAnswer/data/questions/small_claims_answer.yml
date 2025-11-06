@@ -1160,33 +1160,6 @@ review:
       % endif
 
 
-  - Edit:
-    - agrees_with_complaint
-    button: |
-      % if defined("agrees_with_complaint") and agrees_with_complaint:
-      **You want to agree with the complaint:** Yes
-      % else:
-      No
-      % endif
-      
-      % if payment["agrees_to_pay_in_full"]:
-      **You agree to pay in full within 30 days.**
-      % endif
-      % if payment["agrees_to_pay_installments"]:
-      **You would like to pay installments in this amount**: ${ currency(agrees_to_pay_installments_amount) }
-
-      **Every**: ${ agrees_to_pay_installments_period }
-
-      **Starting**: ${ agrees_to_pay_installments_start_date }
-      % endif
-      % if payment["agrees_to_pay_other"]:
-      You want to pay in a different way. 
-      
-      **Details**:
-      
-      ${ agrees_to_pay_other_description }
-      % endif
-
   - Edit: 
       - defenses
       - invalidate:
@@ -1216,6 +1189,28 @@ review:
       ${ single_paragraph(disagrees_additional_explanation) }
       % endif
 
+  - Edit:
+    - payment
+    - recompute:
+      - interview_order_small_claims_answer
+    button: |      
+      % if defined("payment") and payment == "agrees_to_pay_in_full":
+      **You agree with the complaint. You agree to pay in full within 30 days.**
+      % endif
+      % if defined("payment") and payment == "agrees_to_pay_installments":
+      **You agree with the complaint. You would like to pay installments in this amount**: ${ currency(agrees_to_pay_installments_amount) }
+
+      **Every**: ${ agrees_to_pay_installments_period }
+
+      **Starting**: ${ agrees_to_pay_installments_start_date }
+      % endif
+      % if defined("payment") and payment == "agrees_to_pay_other":
+      **You agree with the complaint. You want to pay in a different way.**
+      
+      Details:
+      ${ showifdef('agrees_to_pay_other_description') }
+
+      % endif
   - Edit:
       - wants_to_file_counterclaim
       - invalidate:
