@@ -221,10 +221,11 @@ code: |
     interview_order_financial_disclosure
     other_documents
 
-  if (sued_by_collection_agency and len(counterclaims.true_values()) != 0 and wants_to_fill_out_fee_waiver_now) or (not sued_by_collection_agency and wants_to_fill_out_fee_waiver_now):
-    interview_order_VT_fee_waiver
-    fee_waiver_done
-
+  if wants_to_file_counterclaim:
+    if (sued_by_collection_agency and len(counterclaims.true_values()) != 0 and wants_to_fill_out_fee_waiver_now) or (not sued_by_collection_agency and wants_to_fill_out_fee_waiver_now):
+      interview_order_VT_fee_waiver
+      fee_waiver_done
+  
   interview_order_VT_SC_COS
 
   set_progress(92)
@@ -560,7 +561,7 @@ fields:
     - "It has been at least six years since I incurred this debt.": long_time_since_debt
     - "It has been at least six years since my last payment of this debt.": long_time_since_payment
     - "**I do not owe this money for another reason**. (Tip: You can explain on the next screen.)": other_reason
-  none of the above: None of the above -- I have no defenses.
+  none of the above: None of the above -- I have no defenses. I agree with the complaint.
 ---
 # "!!omap" makes these terms ordered: 
 # their order here will be their same order when shown to users.
