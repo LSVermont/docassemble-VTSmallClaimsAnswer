@@ -1191,6 +1191,11 @@ review:
 
   - Edit:
     - payment
+    - invalidate:
+      - agrees_to_pay_installments_amount
+      - agrees_to_pay_installments_period 
+      - agrees_to_pay_installments_start_date
+      - agrees_to_pay_other_description
     - recompute:
       - interview_order_small_claims_answer
     button: |      
