@@ -623,16 +623,11 @@ depends on:
  - defenses['other_reason']
 id: agrees with the complaint
 question: |
-  You agree with the complaint?
+  You agree with the complaint
 subquestion: |
-  On the last screen, you did not choose any "defenses" to the small claims complaint against you. That means you agree with the amount you owe and who you owe. If that is true, check the box below.
-
-  You should only check the box below if your recall everything that ${ other_parties.short_list(2) } is saying in their complaint as true. If you are not sure, do not check this box. Go back one screen and choose a defense instead.
+  On the last screen, you did not choose any "defenses" to the small claims complaint against you. That means you agree with the amount you owe and who you owe. If that is not true, go back one screen and choose a defense instead.
 
   **When you agree with the complaint**: When you agree, the court may make a judgment saying that you owe the debt. Depending on your financial situation, you may have to pay the money back. You can ask the court for installment payments, but it is not certain that they will allow it.
-  
-  **I agree that I owe ${ other_parties.short_list(2) } the full amount claimed in the complaint and the court may enter a judgment against me.**
-
   
 fields:
   - note: |
