@@ -30,6 +30,7 @@ metadata:
     - "MO-10-00-00-00"
   authors:
     - K. Surette, VTCourtForms / Legal Services Vermont
+    - T. Fey, Lemma Legal
   original_form:
     - https://vtlawhelp.org/cfp/respond-small-claims-complaint
   original_form_published_on: 2025-02-01
@@ -286,7 +287,7 @@ subquestion: |
   - Court fee waiver form (if you want to make a "counterclaim" and you have a low income)
   - Financial Disclosure Affidavit (VTCourtForms will tell you if you need this)
   
-  <i class="fas fa-clock fa-2x"></i> It may take you 45 minutes to complete this. 
+  <i class="fas fa-clock fa-2x"></i> It may take you 40 minutes to complete this. 
   
   <i class="fas fa-circle-info fa-2x"></i> It is free to use this program. This site is not a lawyer. Visit our [VTLawHelp.org website](https://vtlawhelp.org) for legal information.
   
@@ -561,7 +562,7 @@ fields:
     - "It has been at least six years since I incurred this debt.": long_time_since_debt
     - "It has been at least six years since my last payment of this debt.": long_time_since_payment
     - "**I do not owe this money for another reason**. (Tip: You can explain on the next screen.)": other_reason
-  none of the above: None of the above -- I have no defenses. I agree with the complaint.
+  none of the above: None of the above -- **I have no defenses. I agree with the complaint.**
 ---
 # "!!omap" makes these terms ordered: 
 # their order here will be their same order when shown to users.
