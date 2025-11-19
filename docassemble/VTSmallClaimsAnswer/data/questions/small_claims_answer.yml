@@ -699,7 +699,7 @@ fields:
       - "Unemployment Compensation": unemployment
       - "Workers’ Compensation": workers_comp
   - note: |
-      Do you have other reasons why you think your income is exempt? (Exempt income cannot be taken to pay a debt.)
+      **Do you have other reasons why you think your income is exempt?** (Exempt income cannot be taken to pay a debt.)
   - "If so, you can tell the court the other reasons:": otherwise_exempt
     input type: area
     maxlength: 290
