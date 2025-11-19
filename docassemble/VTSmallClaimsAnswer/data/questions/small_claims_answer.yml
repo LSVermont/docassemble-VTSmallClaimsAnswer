@@ -1134,7 +1134,9 @@ review:
       % endif
 
   - Edit: 
-      - users.revisit
+      - users[0].name.first
+      - users[0].address.address
+      - users[0].phone_number
     button: |
       **About you**
 
