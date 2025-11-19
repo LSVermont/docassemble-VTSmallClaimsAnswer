@@ -1767,11 +1767,9 @@ review:
       - None
       % endif      
 
-  - note: |
-      ### Signature date ###
   - Edit: signature_date
     button: |
-      **Date of your signature on the answer form**:
+      **Date of your signature on your answer form**:
       ${ signature_date }
 
      
