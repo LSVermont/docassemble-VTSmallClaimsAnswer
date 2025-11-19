@@ -30,6 +30,7 @@ metadata:
     - "MO-10-00-00-00"
   authors:
     - K. Surette, VTCourtForms / Legal Services Vermont
+    - T. Fey, Lemma Legal
   original_form:
     - https://vtlawhelp.org/cfp/respond-small-claims-complaint
   original_form_published_on: 2025-02-01
@@ -133,8 +134,12 @@ subquestion: |
   Remember to come back to this screen to continue.
 continue button field: VT_fee_waiver_preview_question
 ---
+code: |
+  enable_al_nav_sections = True
 ---
-sections:
+reconsider: True
+variable name: al_nav_sections
+data:
   - intro: Is this tool right for you?
   - about_you: About you
   - case_info: Your court case
@@ -145,7 +150,6 @@ sections:
   - review_small_claims_answer: <i class="fa-solid fa-pencil"></i> <u>Edit your answers</u>
   - sign: Sign your document
   - get_docs: Download your document
-progressive: False
 ---
 #################### Interview order #####################
 ---
@@ -286,7 +290,7 @@ subquestion: |
   - Court fee waiver form (if you want to make a "counterclaim" and you have a low income)
   - Financial Disclosure Affidavit (VTCourtForms will tell you if you need this)
   
-  <i class="fas fa-clock fa-2x"></i> It may take you 45 minutes to complete this. 
+  <i class="fas fa-clock fa-2x"></i> It may take you 40 minutes to complete this. 
   
   <i class="fas fa-circle-info fa-2x"></i> It is free to use this program. This site is not a lawyer. Visit our [VTLawHelp.org website](https://vtlawhelp.org) for legal information.
   
@@ -561,7 +565,7 @@ fields:
     - "It has been at least six years since I incurred this debt.": long_time_since_debt
     - "It has been at least six years since my last payment of this debt.": long_time_since_payment
     - "**I do not owe this money for another reason**. (Tip: You can explain on the next screen.)": other_reason
-  none of the above: None of the above -- I have no defenses. I agree with the complaint.
+  none of the above: None of the above -- **I have no defenses. I agree with the complaint.**
 ---
 # "!!omap" makes these terms ordered: 
 # their order here will be their same order when shown to users.
@@ -672,9 +676,9 @@ subquestion: |
   
   As part of your answer, you can let the plaintiff and the court know if all or some of your income may be exempt from collection. Below are examples of exempt income.
   
-  **Check any boxes that apply to you.**
+  Check any boxes that apply to you.
 
-  I am currently eligible, or was eligible within the last two months, for benefits from these exempt sources:
+  **I am currently eligible, or was eligible within the last two months, for benefits from these exempt sources:**
 
 fields:
   - no label: has_exempt_income_state
@@ -683,11 +687,10 @@ fields:
       - "the Vermont Department for Children and Families (DCF)": DCF
       - "the Department of Vermont Health Access (DVHA)": DVHA
   - note: |
-      - Examples of DCF benefits include 3SquaresVT (food), Reach Up, General Assistance, Emergency Housing, Energy Assistance, Fuel Assistance and other programs as seen on this web page: [https://dcf.vermont.gov/benefits](https://dcf.vermont.gov/benefits).
-
-      - Examples of DVHA benefits include Medicaid and Dr. Dynasaur.
+      ${ collapse_template(dcf_examples) }
+      ${ collapse_template(dvha_examples) }
   - note: |
-      I have income from these exempt sources:
+      **I have income from these exempt sources:**
   - no label: has_exempt_income_other
     datatype: checkboxes
     choices:      
@@ -696,7 +699,7 @@ fields:
       - "Unemployment Compensation": unemployment
       - "Workers’ Compensation": workers_comp
   - note: |
-      Do you have other reasons why you think your income is exempt? (Exempt income cannot be taken to pay a debt.)
+      **Do you have other reasons why you think your income is exempt?** (Exempt income cannot be taken to pay a debt.)
   - "If so, you can tell the court the other reasons:": otherwise_exempt
     input type: area
     maxlength: 290
@@ -709,6 +712,18 @@ fields:
       <li>The debt is about a credit card or loan and my weekly wages are less than $290, so my wages are exempt from collection.</li></ul>
       
       **See the [list of exemptions in Vermont.](https://www.vermontjudiciary.org/media/23)**
+---
+template: dvha_examples
+subject: |
+  Examples of DVHA benefit programs
+content: |
+  Examples of DVHA benefits include Medicaid and Dr. Dynasaur.
+---
+template: dcf_examples
+subject: |
+  Examples of DCF benefit programs
+content: |
+  Examples of DCF benefits include 3SquaresVT (food), Reach Up, General Assistance, Emergency Housing, Energy Assistance, Fuel Assistance and other programs as seen on this web page: [https://dcf.vermont.gov/benefits](https://dcf.vermont.gov/benefits).
 ---
 id: counterclaims intro
 question: |
@@ -1631,6 +1646,20 @@ review:
       % else:
       **Edit employer name and address:** ${ jobs[3].employer.name.first }
       % endif
+
+  - Edit: 
+      - other_incomes.revisit
+    show if: wants_to_fill_out_financial_disclosure_when
+    button: |
+      **Other incomes**
+
+      % for income in other_incomes.complete_elements():
+      * ${ income.display_name.lower() }
+      % endfor
+
+      % if other_incomes.number_gathered() == 0:
+      - None
+      % endif
       
   - Edit: 
       - household_others.revisit
@@ -1738,11 +1767,9 @@ review:
       - None
       % endif      
 
-  - note: |
-      ### Signature ###
   - Edit: signature_date
     button: |
-      **Date of your signature on the answer form**:
+      **Date of your signature on your answer form**:
       ${ signature_date }
 
      
