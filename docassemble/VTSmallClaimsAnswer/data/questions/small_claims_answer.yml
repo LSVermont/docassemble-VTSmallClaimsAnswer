@@ -225,10 +225,9 @@ code: |
     interview_order_financial_disclosure
     other_documents
 
-  if wants_to_file_counterclaim:
-    if (sued_by_collection_agency and len(counterclaims.true_values()) != 0 and wants_to_fill_out_fee_waiver_now) or (not sued_by_collection_agency and wants_to_fill_out_fee_waiver_now):
-      interview_order_VT_fee_waiver
-      fee_waiver_done
+  if (sued_by_collection_agency and len(counterclaims.true_values()) != 0 and wants_to_fill_out_fee_waiver_now) or (not sued_by_collection_agency and wants_to_file_counterclaim and wants_to_fill_out_fee_waiver_now):
+    interview_order_VT_fee_waiver
+    fee_waiver_done
   
   interview_order_VT_SC_COS
 
