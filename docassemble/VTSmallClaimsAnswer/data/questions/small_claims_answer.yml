@@ -270,7 +270,9 @@ code: |
 ---
 ############# Code due to fee waiver and financial disclosure forms ##########
 code: |
-  if defined("household_size"):
+  if not household_others.there_are_any:
+    household_size = 1
+  elif defined("household_size"):
     household_others.target_number = household_size - 1
   elif defined("household_others.target_number"):
     household_size = household_others.target_number + 1
