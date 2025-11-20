@@ -724,7 +724,7 @@ template: dcf_examples
 subject: |
   Examples of DCF benefit programs
 content: |
-  Examples of DCF benefits include 3SquaresVT (food), Reach Up, General Assistance, Emergency Housing, Energy Assistance, Fuel Assistance and other programs as seen on this web page: [https://dcf.vermont.gov/benefits](https://dcf.vermont.gov/benefits).
+  Examples of DCF benefits include 3SquaresVT/SNAP (food), Reach Up, General Assistance, Emergency Housing, Energy Assistance, Fuel Assistance and other programs as seen on this web page: [https://dcf.vermont.gov/benefits](https://dcf.vermont.gov/benefits).
 ---
 id: counterclaims intro
 question: |
@@ -744,7 +744,7 @@ subquestion: |
   
   - You would pay $25 if your counterclaim is for $500 or less.
   - You would pay $35 if your counterclaim is between $501 and $10,000.
-  - If you have a low income, you can ask the court to waive the fee. You can use our VTCourtForms tool for the fee waiver form.
+  - If you have a low income or get public assistance, you can ask the court to waive the fee.
 
   Tap Next for the next screen.
   
@@ -817,6 +817,8 @@ fields:
     maxlength: 800
   - note: |
       If you do not want to file a counterclaim, tap the Undo button and go back to change your answer.
+
+      Learn more about counterclaims on [NCLC’s Surviving Debt website.](https://library.nclc.org/book/surviving-debt/common-counterclaims-raise)
 validation code: |
   if counterclaims_amount > 10035:
     validation_error(word("A counterclaim in small claims court can be between $1 and $10,000. You can also include your filing fee."), field="counterclaims_amount")
@@ -1203,8 +1205,10 @@ review:
 
       % if len(defenses.true_values()) > 0 and defined("disagrees_additional_explanation"):
       **More details:**
-      
-      ${ single_paragraph(disagrees_additional_explanation) }
+
+      % if defined("disagrees_additional_explanation"):
+      - ${ single_paragraph(fix_punctuation(disagrees_additional_explanation)) }
+      % endif
       % endif
 
   - Edit:
@@ -1257,6 +1261,10 @@ review:
       % for item in counterclaims.true_values():
       - ${ counterclaims_terms[item] }
       % endfor
+
+      % if defined("counterclaims_description"):
+      - ${ single_paragraph(fix_punctuation(counterclaims_description)) }
+      % endif
       
       % else:
       **You have a counterclaim against ${ other_parties.short_list(2) }**: No
@@ -1272,12 +1280,12 @@ review:
       % if wants_to_file_counterclaim and sued_by_collection_agency and counterclaims_amount > 0:
       **More details about your counterclaim**:
 
-      ${ single_paragraph(counterclaims_description) }
+      ${ single_paragraph(fix_punctuation(counterclaims_description)) }
       
       % elif defined("counterclaims_description") and counterclaims_amount > 0:
       **Details about your counterclaim**:
 
-      ${ single_paragraph(counterclaims_description) }
+      ${ single_paragraph(fix_punctuation(counterclaims_description)) }
       % endif      
 
 
@@ -1330,8 +1338,7 @@ review:
       - recompute:
         - interview_order_small_claims_answer
     button: |
-      **You want to fill out a fee waiver form for your counterclaim**:   
-      ${ word(yesno(wants_to_fill_out_fee_waiver_now)) }  
+      **You want to fill out a fee waiver form for your counterclaim**: ${ word(yesno(wants_to_fill_out_fee_waiver_now)) }  
   - Edit: household_size
     show if: wants_to_fill_out_fee_waiver_now
     button: |
@@ -1689,13 +1696,13 @@ review:
       % if users1_income_very_different_30_days:
       **Details on different income**
 
-      Why the income has been very different:
+      - Why the income has been very different:
       ${ single_paragraph(users1_income_very_different_30_days_why) }
 
-      Your current income during last 30 days:
+      - Your current income during last 30 days:
       ${ currency(users1_income_very_different_30_days_amount) }
 
-      Other household members current income during last 30 days:
+      - Other household members current income during last 30 days:
       ${ currency(household_income_very_different_30_days_amount) }
       % endif      
 
@@ -2083,7 +2090,7 @@ attachment:
           ${ True }
           % endif
       - "disagrees_with_complaint_description": |
-          ${ small_claims_answer_attachment.safe_value("merged_defenses_text") }
+          ${ fix_punctuation(small_claims_answer_attachment.safe_value("merged_defenses_text")) }
       - "has_exempt_income": |
           % if len(has_exempt_income_state.true_values()) > 0:
           ${ True }
@@ -2100,7 +2107,7 @@ attachment:
           % endif
       - "counterclaim_description": |
           % if counterclaims_amount > 0:
-          I have a counterclaim for ${ currency(counterclaims_amount)}. ${ small_claims_answer_attachment.safe_value("merged_counterclaims_text") } 
+          I have a counterclaim for ${ currency(counterclaims_amount)}. ${ fix_punctuation(small_claims_answer_attachment.safe_value("merged_counterclaims_text")) } 
           % endif
       - "users1_name_1": ${ users[0] }
       - "users1_mailing_address_address": |
