@@ -263,7 +263,7 @@ code: |
           "zip": showifdef("users[0].address.zip"),
           "county_where_filing": showifdef("trial_court.address.county"),
           "amount_of_claim_in_complaint": showifdef("sued_for"),
-      	  "how_many_defenses": len(defenses),	
+      	  "how_many_defenses": len(defenses.true_values()),
           "amount_of_any_counterclaim": showifdef("counterclaims_amount"),
        	  "did_fee_waiver": showifdef("VT_fee_waiver_attachment.enabled"),
           "did_disclosure_exempt_inc": showifdef("disclosure_of_exempt_income_attachment.enabled"),
