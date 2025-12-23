@@ -160,6 +160,8 @@ code: |
   user_has_attorney = False
   
   nav.set_section('intro')
+  VT_start_time
+  log(VT_start_time,"console")
   if was_sued == False:
     wrong_interview_kickout
   else:
@@ -255,6 +257,7 @@ code: |
   set_progress(95)
   al_form_requires_digital_signature = False
   basic_questions_signature_flow
+  VT_end_time
   
   # Store anonymous data for analytics / statistics
   store_variables_snapshot(
@@ -265,18 +268,31 @@ code: |
           "amount_of_claim_in_complaint": showifdef("sued_for"),
       	  "how_many_defenses": len(defenses.true_values()),
           "amount_of_any_counterclaim": showifdef("counterclaims_amount"),
-       	  "did_fee_waiver": showifdef("VT_fee_waiver_attachment.enabled"),
-          "did_disclosure_exempt_inc": showifdef("disclosure_of_exempt_income_attachment.enabled"),
-      	  "did_financial_disc": showifdef("financial_disclosure_attachment.enabled"),
+       	  "did_fee_waiver": defined("VT_fee_waiver_attachment") and VT_fee_waiver_attachment.is_enabled(),
+          "did_disclosure_exempt_inc": defined("disclosure_of_exempt_income_attachment") and disclosure_of_exempt_income_attachment.is_enabled(),
+          "did_financial_disc": defined("financial_disclosure_attachment") and financial_disclosure_attachment.is_enabled(),
           "when_served": showifdef("sued_when_served"),
           "todays_date": today(),
           "reached_interview_end": True,
+          #"elapsed_time": date_difference(starting=VT_start_time,ending=VT_end_time),
           "num_forms": len(al_user_bundle.enabled_documents()),
       },
   )
   nav.set_section("get_docs")
   small_claims_answer_download
 ---
+---
+# try to capture user start time and end time
+---
+code: |
+  VT_start_time = current_datetime()
+---
+code: |
+  VT_end_time = current_datetime()
+---
+
+
+
 ############# Code due to fee waiver and financial disclosure forms ##########
 code: |
   if not household_others.there_are_any:
@@ -1992,6 +2008,9 @@ question: |
   ${ download_screen_instructions_headline }
 subquestion: |
   
+  ${date_difference(starting = VT_start_time, ending = VT_end_time)}
+
+
   ${ download_screen_instructions }
 
   ${ action_button_html(url_action('review_small_claims_answer'), label='<i class="fa-solid fa-pencil"></i> Edit your answers', color='info') }
