@@ -1375,6 +1375,8 @@ review:
       % endif
   - Edit: 
       - employed
+      - follow up:
+        - review_jobs
     show if: wants_to_fill_out_fee_waiver_now
     button: |
       **Employed**
