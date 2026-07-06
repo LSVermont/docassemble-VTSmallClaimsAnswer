@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "docassemble.VTSmallClaimsAnswer"
-version = "1.0"
+version = "1.1"
 description = "Small claims answer"
 readme = "README.md"
 dependencies = [
@@ -15,7 +15,6 @@ dependencies = [
     "docassemble.VTDisclosureOfExemptIncome @ git+https://github.com/LSVermont/docassemble-VTDisclosureOfExemptIncome.git@main",
     "docassemble.VTFeeWaiverWithIncludeYMLFile @ git+https://github.com/VTskier/docassemble-VTFeeWaiverWithIncludeYMLFile.git@main",
     "docassemble.VTFeedback @ git+https://github.com/VTskier/docassemble-VTFeedback.git@main",
-    "docassemble.VTSmallClaimsCertificateOfService @ git+https://github.com/LSVermont/docassemble-VTSmallClaimsCertificateOfService.git@main",
 ]
 
 [[project.authors]]
