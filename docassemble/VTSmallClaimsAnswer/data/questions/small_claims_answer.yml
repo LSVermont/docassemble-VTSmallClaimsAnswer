@@ -452,7 +452,7 @@ fields:
     maxlength: 38
     required: false
 ---
-id: names of opposing parties
+id: name and address of opposing parties
 sets:
   - other_parties[i].name.first
   - other_parties[i].name.last
@@ -460,9 +460,9 @@ sets:
   - other_parties[i].name.suffix
 question: |
   % if user_started_case:
-  Name of ${ ordinal(i) } defendant
+  Name and address of ${ ordinal(i) } defendant
   % else:
-  Name of ${ ordinal(i) } plaintiff in this case
+  Name and address of ${ ordinal(i) } plaintiff in this case
   % endif
 subquestion: |
   % if user_started_case:
@@ -475,6 +475,27 @@ subquestion: |
 fields:
   - code: |
       other_parties[i].name_fields(person_or_business='unsure')
+  - code: |
+      other_parties[i].address_fields(default_state=AL_DEFAULT_STATE)
+  - They have a mailing address that is different from their street address: other_parties[i].mailing_address_different
+    datatype: yesno
+  - Mailing address: other_parties[i].mailing_address.address
+    address autocomplete: True
+    show if: other_parties[i].mailing_address_different
+  - Unit: other_parties[i].mailing_address.unit
+    required: False
+    show if: other_parties[i].mailing_address_different
+  - City: other_parties[i].mailing_address.city
+    show if: other_parties[i].mailing_address_different
+  - State: other_parties[i].mailing_address.state
+    code: |
+      states_list()
+    default: VT
+    show if: other_parties[i].mailing_address_different
+  - Zip or postal code: other_parties[i].mailing_address.zip
+    required: False
+    show if: other_parties[i].mailing_address_different
+
 ---
 id: any other opposing parties
 question: |
@@ -1153,20 +1174,7 @@ review:
 
       % for item in users:
       - ${ item }
-      
-      ${ item.address }
-
-      % if defined("item.mailing_address.address"):
-      Mailing address:
-      
-      ${ item.mailing_address }
-      % endif
-      
-      ${ item.phone_number }
-      
-      ${ item.work_phone_number }
-      
-      ${ item.email }
+ 
       % endfor
   - Edit: other_parties.revisit
     button: |
