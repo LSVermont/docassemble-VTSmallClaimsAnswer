@@ -4,7 +4,7 @@ include:
   - docassemble.VTSmallClaimsCertificateOfService:small_claims_certificate_of_service.yml
   - docassemble.VTFinancialDisclosure:VT_financial_disclosure_to_include.yml
   - docassemble.VTDisclosureOfExemptIncome:disclosure_of_exempt_income_to_include.yml
-  - docassemble.VTFeeWaiverWithIncludeYMLFile:VT_fee_waiver_to_include.yml
+  - docassemble.VTFeeWaiver:VT_fee_waiver_to_include.yml
   - docassemble.AssemblyLine:assembly_line.yml
   - docassemble.ALToolbox:phone-number-validation.yml
   - docassemble.VTSharedYMLFile:VTSharedYMLFile.yml
@@ -124,15 +124,15 @@ code: |
   al_menu_items = al_menu_items_tmp
   del al_menu_items_tmp
 ---
-event: edit_answers_screen
-id: edit answers screen
-question: |
-  Edit your answers
-subquestion: |
-  ${ action_button_html(url_action('review_small_claims_answer'), label='<i class="fa-solid fa-pencil"></i> Edit your answers', color='info') }
-  
-  Remember to come back to this screen to continue.
-continue button field: VT_fee_waiver_preview_question
+#event: edit_answers_screen
+#id: edit answers screen
+#question: |
+#  Edit your answers
+#subquestion: |
+#  ${ action_button_html(url_action('review_small_claims_answer'), label='<i class="fa-solid fa-pencil"></i> Edit your answers', color='info') }
+#  
+#  Remember to come back to this screen to continue.
+#continue button field: VT_fee_waiver_preview_question
 ---
 code: |
   enable_al_nav_sections = True
@@ -333,7 +333,7 @@ id: screening when served
 question: |
   Is this tool right for you?
 subquestion: | 
-  When did you receive the complaint?
+  When did you get the complaint?
 fields:
   - Date: sued_when_served    
     datatype: date
@@ -2043,7 +2043,7 @@ objects:
   - small_claims_answer_attachment: ALDocument.using(title="Small claims answer", filename="small_claims_answer", enabled=True, has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - disclosure_of_exempt_income_attachment: ALDocument.using(title="Disclosure of exempt income", filename="disclosure_of_exempt_income", has_addendum=False, )
   - financial_disclosure_attachment: ALDocument.using(title="Financial Disclosure form", filename="VT_financial_disclosure.pdf", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
-  - VT_fee_waiver_attachment: ALDocument.using(title="Fee waiver form", filename="VT_fee_waiver.pdf", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - VT_fee_waiver_attachment: ALDocument.using(title="Fee waiver form", filename="VT_fee_waiver_to_include.pdf", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 
 # Bundles group the ALDocuments into separate downloads, such as for court and for the user
