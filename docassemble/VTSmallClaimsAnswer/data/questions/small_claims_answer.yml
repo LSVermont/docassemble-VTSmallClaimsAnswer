@@ -158,6 +158,7 @@ code: |
   user_role = "defendant"
   user_ask_role = "defendant"
   user_has_attorney = False
+  ask_about_representative_signature = True
   
   nav.set_section('intro')
   if was_sued == False:
@@ -251,6 +252,7 @@ code: |
   small_claims_answer_preview_question
   set_progress(90)
   nav.set_section("sign")
+  ask_about_representative_signature = True
   signature_date
   set_progress(95)
   al_form_requires_digital_signature = False
@@ -1082,24 +1084,24 @@ continue button field: small_claims_answer_preview_question
 code: |
   signature_fields = ['users[0].signature']
 ---
-id: Signing your forms
-question: |
-  Signature date
-fields:
-  - "This is how your name will appear under your signature.": printed_signature
-    default: |
-      ${ users[0].name }
-    maxlength: 34
-
-  - "Date of your signature for these forms": signature_date
-    datatype: date
-    required: False
-    default: |
-      ${ today() }
-  -  note: |
-       You can change this date later if you want.
-       
-       **Tap Next to choose how to sign your documents.**
+#id: Signing your forms
+#question: |
+#  Signature date
+#fields:
+#  - "This is how your name will appear under your signature.": printed_signature
+#    default: |
+#      ${ users[0].name }
+#    maxlength: 34
+#
+#  - "Date of your signature for these forms": signature_date
+#    datatype: date
+#    required: False
+#    default: |
+#      ${ today() }
+#  -  note: |
+#       You can change this date later if you want.
+#       
+#       **Tap Next to choose how to sign your documents.**
 ---
 id: signature choice
 decoration: file-signature
