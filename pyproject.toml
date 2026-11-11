@@ -13,7 +13,7 @@ dependencies = [
     "docassemble.AssemblyLine @ git+https://github.com/SuffolkLITLab/docassemble-AssemblyLine.git@main",
     "docassemble.GithubFeedbackForm @ git+https://github.com/SuffolkLITLab/docassemble-GithubFeedbackForm.git@main",
     "docassemble.VTDisclosureOfExemptIncome @ git+https://github.com/LSVermont/docassemble-VTDisclosureOfExemptIncome.git@main",
-    "docassemble.VTFeeWaiver @ git+https://github.com/LSVermont/docassemble-VTFeeWaiver.git@main",
+    "docassemble.VTFeeWaiver @ git+https://github.com/LSVermont/docassemble-VTFeeWaiver.git@UpdatePrintedSignFields",
     "docassemble.VTFeedback @ git+https://github.com/VTskier/docassemble-VTFeedback.git@main",
 ]
 

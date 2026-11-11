@@ -2212,5 +2212,5 @@ attachment:
           % endif
       - "signature_date": ${ signature_date }
       - "users1_signature": ${ users[0].signature_if_final(i) }
-
+      - "printed_signature": ${ printed_signature }
 ---
