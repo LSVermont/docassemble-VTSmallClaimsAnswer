@@ -2108,10 +2108,10 @@ code: |
 # ALDocument objects specify the metadata for each template
 objects:
   - small_claims_answer_Post_interview_instructions: ALDocument.using(title="NEXT STEPS - Instructions for filing these forms with the court", filename="small_claims_answer_next_steps.docx", enabled=True, has_addendum=False)
-  - small_claims_answer_attachment: ALDocument.using(title="Small claims answer", filename="small_claims_answer", enabled=True, has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
-  - disclosure_of_exempt_income_attachment: ALDocument.using(title="Disclosure of exempt income", filename="disclosure_of_exempt_income", has_addendum=False, )
-  - financial_disclosure_attachment: ALDocument.using(title="Financial Disclosure form", filename="VT_financial_disclosure.pdf", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
-  - VT_fee_waiver_attachment: ALDocument.using(title="Fee waiver form", filename="VT_fee_waiver_to_include.pdf", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - small_claims_answer_attachment: ALDocument.using(title="Small Claims Answer 100-00126", filename="small_claims_answer_100-00126", enabled=True, has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - disclosure_of_exempt_income_attachment: ALDocument.using(title="Disclosure of Exempt Income 100-00128", filename="small_claims_disclosure_exempt_income_100-00128", has_addendum=False, )
+  - financial_disclosure_attachment: ALDocument.using(title="Financial Disclosure form 100-00127", filename="small_claims_financial_disclosure_100-00127", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - VT_fee_waiver_attachment: ALDocument.using(title="Application to waive filing fees 600-00228", filename="application_waive_filing_fees_600-00228", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 
 # Bundles group the ALDocuments into separate downloads, such as for court and for the user
