@@ -14,6 +14,7 @@ dependencies = [
     "docassemble.GithubFeedbackForm @ git+https://github.com/SuffolkLITLab/docassemble-GithubFeedbackForm.git@main",
     "docassemble.VTFeeWaiver @ git+https://github.com/LSVermont/docassemble-VTFeeWaiver.git@main",
     "docassemble.VTFeedback @ git+https://github.com/VTskier/docassemble-VTFeedback.git@main",
+    "docassemble.VTSharedYMLFile @ git+https://github.com/LSVermont/docassemble-VTSharedYMLFile.git@main",
 ]
 
 [[project.authors]]
