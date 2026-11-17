@@ -242,6 +242,7 @@ comment: |
 mandatory: True
 code: |
   al_intro_screen
+  VT_start_time
   interview_order_small_claims_answer
   nav.set_section("review_small_claims_answer")
   trial_court.address.county
@@ -258,6 +259,8 @@ code: |
   set_progress(95)
   al_form_requires_digital_signature = False
   basic_questions_signature_flow
+  VT_end_time
+  elapsed
   
   # Store anonymous data for analytics / statistics
   store_variables_snapshot(
