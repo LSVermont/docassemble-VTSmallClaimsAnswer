@@ -517,7 +517,7 @@ question: |
 subquestion: |
   Look at the forms you got from the court to see the docket number / case number. It's usually in the upper-right of the forms. The number will be formatted like this example: 25-SC-00000.
 fields:
-  - I don't know the case number: dont_know_docket_number
+  - I do not know the case number: dont_know_docket_number
     datatype: yesno    
   - Case number: docket_number
     hide if: dont_know_docket_number
@@ -589,7 +589,7 @@ fields:
 - "Check any boxes that describe your situation, or check None.": defenses
   datatype: checkboxes
   choices:
-    - "I don’t owe money to the plaintiff.": dont_owe
+    - "I do not owe money to the plaintiff.": dont_owe
     - "I do not know if the plaintiff's claims are true.": dont_know
     - "I have already paid the plaintiff.": already_paid
     - "The dollar amount the plaintiff is asking for does not match the dollar amount I actually owe. (Tip: If you cannot recall all the amounts, or if you are not sure, check this box.)": amount_doesnt_match
@@ -606,7 +606,7 @@ fields:
 # their order here will be their same order when shown to users.
 variable name: defenses_terms
 data: !!omap
-  - dont_owe: "I don’t owe money to the plaintiff."
+  - dont_owe: "I do not owe money to the plaintiff."
   - dont_know: "I do not know if the plaintiff's claims are true."
   - already_paid: "I have already paid the plaintiff."
   - do_not_recognize: "I do not recognize this debt."
@@ -802,7 +802,7 @@ fields:
   - Check any box that describes your situation, or check None: counterclaims
     datatype: checkboxes
     choices:
-      - "The plaintiffs are not the original creditor or lender of the money, and I didn't get a letter from them alerting me to my debt before I was sued.": no_notice
+      - "The plaintiffs are not the original creditor or lender of the money, and I did not get a letter from them alerting me to my debt before I was sued.": no_notice
       - "The plaintiffs are not the original creditor or lender of the money, and they made statements that were not true or were misleading about the debt.": false_statements
       - "The plaintiffs are not the original creditor or lender of the money, and they harassed me and they violated the Fair Debt Collection Practices Act (FDCPA).": harassment
       - "The plaintiffs **owe me money for another reason**. (Tip: You can explain on the next screen.": plaintiff_owes_me_other_reason
@@ -873,7 +873,7 @@ variable name: counterclaims_terms
 data: !!omap
   - plaintiff_owes_money: "I believe the plaintiff owes me money."
   - plaintiff_not_original_creditor: "The plaintiff is not the original creditor or lender of the money, and they violated the Fair Debt Collection Practices Act (FDCPA)."
-  - no_notice: "The plaintiff is not the original creditor or lender of the money, and I didn't get a letter from them alerting me to my debt before I was sued."
+  - no_notice: "The plaintiff is not the original creditor or lender of the money, and I did not get a letter from them alerting me to my debt before I was sued."
   - false_statements: "The plaintiff is not the original creditor or lender of the money, and they made statements that were not true or were misleading about the debt."
   - harassment: "The plaintiff is not the original creditor or lender of the money, and they harassed me and they violated the Fair Debt Collection Practices Act (FDCPA)."
   - plaintiff_owes_me_other_reason: "The plaintiff owes me money."
