@@ -254,6 +254,7 @@ code: |
   nav.set_section("sign")
   ask_about_representative_signature = True
   signature_date
+  printed_signature
   set_progress(95)
   al_form_requires_digital_signature = False
   basic_questions_signature_flow
