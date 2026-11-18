@@ -278,6 +278,7 @@ code: |
           "todays_date": today(),
           "reached_interview_end": True,
           "num_forms": len(al_user_bundle.enabled_documents()),
+          "elapsed_time_seconds": showifdef("elapsed.seconds"),
       },
   )
   nav.set_section("get_docs")
